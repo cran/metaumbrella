@@ -1,0 +1,356 @@
+#' Meta-analyses exploring the efficacy of surgical and pharmacological interventions.
+#'
+#' Fictitious dataset of two meta-analyses of RCTs assessing the efficacy of surgical
+#'  and pharmacological interventions on a numeric outcome.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the intervention studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the RCTs.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (SMD).\cr
+#'   \tab \cr
+#'   \strong{value} \tab SMD value.\cr
+#'   \tab \cr
+#'   \strong{se} \tab standard error of the SMD.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{mean_cases} \tab means of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{mean_controls} \tab means of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{sd_cases} \tab standard errors of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{sd_controls} \tab standard errors of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{rob} \tab risk of bias of the study\cr
+#'   \tab \cr
+#'   \strong{amstar} \tab AMSTAR score of the meta-analysis\cr
+#'   \tab \cr
+#'   \strong{shared_controls} \tab studies with the same value shared their control group\cr
+#'   \tab \cr
+#' }
+#'
+#' @source No source, the data are entirely fictitious
+"df.SMD"
+
+#' Meta-analyses exploring a risk factor for neurodevelopmental disorders.
+#'
+#' Fictitious dataset of four meta-analyses of cross-sectional studies assessing a risk factor for neurodevelopmental disorders.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the neurodevelopmental disorders on which the effect of the risk factor\cr
+#'   \tab is studied\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the cross-sectional studies.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (OR).\cr
+#'   \tab \cr
+#'   \strong{value} \tab OR value.\cr
+#'   \tab \cr
+#'   \strong{se} \tab standard error of the log OR\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases (sum of the number of cases in the exposed\cr
+#'   \tab and non-exposed groups).\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of controls (sum of the number of controls in the exposed\cr
+#'   \tab and non-exposed groups).\cr
+#'   \tab \cr
+#'   \strong{n_exp} \tab number of patients in the exposed group (sum of the number of cases and\cr
+#'   \tab controls in the exposed group).\cr
+#'   \tab \cr
+#'   \strong{n_nexp} \tab number of patients in the non-exposed group (sum of the number of cases\cr
+#'   \tab and controls in the non-exposed group).\cr
+#'   \tab \cr
+#'   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_controls_exp} \tab number of controls in the exposed group..\cr
+#'   \tab \cr
+#'   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_controls_nexp} \tab number of controls in the non-exposed group.\cr
+#'   \tab \cr
+#' }
+#' @source No source, the data are entirely fictitious
+"df.OR"
+
+#' Meta-analysis of RCTs assessing the efficacy of n-3 fatty acids
+#'
+#' Fictitious multilevel dataset of a meta-analysis of RCTs assessing the efficacy of n-3 fatty acids on binary outcomes.\cr
+#'  The study of al-Jabara (2008) includes two effect sizes resulting from two independent RCTs.\cr
+#'  The studies of Godebu (1985), Blase (2002) and Rivera (2000) include several effect sizes resulting from the presence of several outcomes measured in the same sample.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the intervention studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the RCTs.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (OR).\cr
+#'   \tab \cr
+#'   \strong{value} \tab OR value.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases (sum of the number of cases in the exposed and\cr
+#'   \tab non-exposed groups).\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of controls (sum of the number of controls in the exposed\cr
+#'   \tab and non-exposed groups).\cr
+#'   \tab \cr
+#'   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_controls_exp} \tab number of controls in the exposed group..\cr
+#'   \tab \cr
+#'   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_controls_nexp} \tab number of controls in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{multiple_es} \tab indicates the reason of the presence for multiple effect sizes\cr
+#'   \tab (due to multiple groups or outcomes) per study.\cr
+#'   \tab \cr
+#' }
+#' @source No source, the data are entirely fictitious
+"df.OR.multi"
+
+#' Meta-analysis of the adverse events of antidepressants.
+#'
+#' Fictitious dataset of a meta-analysis of cohort studies assessing the risks of adverse outcomes when taking selective serotonin reuptake inhibitors (SSRIs) therapy.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the type of antidepressant studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the cohort study.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (RR).\cr
+#'   \tab \cr
+#'   \strong{value} \tab RR value.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_exp} \tab number of patients in the exposed group (sum of the number of cases and\cr
+#'   \tab controls in the exposed group).\cr
+#'   \tab \cr
+#'   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_nexp} \tab number of patients in the non-exposed group (sum of the number of cases\cr
+#'   \tab and controls in the non-exposed group).\cr
+#'   \tab \cr
+#' }
+#' @source No source, the data are entirely fictitious
+"df.RR"
+
+#' Meta-analysis exploring adverse events of smoking.
+#'
+#' Fictitious dataset of a meta-analysis of prospective controlled cohorts assessing adverse effects of smoking.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the neurodevelopmental disorders on which the effect of the risk factor\cr
+#'   \tab is studied\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the retrospective cohorts.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (IRR).\cr
+#'   \tab \cr
+#'   \strong{value} \tab IRR value.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases (sum of the number of cases in the exposed and non-exposed\cr
+#'   \tab groups).\cr
+#'   \tab \cr
+#'   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{time} \tab total person-time at risk (sum of the person-time at risk in the exposed and\cr
+#'   \tab non-exposed groups).\cr
+#'   \tab \cr
+#'   \strong{time_exp} \tab person-time at risk in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{time_nexp} \tab person-time at risk in the non-exposed group.\cr
+#'   \tab \cr
+#'}
+#'
+#' @source No source, the data are entirely fictitious
+"df.IRR"
+
+#' Meta-analyses exploring the efficacy of several interventions on a binary outcome.
+#'
+#' Fictitious dataset of four meta-analyses of RCTs assessing the efficacy of yoga, aerobic training,
+#' resistance training and mindfulness on a numeric outcome
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the intervention studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the RCTs.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (HR).\cr
+#'   \tab \cr
+#'   \strong{value} \tab HR value.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases.\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of controls.\cr
+#'   \tab \cr
+#'}
+#'
+#' @source No source, the data are entirely fictitious
+"df.HR"
+
+#' Training dataset
+#'
+#' This is a non-formatted dataset to illustrate how to obtain a well-formatted dataset.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{comment} \tab comments on studies.\cr
+#'   \tab \cr
+#'   \strong{risk_factor} \tab name of the intervention studied.\cr
+#'   \tab \cr
+#'   \strong{author_study} \tab first study author of the study\cr
+#'   \tab \cr
+#'   \strong{year_publication_study} \tab year of publication of the study.\cr
+#'   \tab \cr
+#'   \strong{type_of_effect_size} \tab type of effect size.\cr
+#'   \tab \cr
+#'   \strong{number_of_cases_exposed} \tab number of cases exposed\cr
+#'   \tab \cr
+#'   \strong{number_of_cases_non_exposed} \tab number of cases non-exposed\cr
+#'   \tab \cr
+#'   \strong{number_of_controls_exposed} \tab number of controls exposed\cr
+#'   \tab \cr
+#'   \strong{number_of_controls_non_exposed} \tab number of controls non-exposed\cr
+#'   \tab \cr
+#'   \strong{number_of_participants_exposed} \tab total number of participants exposed\cr
+#'   \tab \cr
+#'   \strong{number_of_participants_non_exposed} \tab total number of participants non-exposed\cr
+#'   \tab \cr
+#'   \strong{number_of_cases} \tab number of cases.\cr
+#'   \tab \cr
+#'   \strong{number_of_controls} \tab number of controls.\cr
+#'   \tab \cr
+#'   \strong{effect_size_value} \tab value of the effect size\cr
+#'   \tab \cr
+#'   \strong{low_bound_ci} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{up_bound_ci} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{time_disease_free} \tab time \cr
+#'   \tab \cr
+#'   \strong{mean_of_intervention_group} \tab mean of the intervention group\cr
+#'   \tab \cr
+#'   \strong{mean_of_control_group} \tab mean of the control group\cr
+#'   \tab \cr
+#'   \strong{sd_of_intervention_group} \tab sd of the intervention group\cr
+#'   \tab \cr
+#'   \strong{sd_of_control_group} \tab sd of the control group\cr
+#'   \tab \cr
+#'}
+#'
+#' @source No source, the data are entirely fictitious
+"df.train"
+
+
+#' Meta-analyses exploring the risk factors for posttraumatic stress disorder.
+#'
+#' Real dataset taken from Tortella-Feliu et al. (2019).
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the risk factor.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the RCTs.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication.\cr
+#'   \tab \cr
+#'   \strong{multiple_es} \tab indicates the reason of the presence of multiple effect sizes \cr
+#'   \tab (due to multiple groups or outcomes) per study.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size.\cr
+#'   \tab \cr
+#'   \strong{value} \tab value of the effect size.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases.\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of controls.\cr
+#'   \tab \cr
+#'   \strong{n_exp} \tab number of patients in the exposed group (sum of the number of cases\cr
+#'   \tab and controls in the exposed group).\cr
+#'   \tab \cr
+#'   \strong{n_nexp} \tab number of patients in the non-exposed group (sum of the number of cases\cr
+#'   \tab and controls in the non-exposed group).\cr
+#'   \tab \cr
+#'   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_controls_exp} \tab number of controls in the exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{n_controls_nexp} \tab number of controls in the non-exposed group.\cr
+#'   \tab \cr
+#'   \strong{mean_cases} \tab means of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{sd_cases} \tab standard errors of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{mean_controls} \tab means of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{sd_controls} \tab standard errors of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{amstar} \tab AMSTAR score of the meta-analysis\cr
+#'   \tab \cr
+#'   }
+#'
+#' @source Tortella-Feliu, M. and Fullana, M.A., Perez-Vigil, A., Torres, X., Chamorro, J., and Littarelli, Sergio A., ..., & Radua, J. (2019). Risk Factors for Posttraumatic Stress Disorder: An Umbrella Review of Systematic Reviews and Meta-Analyses.
+#' \emph{Neuroscience & Biobehavioral Reviews}, \bold{107}, 154--165.
+"df.radua2019"
