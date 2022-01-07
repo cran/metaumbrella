@@ -72,20 +72,20 @@ The package includes 3 core functions:
 <ol>
 
 <li>
-the `umbrella` function
+the `umbrella()` function
 </li>
 
 <li>
-the `add.evidence` function
+the `add.evidence()` function
 </li>
 
 <li>
-the `forest` function
+the `forest()` function
 </li>
 
 </ol>
 
-<b>1. umbrella</b> The `umbrella` function allows to perform the calculations required to stratify the evidence. The main argument required by this function is a well-formatted dataset. How properly formatting your dataset is beyond the scope of this vignette but general guidance can be found in the manual of this package and another vignette is specifically dedicated to this issue. <br> Once your dataset has been correctly formatted, it is used as an argument of the umbrella function, which automatically:
+<b>1. umbrella()</b> The `umbrella()` function allows to perform the calculations required to stratify the evidence. The main argument required by this function is a well-formatted dataset. How properly formatting your dataset is beyond the scope of this vignette but general guidance can be found in the manual of this package and another vignette is specifically dedicated to this issue. <br> Once your dataset has been correctly formatted, it is used as an argument of the umbrella function, which automatically:
 
 <ul>
 
@@ -125,11 +125,11 @@ umb <- umbrella(df.SMD)
 </p>
 
 <p>
-<b>2. add.evidence</b> The `add.evidence` function uses the calculations performed by the `umbrella` function to perform a stratification of evidence according to algorithmic criteria:
+<b>2. add.evidence()</b> The `add.evidence()` function uses the calculations performed by the `umbrella()` function to perform a stratification of evidence according to algorithmic criteria:
 
 <ul>
 <li>
-Ioannidis: this criteria strictly applies the guidelines described by Fusar-Poli & Radua (2018).
+Ioannidis: this criteria strictly applies the classification described in Fusar-Poli & Radua (2018).
 </li>
 
 <li>
@@ -148,7 +148,7 @@ Personalized: this criteria allows users to chose up to 13 criteria to stratify 
 
 </p>
 
-To obtain a stratification of evidence according to the Ioannidis criteria, it only requires to specify `criteria = "Ioannidis"` in the `add.evidence` function.
+To obtain a stratification of evidence according to the Ioannidis criteria, it only requires to specify `criteria = "Ioannidis"` in the `add.evidence()` function.
 
 ```{r, eval=FALSE}
 umb <- umbrella(df.SMD)
@@ -161,7 +161,7 @@ strat.io <- add.evidence(umb.SMD, criteria = "Ioannidis")
 
 </p>
 
-To obtain a stratification of evidence according to the GRADE criteria, it only requires to specify `criteria = "GRADE"` in the `add.evidence` function.
+To obtain a stratification of evidence according to the GRADE criteria, it only requires to specify `criteria = "GRADE"` in the `add.evidence()` function.
 
 ```{r, eval=FALSE}
 umb <- umbrella(df.SMD)
@@ -207,7 +207,7 @@ strat.prso <- add.evidence(umb, criteria = "Personalized",
 
 <p>
 
-<b>3. forest</b> The `forest` function allows to have a visualization of the results of the umbrella review</b>
+<b>3. forest()</b> The `forest()` function allows to have a visualization of the results of the umbrella review</b>
 
 </p>
 
@@ -272,12 +272,12 @@ DT::datatable(summary(umb.OR), options = list(
 ```
 
 <p>
-This output shows the results of the calculations conducted by the `umbrella` function. Results are presented independently for each factor included in the dataset.
+This output shows the results of the calculations conducted by the `umbrella()` function. Results are presented independently for each factor included in the dataset.
 </p>
 
 <p>
 
-Once calculations have been performed via the umbrella function, you can stratify the evidence with the `add.evidence` function. Here, we present an example of stratification according to the "Ioannidis" criteria.
+Once calculations have been performed via the umbrella function, you can stratify the evidence with the `add.evidence()` function. Here, we present an example of stratification according to the "Ioannidis" criteria.
 
 </p>
 
@@ -303,7 +303,7 @@ DT::datatable(summary(strat.io), options = list(
 
 <p>
 
-A visual description of the results can be obtained using the `forest` function. More information on how generating nice plots using the `forest` function can be found in another vignette dedicated to this function.
+A visual description of the results can be obtained using the `forest()` function. More information on how generating nice plots using the `forest()` function can be found in another vignette dedicated to this function.
 
 </p>
 
@@ -380,7 +380,7 @@ This output shows the results of the calculations for the factor included in the
 
 <p>
 
-Once the calculations have been performed via the umbrella function, you can stratify the evidence with the `add.evidence` function. Here, we present an example of stratification according to the "GRADE" criteria.
+Once the calculations have been performed via the umbrella function, you can stratify the evidence with the `add.evidence()` function. Here, we present an example of stratification according to the "GRADE" criteria.
 
 </p>
 
@@ -406,7 +406,7 @@ DT::datatable(summary(strat.grade), options = list(
 
 <p>
 
-A visual description of the results can be obtained using the `forest` function. More information on how generating nice plots using the `forest` function can be found in another vignette dedicated to this function.
+A visual description of the results can be obtained using the `forest()` function. More information on how generating nice plots using the `forest()` function can be found in another vignette dedicated to this function.
 
 </p>
 
@@ -713,7 +713,7 @@ DT::datatable(summary(strat.pers1), options = list(
 
 <p>
 
-A visual description of the results can be obtained using the `forest` function. More information on how generating nice plots using the `forest` function can be found in another vignette dedicated to this function.
+A visual description of the results can be obtained using the `forest()` function. More information on how generating nice plots using the `forest()` function can be found in another vignette dedicated to this function.
 
 </p>
 
@@ -1111,7 +1111,7 @@ DT::datatable(summary(strat.pers2), options = list(
 
 <p>
 
-A visual description of the results can be obtained using the `forest` function. More information on how generating nice plots using the `forest` function can be found in another vignette dedicated to this function.
+A visual description of the results can be obtained using the `forest()` function. More information on how generating nice plots using the `forest()` function can be found in another vignette dedicated to this function.
 
 </p>
 

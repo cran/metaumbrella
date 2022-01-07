@@ -3,7 +3,7 @@ test_that(".estimate_d_from_means() appropriately calculates SMD and variance", 
   df <- df.SMD
   meta.conv = with(df, meta::metacont(n.c = n_controls, mean.c = mean_controls, sd.c = sd_controls,
                                       n.e = n_cases, mean.e = mean_cases, sd.e = sd_cases, sm = "SMD",
-                                      method.smd = "Cohen"))
+                                      method.smd = "Cohen", method.tau = "REML"))
 
   se.umb = .estimate_se_from_d(n_cases = df$n_cases,
                                n_controls = df$n_controls,
@@ -69,6 +69,5 @@ test_that(".estimate_d_from_md() appropriately converts MD, 95% CI and sample si
                                ci_up = df_MD$yi + df_MD$se * qt(0.975, df$n_cases + df$n_controls - 2),
                                n_cases = df$n_cases, n_controls = df$n_controls)
 
-  # tol = 1e-2 leads to a failure
   expect_equal(md.umb$value, df$value, tolerance = 5e-2)
 })

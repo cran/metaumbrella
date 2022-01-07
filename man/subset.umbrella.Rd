@@ -14,7 +14,7 @@
 \item{...}{other arguments that can be passed to the function}
 }
 \value{
-Returns an object of class \dQuote{umbrella} with the results of some factors removed.
+Return an object of class \dQuote{umbrella} with the results of some factors removed.
 }
 \description{
 Create a subset of an object of class \dQuote{umbrella}

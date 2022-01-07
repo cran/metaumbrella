@@ -25,8 +25,11 @@ test_that("esb.test produced same results for different inputs: SMD", {
                                 n1i = n_cases, n2i = n_controls,
                                 data = df, method = "REML", measure = "SMD")
 
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "chisq.test", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "binom.test", seed = 4321))
+    df$value <- .as_numeric(rmasmd$yi)
+    df$se <- sqrt(.as_numeric(rmasmd$vi))
+    df$measure <- "G"
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method = "chisq.test", seed = 4321)))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method = "binom.test", seed = 4321))
 
     meta.df.chisq1 <- suppressWarnings(.quiet(esb.test(metasmd, input = "meta", method = "chisq.test", seed = 4321)))
     meta.df.binom1 <- .quiet(esb.test(metasmd, input = "meta", method = "binom.test", seed = 4321))
@@ -37,8 +40,8 @@ test_that("esb.test produced same results for different inputs: SMD", {
     rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "chisq.test", seed = 4321)))
     rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
 
-    umb <- .quiet(umbrella(df))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls))))
+    umb <- .quiet(umbrella(df, seed = 4321))
+    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls)), seed = 4321))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_med)
@@ -63,7 +66,7 @@ test_that("esb.test produced same results for different inputs: SMD", {
     expect_equal(.as_numeric(umb[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
     expect_equal(.as_numeric(umb[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
     expect_equal(.as_numeric(umb2[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
+    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = 2e-3)
 
 })
 
@@ -96,8 +99,7 @@ test_that("esb.test produced same results for generic inputs: SMD", {
     rma.df.binom1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
     rma.df.binom2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "binom.test", seed = 4321))
 
-    umb <- .quiet(umbrella(df))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls))))
+    umb <- .quiet(umbrella(df, seed = 4321))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_med)
@@ -125,15 +127,13 @@ test_that("esb.test produced same results for generic inputs: SMD", {
     # umbrella
     expect_equal(.as_numeric(umb[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
     expect_equal(.as_numeric(umb[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
 })
 
 test_that("esb.test produced same results for different inputs: OR", {
     skip_on_cran()
     df <- df.OR[df.OR$factor == "ASD", ]
     metaor <- meta::metabin(event.e = n_cases_exp, n.e = n_exp, event.c = n_cases_nexp, n.c = n_nexp,
-                              data = df, sm = "OR")
+                              data = df, sm = "OR", method.tau = "REML")
 
     rmaor <- metafor::rma.uni(ai = n_cases_exp, bi = n_controls_exp,
                                ci = n_cases_nexp, di = n_controls_nexp,
@@ -150,7 +150,6 @@ test_that("esb.test produced same results for different inputs: OR", {
     rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
 
     umb <- .quiet(umbrella(df, seed = 4321))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp)), seed = 4321))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq$statistic), tolerance = tol_med)
@@ -170,8 +169,6 @@ test_that("esb.test produced same results for different inputs: OR", {
     # umbrella
     expect_equal(.as_numeric(umb[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
     expect_equal(.as_numeric(umb[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
 
 })
 
@@ -181,7 +178,7 @@ test_that("esb.test produced same results for generic inputs: OR", {
     df$se <- with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp)$se)
 
     metaor <- meta::metagen(TE = log(df$value), seTE = df$se,
-                            data = df, sm = "OR")
+                            data = df, sm = "OR", method.tau = "REML")
 
     rmaor <- metafor::rma.uni(yi = log(df$value), sei = df$se,
                               data = df, method = "REML", measure = "OR")
@@ -295,8 +292,8 @@ test_that("esb.test produced correct results compared to metafor: SMD", {
     expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),
                  .as_numeric(tes.binom$pval))
 
-    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.chi$pval), tolerance = 0.3)
+    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater", correct = FALSE)$p.value),
+                 .as_numeric(tes.chi$pval), tolerance = tol_large)
 
     expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.05)
     expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.5)
@@ -343,157 +340,9 @@ test_that("esb.test produced correct results compared to metafor: OR", {
     expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),
                  .as_numeric(tes.binom$pval))
 
-    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.chi$pval), tolerance = 0.5)
+    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater", correct = FALSE)$p.value),
+                 .as_numeric(tes.chi$pval))
 
     expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.05)
-    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.5)
+    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.05)
 })
-
-test_that("esb.test produced correct results compared to metafor: HR", {
-    skip_on_cran()
-    theta = 0.5
-    df <- subset(df.HR, factor == "Mindfulness")
-    df$se <- (log(df$ci_up) - log(df$ci_lo)) / (2 * qnorm(0.975))
-    df <- subset(df, select = -c(ci_lo, ci_up))
-
-    tes.chi <- .quiet(metafor::tes(x = log(df$value), sei = df$se,
-                                   theta = theta, test = "chi2",
-                                   alternative = "two.sided", tes.alternative = "greater"))
-    tes.binom <- .quiet(metafor::tes(x = log(df$value), sei = df$se,
-                                     theta = theta, test = "binom",
-                                     alternative = "two.sided", tes.alternative = "greater"))
-
-    esb.chi <- suppressWarnings(
-        .quiet(esb.test(df,
-                        measure = "HR", input = "dataframe",
-                        method = "chisq.test",
-                        true_effect = exp(theta), seed = 4321)))
-
-    esb.bin <- suppressWarnings(
-        .quiet(esb.test(df,
-                        measure = "HR", input = "dataframe",
-                        method = "binom.test",
-                        true_effect = exp(theta), seed = 4321)))
-
-    expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 1)
-    expect_equal(.as_numeric(esb.bin$mean_power), mean(tes.binom$power), tolerance = 0.7)
-    expect_equal(.as_numeric(esb.bin$O), tes.binom$O)
-    expect_equal(.as_numeric(esb.bin$E), tes.binom$E, tolerance = 1)
-    expect_equal(.as_numeric(esb.bin$k), tes.binom$k)
-
-    expect_equal(.as_numeric(esb.chi$power), tes.chi$power, tolerance = 1)
-    expect_equal(.as_numeric(esb.chi$mean_power), mean(tes.chi$power), tolerance = 1)
-    expect_equal(.as_numeric(esb.chi$O), tes.chi$O)
-    expect_equal(.as_numeric(esb.chi$E), tes.chi$E, tolerance = 1)
-    expect_equal(.as_numeric(esb.chi$k), tes.chi$k)
-
-    expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.binom$pval))
-
-    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.chi$pval), tolerance = 0.5)
-
-    expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.5)
-    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.5)
-    expect_equal(esb.chi$mean_power, mean(tes.chi$power), tolerance = 0.6)
-    expect_equal(esb.chi$O, tes.chi$O)
-    expect_equal(esb.chi$E, tes.chi$E, tolerance = 1)
-    expect_equal(esb.chi$k, tes.chi$k)
-
-    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.3)
-    expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.5)
-})
-
-test_that("esb.test produced correct results compared to metafor: RR", {
-    skip_on_cran()
-    theta = 0.3
-    df <- df.RR
-    df$se <- with(df, .estimate_rr_from_n(n_cases_exp, n_exp, n_cases_nexp, n_nexp)$se)
-    df$value <- with(df, .estimate_rr_from_n(n_cases_exp, n_exp, n_cases_nexp, n_nexp)$value)
-
-    tes.chi <- .quiet(metafor::tes(x = log(df$value), sei = df$se,
-                                   theta = theta, test = "chi2", alternative = "two.sided", tes.alternative = "greater"))
-    tes.binom <- .quiet(metafor::tes(x = log(df$value), sei = df$se,
-                                     theta = theta, test = "binom", alternative = "two.sided", tes.alternative = "greater"))
-
-    esb.chi <- suppressWarnings(
-        .quiet(esb.test(df,
-                        measure = "RR", input = "dataframe",
-                        method = "chisq.test",
-                        true_effect = exp(theta), seed = 4321)))
-
-    esb.bin <- suppressWarnings(
-        .quiet(esb.test(df,
-                        measure = "RR", input = "dataframe",
-                        method = "binom.test",
-                        true_effect = exp(theta), seed = 4321)))
-
-    expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 0.5)
-    expect_equal(.as_numeric(esb.bin$mean_power), mean(tes.binom$power), tolerance = 0.2)
-    expect_equal(.as_numeric(esb.bin$O), tes.binom$O)
-    expect_equal(.as_numeric(esb.bin$E), tes.binom$E, tolerance = 0.5)
-    expect_equal(.as_numeric(esb.bin$k), tes.binom$k)
-
-    expect_equal(.as_numeric(esb.chi$power), tes.chi$power, tolerance = 0.5)
-    expect_equal(.as_numeric(esb.chi$mean_power), mean(tes.chi$power), tolerance = 0.2)
-    expect_equal(.as_numeric(esb.chi$O), tes.chi$O)
-    expect_equal(.as_numeric(esb.chi$E), tes.chi$E, tolerance = 0.5)
-    expect_equal(.as_numeric(esb.chi$k), tes.chi$k)
-
-    expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.binom$pval))
-
-    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.chi$pval), tolerance = 0.005)
-
-    expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.005)
-    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.005)
-})
-
-
-test_that("esb.test produced correct results compared to metafor: IRR", {
-    skip_on_cran()
-    theta = 0.5
-    df <- df.IRR
-    df$se <- with(df, .estimate_irr_from_n(n_cases_exp, time_exp, n_cases_nexp, time_nexp)$se)
-    df$value <- with(df, .estimate_irr_from_n(n_cases_exp, time_exp, n_cases_nexp, time_nexp)$value)
-
-    tes.chi <- .quiet(metafor::tes(x = log(df$value), sei = df$se,
-                                   theta = theta, test = "chi2", alternative = "two.sided", tes.alternative = "greater"))
-    tes.binom <- .quiet(metafor::tes(x = log(df$value), sei = df$se,
-                                     theta = theta, test = "binom", alternative = "two.sided", tes.alternative = "greater"))
-
-    esb.chi <- suppressWarnings(
-        .quiet(esb.test(df,
-                        measure = "IRR", input = "dataframe",
-                        method = "chisq.test",
-                        true_effect = exp(theta), seed = 4321)))
-
-    esb.bin <- suppressWarnings(
-        .quiet(esb.test(df,
-                        measure = "IRR", input = "dataframe",
-                        method = "binom.test",
-                        true_effect = exp(theta), seed = 4321)))
-
-    expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 0.05)
-    expect_equal(.as_numeric(esb.bin$mean_power), mean(tes.binom$power), tolerance = 0.01)
-    expect_equal(.as_numeric(esb.bin$O), tes.binom$O)
-    expect_equal(.as_numeric(esb.bin$E), tes.binom$E, tolerance = 0.5)
-    expect_equal(.as_numeric(esb.bin$k), tes.binom$k)
-
-    expect_equal(.as_numeric(esb.chi$power), tes.chi$power, tolerance = 0.05)
-    expect_equal(.as_numeric(esb.chi$mean_power), mean(tes.chi$power), tolerance = 0.01)
-    expect_equal(.as_numeric(esb.chi$O), tes.chi$O)
-    expect_equal(.as_numeric(esb.chi$E), tes.chi$E, tolerance = 0.5)
-    expect_equal(.as_numeric(esb.chi$k), tes.chi$k)
-
-    expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.binom$pval))
-
-    expect_equal(.as_numeric(prop.test(tes.chi$O, tes.chi$k, p = mean(tes.chi$power), alternative = "greater")$p.value),
-                 .as_numeric(tes.chi$pval), tolerance = 0.1)
-
-    expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.01)
-    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.5)
-    })

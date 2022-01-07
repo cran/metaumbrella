@@ -39,6 +39,5 @@ test_that(".estimate_se_from_or() correctly estimates standard error from Odds R
                                       n_controls = df$n_controls[i])$value
 }
   expect_equal(or_umb, OR_mfr, tolerance = 1e-15)
-  # tol 1e-1 leads to failure
   expect_equal(se_umb, se_mfr, tolerance = 5e-1)
 })

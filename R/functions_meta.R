@@ -35,8 +35,11 @@
 #' @noRd
 .meta_gen_smd = function (x, method.var) {
 
-  value = .estimate_g_from_d(d = x$value, n_cases = x$n_cases, n_controls = x$n_controls, se = x$se)$value
-  se = .estimate_g_from_d(d = x$value, n_cases = x$n_cases, n_controls = x$n_controls, se = x$se)$se
+  # value = .estimate_g_from_d(d = x$value, n_cases = x$n_cases, n_controls = x$n_controls, se = x$se)$value
+  # se = .estimate_g_from_d(d = x$value, n_cases = x$n_cases, n_controls = x$n_controls, se = x$se)$se
+
+  value = x$value
+  se = x$se
 
   if (method.var == "hksj") {
     m = meta::metagen(value, se, rownames(x), method.tau = "DL")

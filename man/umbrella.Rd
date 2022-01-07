@@ -17,15 +17,15 @@ umbrella(
 \arguments{
 \item{x}{a well-formatted dataset.}
 
-\item{method.var}{the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, Der-Simonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"}, maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.}
+\item{method.var}{the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.}
 
 \item{mult.level}{a logical variable indicating the presence of multiple effect sizes per study in at least one factor of the umbrella review. Default is \code{FALSE} (i.e., each study of all factors include only one effect size). If \code{mult.level = TRUE} is specified, the Borenstein's methods are used to generate only one effect size per study. See \code{\link{metaumbrella-package}} for more information.}
 
-\item{r}{a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with multiple outcomes that have no indication of correlation in the well-formatted dataset. Default is 0.5.}
+\item{r}{a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.}
 
 \item{true_effect}{the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is "largest".}
 
-\item{seed}{an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR},\dQuote{HR},\dQuote{IRR} or their logarithm) as effect size measures.}
+\item{seed}{an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.}
 
 \item{verbose}{a logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.}
 }
@@ -33,8 +33,7 @@ umbrella(
 The \code{umbrella()} function returns an object of class \dQuote{umbrella}, which is a list containing information required for stratifying the evidence.
 This list contains, for each factor included in the umbrella review:
 \tabular{ll}{
-\code{measure} \tab the measure of the effect used to perform the calculations: SMD, OR,\cr
-\tab RR, HR, or IRR.\cr
+\code{measure} \tab the measure of the effect used to perform the calculations.\cr
 \tab \cr
 \code{x} \tab the data used to conduct the meta-analysis. Note that these data may be\cr
 \tab slightly different from the raw data introduced.\cr
@@ -42,7 +41,7 @@ This list contains, for each factor included in the umbrella review:
 \code{x_multi} \tab the original data when there is a multivariate structure.\cr
 \tab Note that these data may be slightly different from the raw data introduced.\cr
 \tab \cr
-\code{x_shared} \tab dataframe allowing to compare adjustments made when a shared_nexp\cr
+\code{x_shared} \tab a dataframe allowing to visualize adjustments made when a shared_nexp\cr
 \tab or shared_controls correction is requested\cr
 \tab (see \code{\link{metaumbrella-package}} for more information).\cr
 \tab \cr
@@ -69,8 +68,7 @@ This list contains, for each factor included in the umbrella review:
 \tab \cr
 \code{amstar} \tab AMSTAR score obtained by the meta-analysis.\cr
 \tab \cr
-\code{evidence} \tab evidence class according to some criteria.\cr
-\tab \cr
+\code{evidence} \tab evidence class according to some criteria.
 }
 The functions \code{print} and \code{summary} may be used to print the details or a summary of the results.
 }
@@ -79,15 +77,15 @@ This function performs various calculations needed for an umbrella review.
 }
 \details{
 This function automatically performs calculations allowing to stratify evidence according to various criteria.
-More precisely, this function :
+For each factor included in a well-formatted dataset, this function automatically:
 \itemize{
-\item performs fixed- and random-effects meta-analyses with or without a Hartung-Knapp-Sidik-Jonkman correction.
+\item performs fixed- and random-effects meta-analyses.
 \item provides an estimation of the between-study variance and heterogeneity using three indicators (\eqn{tau^2}, Q-statistic and \eqn{I^2} statistic).
 \item estimates the 95\% prediction interval (if the number of studies is equal or larger to 3).
 \item provides an identification of the statistical significance of the largest study included in the meta-analysis.
 \item provides an assessment of publication bias using the Egger's test (if the number of studies is equal or larger to 3).
 \item provides an assessment of excess significance bias using the Ioannidis' test.
-\item performs a jackknife leave-one-out meta-analysis(if the number of studies is equal or larger to 2).
+\item performs a jackknife leave-one-out meta-analysis (if the number of studies is equal or larger to 2).
 \item calculates the proportion of participants included in studies at low risk of bias (if study quality is indicated in the dataset).
 }
 
@@ -96,11 +94,12 @@ Instead, the function requires users to build a dataset that meets fixed rules.
 Details on how building this \code{well-formatted dataset} are given in the \code{\link{metaumbrella-package}} section of this manual and a vignette is specifically dedicated to this topic.
 Moreover, examples of \code{well-formatted datasets} are available as data distributed along with the package (see \link{df.OR}, \link{df.OR.multi}, \link{df.SMD}, \link{df.RR}, \link{df.HR}, \link{df.IRR}).
 
-When estimating the test for excess of significance, the \code{\link{umbrella}()} function should assume a value for the true effeect. The \code{true_effect} argument can be used to select the method that will be applied to estimate the true effect.
+When estimating the test for excess of significance, the \code{\link{umbrella}()} function must assume a best approximation of the true effect.
+The \code{true_effect} argument can be used to select the method that will be applied to estimate this approximation of the true effect.
 \itemize{
-\item If \code{"largest"} is selected, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
-\item If \code{"pooled"} is selected, the true effect size is assumed to be equal to the pooled effect of the meta-analysis.
-\item If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user.
+\item If \code{"largest"} is selected, the best approximation of the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
+\item If \code{"pooled"} is selected, the best approximation of the true effect size is assumed to be equal to the pooled effect size of the meta-analysis.
+\item If a \code{numeric} value is entered, the best approximation of the true effect size is assumed to be equal to this numeric value. Note that when entering a numeric value for a ratio, the value should be given in its natural scale (and not in its logarithm).
 }
 }
 \examples{
@@ -120,7 +119,7 @@ umb$Smoking
 ### between all outcomes of the same study
 umb.multi <- umbrella(df.OR.multi, mult.level = TRUE, r = 0.8)
 
-### the stratification of evidence can then normally be applied on this umbrella object
+### obtain a stratification of the evidence according to the Ioannidis classification
 add.evidence(umb.multi, criteria = "Ioannidis")
 }
 }
@@ -132,9 +131,9 @@ What causes psychosis? An umbrella review of risk and protective factors.
 \emph{World Psychiatry}, \bold{17}, 49--66.
 }
 \seealso{
-\code{\link{metaumbrella-package}} for the formatting of well-formatted datasets.
-\code{\link{add.evidence}()} for adding evidence classes to an umbrella review.
-\code{\link{forest}()} for drawing a forest plot of the factors included in an umbrella review.
-\code{\link{subset.umbrella}()} for retrieving a subset of the factors included in an umbrella review.
-\code{\link{union.umbrella}()} for combining the factors included in two umbrella reviews.
+\code{\link{metaumbrella-package}} for the formatting of well-formatted datasets\cr
+\code{\link{add.evidence}()} for stratifying the evidence in an umbrella review\cr
+\code{\link{forest}()} for drawing a forest plot of the factors included in an umbrella review\cr
+\code{\link{subset.umbrella}()} for retrieving a subset of the factors included in an umbrella review\cr
+\code{\link{union.umbrella}()} for combining the factors included in two umbrella reviews
 }

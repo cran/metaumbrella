@@ -10,24 +10,20 @@ drop.evidence(x)
 \item{x}{an object of class \dQuote{umbrella}}
 }
 \value{
-Returns an object of class \dQuote{umbrella} with the evidence classes dropped.
+Return an object of class \dQuote{umbrella} with the evidence classes dropped.
 }
 \description{
 This function removes evidence classes previously created from an object of class \dQuote{umbrella}
 }
 \examples{
 ### perform calculations required for an umbrella review
-
 umb.full <- umbrella(df.SMD)
 
 ### stratify evidence according to the algorithmic GRADE criteria
-
 evid_grade <- add.evidence(umb.full, criteria = "GRADE")
-
-!is.na(evid_grade$Pharmacological$evidence)
+is.na(evid_grade$Pharmacological$evidence)
 
 evid_empty <- drop.evidence(evid_grade)
-
 is.na(evid_empty$Pharmacological$evidence)
 }
 \references{

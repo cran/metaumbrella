@@ -179,7 +179,7 @@ test_that("different measures lead to similar results: SMD v G+SE", {
   umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
   umb2 <- .quiet(umbrella(dfg, seed = 4321))
   expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-3)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 1e-3)
+  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 5e-3)
   expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-15)
 })
 test_that("different measures lead to similar results: G with / without CI", {
@@ -377,7 +377,7 @@ test_that("reverse ES leads to similar results: OR", {
   expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
   expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
   expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-  # verify
+
   expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 5e-3)
 })
 
@@ -404,7 +404,6 @@ test_that("reverse ES leads to similar results: HR", {
   expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
   expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
   expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-  # verify
   expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 1e-1)
 })
 
@@ -440,15 +439,13 @@ test_that("umbrella correctly handle multiple_es + shared_controls", {
   d = .estimate_d_from_means(df$n_cases, df$n_controls / 2, df$mean_cases,
                          df$sd_cases, df$mean_controls, df$sd_controls)
 
-  # test that umbrella correctly estimate SMD from corrected sample size
-  expect_equal(umb1[[1]]$x_multi$value, d$value, tolerance = 1e-13)
-  expect_equal(umb1[[1]]$x_multi$se, d$se, tolerance = 1e-13)
+  # test that umbrella correctly estimate G from corrected sample size
+  expect_equal(umb1[[1]]$x_multi$value, .estimate_g_from_d(d$value, df$n_cases, df$n_controls / 2)$value, tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x_multi$se, .estimate_g_from_d(d$value, df$n_cases, df$n_controls / 2)$se, tolerance = 1e-13)
 
 
   df.m <- df; df.m$n_controls = df.m$n_controls / 2
 
-
-  g.umb = .estimate_g_from_d(umb1[[1]]$x_multi$value, umb1[[1]]$x_multi$n_cases, umb1[[1]]$x_multi$n_controls)
   ## metafor
   df.mfr <- metafor::escalc(m1i = mean_cases,
                                 sd1i = sd_cases,
@@ -457,8 +454,8 @@ test_that("umbrella correctly handle multiple_es + shared_controls", {
                                 sd2i = sd_controls,
                                 n2i = n_controls, data = df.m, measure = "SMD", vtype = "UB")
 
-  expect_equal(g.umb$value, .as_numeric(df.mfr$yi), tolerance = 1e-13)
-  expect_equal(g.umb$se, sqrt(df.mfr$vi), tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x_multi$value, .as_numeric(df.mfr$yi), tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x_multi$se, sqrt(df.mfr$vi), tolerance = 1e-13)
 
 
   df.agg.mfr <- metafor::aggregate.escalc(df.mfr,
@@ -466,20 +463,9 @@ test_that("umbrella correctly handle multiple_es + shared_controls", {
                                           struct = "CS",
                                           weighted = FALSE,
                                           rho = 0.5)
-  g.umb2 = .estimate_g_from_d(umb1[[1]]$x$value, umb1[[1]]$x$n_cases, umb1[[1]]$x$n_controls)
 
-  expect_equal(g.umb2$value, .as_numeric(df.agg.mfr$yi), tolerance = 1e-13)
-  expect_equal(g.umb2$se, sqrt(df.agg.mfr$vi), tolerance = 5e-1)
-
-  df_test <- umb1[[1]]$x_multi
-  df_test$value <- g.umb$value
-  df_test$se <- g.umb$se
-
-  agg <- .agg_data(df_test, measure = "SMD", r = 0.5)
-
-  # approximations in previous calculations are due to the fact that we aggregate SMD while metafor aggregate G
-  expect_equal(agg$se, sqrt(df.agg.mfr$vi), tolerance = 1e-13)
-
+  expect_equal(umb1[[1]]$x$value, .as_numeric(df.agg.mfr$yi), tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x$se, sqrt(df.agg.mfr$vi), tolerance = 1e-13)
 })
 
 test_that("umbrella correctly handle multiple_es + shared_controls", {

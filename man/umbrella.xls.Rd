@@ -2,7 +2,7 @@
 % Please edit documentation in R/umbrella_XLS.R
 \name{umbrella.xls}
 \alias{umbrella.xls}
-\title{Function for conducting an umbrella review in R and automatically exporting results}
+\title{Automatically conduct an umbrella review and export results outside of R}
 \usage{
 umbrella.xls(
   input_file = NULL,
@@ -15,15 +15,15 @@ umbrella.xls(
 )
 }
 \arguments{
-\item{input_file}{path indicating the folder where your dataset is located.}
+\item{input_file}{path indicating the folder where the dataset (stored in an excel file) is located.}
 
-\item{sheet}{the number of the excel sheet where your data are located.}
+\item{sheet}{the number of the excel sheet where the data are located.}
 
-\item{output_path}{path indicating the folder where you want the results to be created.}
+\item{output_path}{path indicating the folder where the results to be generated.}
 
 \item{output_name}{name of the files created by the function.}
 
-\item{factors_to_analyze}{the name(s) of factors to analyze. Can be either a character string indicating the name of the factor to analyze or a vector indicating the names of the factors to analyze.}
+\item{factors_to_analyze}{the name(s) of factors to analyze. Can be either a character string indicating the name of the factor to analyze or a vector indicating the names of the factors to analyze. By default, all the factors are analyzed.}
 
 \item{evidence}{criteria used to stratify evidence. Must be either "Ioannidis" or "GRADE".}
 
@@ -39,21 +39,19 @@ The \code{umbrella.xls()} function returns several elements including
 \tab \cr
 \code{html} \tab an HTML file containing the results of the umbrella review.\cr
 }
-
-See \code{\link{umbrella}()}, \code{\link{add.evidence}()}, and \code{\link{summary.umbrella}()} for more information.
 }
 \description{
-The \code{umbrella.xls} function allows to automatically perform an umbrella review and to export results.
+The \code{umbrella.xls} function allows to automatically perform an umbrella review and to export results outside of R.
 }
 \details{
-The function performs calculations required to stratify evidence in an umbrella review and automatically performs the stratification of evidence.
-In other words, this function implicitly calls the \code{\link{view.errors.umbrella}()} function to check formatting, the \code{\link{umbrella}()} to run calculations, the \code{\link{add.evidence}()} function to stratify the evidence, and the \code{\link{forest}()} function to generated a visual representation of the results.
+This function implicitly calls the \code{view.errors.umbrella()} to check the formatting of the data,
+the \code{umbrella()} function to perform calculations, the \code{add.evidence()} function to stratify evidence (limited to "Ioannidis" and "GRADE" classifications for now)
+and the \code{forest()} function to generate a visual representation of the results.
 }
 \examples{
 if(interactive()){
 ### perform an umbrella review according to the GRADE criteria.
-### the umbrella review is restricted to the factor Pharmacological of the df.SMD and to the
-### RCTs conducted between the years 2000 and 2010.
+### the umbrella review is restricted to the factor "Pharmacological"
 ### Note that the df.SMD should be stored under a .xls or .xlsx format
 umbrella.xls(input_file = file.choose(),
              sheet = 1,
@@ -63,4 +61,9 @@ umbrella.xls(input_file = file.choose(),
              evidence = "GRADE",
              plot_results = TRUE)
 }
+}
+\seealso{
+\code{\link{umbrella}()}\cr
+\code{\link{add.evidence}()}\cr
+\code{\link{summary.umbrella}()}
 }

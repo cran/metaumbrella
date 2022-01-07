@@ -2,10 +2,10 @@ citHeader("To cite metaumbrella in publications, please use:")
 
 citEntry(
   entry    = "Manual",
-  title    = "{metaumbrella} an {R} Package for Conducting Umbrella Reviews",
+  title    = "{metaumbrella}: An {R} Package for Conducting Umbrella Reviews",
   author   = personList(c(as.person("Corentin J Gosling"), as.person("Aleix Solanes"), as.person("Paolo Fusar-Poli"), as.person("Joaquim Radua"))),
-  year     = "2021",
+  year     = "2022",
   url      = "https://www.metaumbrella.org/",
   textVersion = paste(
- "Corentin J Gosling, Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2021). metaumbrella: An R Package for Conducting Umbrella Reviews. R package version 0.0.0.9000.")
+ "Corentin J Gosling, Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella: An R Package for Conducting Umbrella Reviews. R package version 1.0.1.")
 )

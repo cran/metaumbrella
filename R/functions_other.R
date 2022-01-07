@@ -136,15 +136,16 @@
   if (!is.null(measure)) {
     if (measure == "") {
       stop("The effect size measure should be indicated when calling the esb.test function from a meta object (via the 'sm' argument in the meta function or via the 'measure' argument of the esb.test function).")
-    } else if (!(measure %in% c("SMD", "OR"))) {
-    stop("The esb.test function can be called from a 'meta' object only with 'SMD' or 'OR' as effect size measures.")
+    } else if (!(measure %in% c("SMD", "G", "OR"))) {
+    stop("The esb.test function can be called from a 'meta' object only with 'G', 'SMD' or 'OR' as effect size measures.")
     }
   } else {
     stop("The effect size measure should be indicated when calling the esb.test function from a meta object (via the 'sm' argument in the meta function or via the 'measure' argument of the esb.test function).")
   }
 
   switch (measure,
-          "SMD" = {
+          "SMD" =,
+          "G" = {
             n_cas <- if(!is.null(n_cases)) {
               n_cases
             } else {
@@ -245,8 +246,8 @@
   if (!is.null(measure)) {
     if (measure == "GEN") {
       stop("The effect size measure should be indicated when calling the esb.test function from a rma object (via the 'measure' argument in the rma function or via the 'measure' argument of the esb.test function).")
-    } else if (!(measure %in% c("SMD", "OR"))) {
-    stop("The esb.test function can be called from an 'rma' or 'meta' object only with 'SMD' or 'OR' as effect size measure")
+    } else if (!(measure %in% c("SMD", "G", "OR"))) {
+    stop("The esb.test function can be called from an 'rma' or 'meta' object only with 'G', 'SMD' or 'OR' as effect size measure")
       }
     } else {
       stop("The effect size measure should be indicated when calling the esb.test function from a rma object (via the 'measure' argument in the rma function or via the 'measure' argument of the esb.test function).")
@@ -380,20 +381,29 @@
   if (length(largest_index_transit) > 1) {
     largest_index = which.min(abs(x[largest_index_transit,]$value))
     # if there is equality in the sum_N we take the study with the lowest ES
-    largest = data.frame(ci_lo = x[largest_index_transit,]$ci_lo[largest_index],
-                           ci_up = x[largest_index_transit,]$ci_up[largest_index],
-                           value = x[largest_index_transit,]$value[largest_index])
+    largest = data.frame(ci_lo = x[largest_index_transit, ]$ci_lo[largest_index],
+                         ci_up = x[largest_index_transit, ]$ci_up[largest_index],
+                         value = x[largest_index_transit, ]$value[largest_index],
+                         n_cases = x[largest_index_transit, ]$n_cases[largest_index],
+                         n_controls = x[largest_index_transit, ]$n_controls[largest_index],
+                         se = x[largest_index_transit, ]$se[largest_index])
   } else {
     # there is only one maximum value for sum_N
     largest_index = largest_index_transit
-    largest = data.frame(ci_lo = x[largest_index,]$ci_lo,
-                         ci_up = x[largest_index,]$ci_up,
-                         value = x[largest_index,]$value)
+    largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
+                         ci_up = x[largest_index, ]$ci_up,
+                         value = x[largest_index, ]$value,
+                         n_cases = x[largest_index, ]$n_cases,
+                         n_controls = x[largest_index, ]$n_controls,
+                         se = x[largest_index, ]$se)
   }
   if (return == "ci") {
-    dat <- largest[, c("ci_lo", "ci_up")]
+    # ci_lo_G = with(largest, .estimate_g_from_d(d = ci_lo, n_cases = n_cases, n_controls = n_controls, se = se))$value
+    # ci_up_G = with(largest, .estimate_g_from_d(d = ci_up, n_cases = n_cases, n_controls = n_controls, se = se))$value
+    # dat = data.frame(ci_lo = ci_lo_G, ci_up = ci_up_G)
+    dat = largest[, c("ci_lo", "ci_up")]
   } else if (return == "value") {
-    dat <- .as_numeric(subset(largest, select = -c(ci_lo, ci_up)))
+    dat = .as_numeric(largest$value)
   } else if (return == "nrow") {
     dat = largest_index
   }

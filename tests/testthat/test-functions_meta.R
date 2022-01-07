@@ -11,13 +11,12 @@ test_that(".meta_d correctly estimates the pooled effect size for d values", {
   meta <- metafor::rma.uni(m1i = mean_cases, m2i = mean_controls,
                            sd1i = sd_cases, sd2i = sd_controls,
                            n1i = n_cases, n2i = n_controls,
-                           data = df, method = "REML", measure = "SMD")
+                           data = df, method = "REML", measure = "SMD", vtype = "UB")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 5e-4)
-  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 5e-4)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 5e-4)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 5e-4)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 5e-4)
+  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-5)
+  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 5e-5)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-5)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 5e-5)
 })
 
 
@@ -46,21 +45,21 @@ test_that(".meta_gen_smd correctly estimates the pooled effect size for d values
 
   df <- subset(df.SMD, factor == "Pharmacological", select = -c(ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
-  j = with(df, .d_j(n_cases + n_controls - 2))
-
   umb <- .quiet(umbrella(df, method.var = "REML")[[1]]$random)
+  df_form <- .quiet(umbrella(df, method.var = "REML")[[1]]$x)
 
-  meta_gen <- .meta_gen_smd(df, method.var = "REML")
+  meta_gen <- .meta_gen_smd(df_form, method.var = "REML")
 
   meta <- metafor::rma.uni(yi = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$value,
-                             sei = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se,
+                           sei = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se,
                            data = df, method = "REML", measure = "SMD")
 
-  expect_equal(as.numeric(as.character(meta_gen$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-14)
-  expect_equal(as.numeric(as.character(meta_gen$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-14)
-  expect_equal(as.numeric(as.character(meta_gen$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-14)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-14)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-14)
+  expect_equal(as.numeric(as.character(meta_gen$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-10)
+  expect_equal(as.numeric(as.character(meta_gen$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-10)
+  expect_equal(as.numeric(as.character(meta_gen$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-10)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-10)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-10)
+
 })
 
 ##########
@@ -95,10 +94,10 @@ test_that(".meta_or correctly estimates the pooled effect size from 2x2 table an
   meta_umb <- umb[[1]]$random
   meta <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
                         event.c = n_cases_nexp, n.c = n_nexp,
-                        data = df, sm = "OR", hakn = TRUE)
+                        data = df, sm = "OR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-3)
-  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-3)
+  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-5)
+  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-5)
 })
 
 # OR - generic
@@ -116,7 +115,6 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for OR value
   meta <- metafor::rma.uni(yi = log(value), sei = se,
                            data = df, method = "REML", measure = "OR")
 
-  # tol 1e-6 leads to a failure
   expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
   expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
 })
@@ -154,9 +152,9 @@ test_that(".meta_rr correctly estimates the pooled effect size with hksj estimat
   meta_umb <- umb[[1]]$random
   meta <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
                         event.c = n_cases_nexp, n.c = n_nexp,
-                        data = df, sm = "RR", hakn = TRUE)
+                        data = df, sm = "RR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-2)
+  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-3)
   expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-10)
 })
 
@@ -210,10 +208,10 @@ test_that(".meta_irr correctly estimates the pooled effect size with hksj estima
   meta_umb <- umb[[1]]$random
   meta <- meta::metainc(event.e = n_cases_exp, time.e = time_exp,
                         event.c = n_cases_nexp, time.c = time_nexp,
-                        data = umb[[1]]$x, sm = "IRR", hakn = TRUE)
+                        data = umb[[1]]$x, sm = "IRR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-5)
-  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-4)
+  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
+  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
 })
 
 # irr - generic for multilevel
@@ -234,9 +232,7 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for IRR valu
   meta_gen <- .meta_gen_log(df, method.var = "REML")
   meta_umb <- .meta_irr(df, method.var = "REML")
 
-  # tol 1e-5 leads to a failure
   expect_equal(as.numeric(as.character(meta_gen$TE.random)), as.numeric(as.character(meta_umb$TE.random)), tolerance = 1e-4)
-  # tol 1e-4 leads to a failure
   expect_equal(as.numeric(as.character(meta_gen$seTE.random)), as.numeric(as.character(meta_umb$seTE.random)), tolerance = 1e-2)
   expect_equal(as.numeric(as.character(meta_gen$pval.random)), as.numeric(as.character(meta_umb$pval.random)), tolerance = 1e-2)
 })
@@ -277,13 +273,13 @@ test_that(".meta_irr correctly estimates the pooled effect size with hksj estima
   meta_umb <- .meta_irr(df, method.var = "hksj")
   meta <- meta::metainc(event.e = n_cases_exp, time.e = time_exp,
                         event.c = n_cases_nexp, time.c = time_nexp,
-                        data = df, measure = "IRR", hakn = TRUE)
+                        data = df, measure = "IRR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$TE.random)), tolerance = 1e-5)
-  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$seTE.random)), tolerance = 1e-4)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval.random)), tolerance = 1e-4)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$TE.random)), tolerance = 1e-5)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval.random)), tolerance = 1e-4)
+  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
+  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$seTE.random)), tolerance = 1e-6)
+  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
 
 })
 

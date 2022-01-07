@@ -1045,13 +1045,13 @@
     situation[i] <- paste0(situation[i], x$measure[i])
 
     # effect size
-    if (!is.na(x$value[i])) {situation[i] <- paste0(situation[i], "_", "ES")}
+    if (!is.na(x$value[i])) { situation[i] <- paste0(situation[i], "_", "ES") }
 
     # se/variance
-    if (!is.na(x$se[i])) {situation[i] <- paste0(situation[i], "_", "SE")}
+    if (!is.na(x$se[i])) { situation[i] <- paste0(situation[i], "_", "SE") }
 
     # confidence interval
-    if (!is.na(x$ci_lo[i]) & !is.na(x$ci_up[i])) {situation[i] <- paste0(situation[i], "_", "CI")}
+    if (!is.na(x$ci_lo[i]) & !is.na(x$ci_up[i])) { situation[i] <- paste0(situation[i], "_", "CI") }
 
 
     # specific information for each measure

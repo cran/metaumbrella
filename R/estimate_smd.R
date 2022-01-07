@@ -47,23 +47,44 @@
   return(j)
 }
 
-#' Estimates the Hedges' g effect size and variance
+#' Estimates the Hedges' g from SMD
 #'
 #' @param d d
 #' @param n_cases number of cases
 #' @param n_controls number of controls
+#' @param se standard error
 #'
 #' @noRd
 .estimate_g_from_d <- function (d, n_cases, n_controls, se = NULL) {
   df = n_cases + n_controls - 2
-  g = d * .d_j(df)
+  J = .d_j(df)
+  g = d * J
   if (is.null(se)) {
-    se_ok = sqrt(1 / n_cases + 1 / n_controls + (1 - (df - 2) / (df * .d_j(df)^2)) * g^2)
+    se_ok = sqrt(1 / n_cases + 1 / n_controls + (1 - (df - 2) / (df * J^2)) * g^2)
   } else {
-    se_ok = sqrt(se^2 + (1 - (df - 2) / (df * .d_j(df)^2)) * g^2)
+    se_ok = sqrt(se^2 + (1 - (df - 2) / (df * J^2)) * g^2)
   }
-
   return(data.frame(value = g, se = se_ok))
+}
+
+#' Estimates the SMD from Hedges' g
+#'
+#' @param g g
+#' @param n_cases number of cases
+#' @param n_controls number of controls
+#' @param se standard error
+#'
+#' @noRd
+.estimate_d_from_g <- function (g, n_cases, n_controls, se = NULL) {
+  df = n_cases + n_controls - 2
+  J = .d_j(df)
+  d = g / J
+  if (is.null(se)) {
+    se_ok = sqrt(1 / n_cases + 1 / n_controls)
+  } else {
+    se_ok = sqrt(se^2 - (1 - (df - 2) / (df * J^2)) * g^2)
+  }
+  return(data.frame(value = d, se = se_ok))
 }
 
 #' Convert a mean difference to a SMD.

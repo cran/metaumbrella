@@ -11,68 +11,68 @@
 #' All main results of an object of class \dQuote{umbrella} are synthesized in a dataframe, with the results of each factors stored in their own row.
 #' Depending on the classification used, the dataframe returned include certain information presented below:
 #' \tabular{ll}{
-#'  \code{Factor} \tab the name of the factor\cr
+#'  \code{Factor} \tab the name of the factor.\cr
 #'  \tab \cr
-#'  \code{Class} \tab the class assigned during the stratification of evidence\cr
+#'  \code{Class} \tab the class assigned during the stratification of evidence.\cr
 #'  \tab \cr
-#'  \code{n_studies} \tab the number of independent studies included in the factor\cr
+#'  \code{n_studies} \tab the number of independent studies included in the factor.\cr
 #'  \tab \cr
-#'  \code{total_n} \tab the total number of participants included in the factor\cr
+#'  \code{total_n} \tab the total number of participants included in the factor.\cr
 #'  \tab \cr
-#'  \code{n_cases} \tab the number of cases included in the factor\cr
+#'  \code{n_cases} \tab the number of cases included in the factor.\cr
 #'  \tab \cr
-#'  \code{n_controls} \tab the number of controls included in the factor\cr
+#'  \code{n_controls} \tab the number of controls included in the factor.\cr
 #'  \tab \cr
-#'  \code{measure} \tab the measured used in the calculations\cr
+#'  \code{measure} \tab the measured used in the calculations.\cr
 #'  \tab \cr
 #'  \code{value} \tab the value of the pooled effect size expressed in its original metric. Note that\cr
-#'  \tab  if a factor includes only one study, its value and 95% CI are equal to the effect\cr
-#'  \tab  size value and 95% CI of the individual study\cr
+#'  \tab  if a factor includes only one study, its effect size is used as the pooled effect size.\cr
 #'  \tab \cr
-#'  \code{value_CI} \tab the 95% confidence interval (CI) around the pooled effect size\cr
-#'  \tab expressed in its original metric\cr
+#'  \code{value_CI} \tab the 95% confidence interval (CI) around the pooled effect size expressed \cr
+#'  \tab in its original metric. Note that if a factor includes only one study, its 95% CI is\cr
+#'  \tab used as the pooled 95% CI.\cr
 #'  \tab \cr
-#'  \code{eG} \tab the value of the pooled effect size expressed in equivalent Hedges' g (eG)\cr
+#'  \code{eG} \tab the value of the pooled effect size expressed in equivalent Hedges' g (eG).\cr
 #'  \tab \cr
-#'  \code{eG_CI} \tab the 95% CI around the pooled effect size expressed in eG\cr
+#'  \code{eG_CI} \tab the 95% CI around the pooled effect size expressed in eG.\cr
 #'  \tab \cr
-#'  \code{eOR} \tab the value of the pooled effect size expressed in equivalent Odds ratio (eOR)\cr
+#'  \code{eOR} \tab the value of the pooled effect size expressed in equivalent Odds ratio (eOR).\cr
 #'  \tab \cr
-#'  \code{eOR_CI} \tab the 95% CI around the pooled effect size expressed in eOR\cr
+#'  \code{eOR_CI} \tab the 95% CI around the pooled effect size expressed in eOR.\cr
 #'  \tab \cr
-#'  \code{p_value} \tab the p-value of the pooled effect size\cr
+#'  \code{p_value} \tab the p-value of the pooled effect size.\cr
 #'  \tab \cr
 #'  \code{I2} \tab the inconsistency (\eqn{I^2}) value (calculated only if the number of studies in the\cr
-#'  \tab meta-analysis is equal or larger to 2)\cr
+#'  \tab meta-analysis is equal or larger to 2).\cr
 #'  \tab \cr
 #'  \code{PI_eG} \tab the 95% prediction interval (PI) expressed in eG (calculated only if the number\cr
-#'  \tab of studies in the meta-analysis is equal or larger to 3)\cr
+#'  \tab of studies in the meta-analysis is equal or larger to 3).\cr
 #'  \tab \cr
 #'  \code{PI_eOR} \tab the 95% PI expressed in eOR (calculated only if the number of studies in the \cr
-#'  \tab meta-analysis is equal or larger to 3)\cr
+#'  \tab meta-analysis is equal or larger to 3).\cr
 #'  \tab \cr
-#'  \code{PI_sign} \tab whether the 95% PI includes the null value ("notnull" vs. "null)\cr
+#'  \code{PI_sign} \tab whether the 95% PI includes the null value ("notnull" vs. "null").\cr
 #'  \tab \cr
 #'  \code{egger_p} \tab the p-value of the Egger's test for publication bias (calculated only\cr
-#'  \tab if the number of studies in the meta-analysis is equal or larger to 3)\cr
+#'  \tab if the number of studies in the meta-analysis is equal or larger to 3).\cr
 #'  \tab \cr
-#'  \code{egger_sign} \tab whether the p-value of the Egger's test is < .05 ("sig." vs. "ns)\cr
+#'  \code{egger_sign} \tab whether the p-value of the Egger's test is < .05 ("sig." vs. "ns").\cr
 #'  \tab \cr
-#'  \code{ESB_p} \tab the Ioannidis' test for excess of significance\cr
+#'  \code{ESB_p} \tab the p-value of the Ioannidis' test for excess of significance.\cr
 #'  \tab \cr
-#'  \code{ESB_sign} \tab whether the p-value of the Ioannidis' test is < .05 ("sig." vs. "ns)\cr
+#'  \code{ESB_sign} \tab whether the p-value of the Ioannidis' test is < .05 ("sig." vs. "ns").\cr
 #'  \tab \cr
 #'  \code{power_med} \tab the power to detect a SMD of 0.5 at an alpha of .05 based on the number of\cr
 #'  \tab cases and controls included in the meta-analysis (when IRR is used as effect size\cr
-#'  \tab measure the number of cases and controls in this calculation is assumed to be equal to\cr
-#'  \tab half the total number of cases included in the meta-analysis\cr
+#'  \tab measure, the number of cases and controls in this calculation is assumed to be equal to\cr
+#'  \tab half the total number of cases included in the meta-analysis).\cr
 #'  \tab \cr
 #'  \code{power} \tab present only in the 'Personalized' classification. \cr
-#'  \tab If the user did not use the 'power' criteria to stratify the evidence, this column \cr
-#'  \tab contains the power to detect a small effect size (SMD = 0.2), a moderate effect size  \cr
-#'  \tab (SMD = 0.5) and a large effect size (SMD = 0.8) at an alpha of .05 based on the\cr
-#'  \tab number of cases and controls included in the meta-analysis.\cr
-#'  \tab If the user used the 'power' criteria to stratify the evidence, this column contains\cr
+#'  \tab - If the user did not use the 'power' criteria to stratify the evidence, this column \cr
+#'  \tab contains the power to detect a small effect size (SMD = 0.2), a moderate effect\cr
+#'  \tab size (SMD = 0.5) and a large effect size (SMD = 0.8) at an alpha of .05 based on \cr
+#'  \tab the number of cases and controls included in the meta-analysis.\cr
+#'  \tab - If the user used the 'power' criteria to stratify the evidence, this column contains\cr
 #'  \tab the power to detect the values entered by the user at an alpha of .05 based on the \cr
 #'  \tab number of cases and controls included in the meta-analysis.\cr
 #'  \tab \cr
@@ -86,7 +86,7 @@
 #'  \code{largest_CI_eOR} \tab the 95% CI of the largest study expressed in eOR\cr
 #'  \tab \cr
 #'  \code{largest_sign} \tab whether the 95% CI of the largest study includes the null value ("notnull" vs. \cr
-#'  \tab "null)\cr
+#'  \tab "null")\cr
 #'  \tab \cr
 #'  \code{rob} \tab the percentage of participants included in studies at low risk of bias (calculated\cr
 #'  \tab only if this information is indicated in the dataset)\cr
@@ -97,9 +97,9 @@
 #'}
 #'
 #' @seealso
-#' \code{\link{metaumbrella-package}()} for the formatting of well-formatted datasets.
-#' \code{\link{umbrella}()} for conducting calculations needed for an umbrella review.
-#' \code{\link{add.evidence}()} for adding evidence classes to an umbrella review.
+#' \code{\link{metaumbrella-package}()} for the formatting of well-formatted datasets\cr
+#' \code{\link{umbrella}()} for conducting calculations needed for an umbrella review\cr
+#' \code{\link{add.evidence}()} for stratifying evidence in an umbrella review\cr
 #'
 #' @exportS3Method
 #'
@@ -154,16 +154,16 @@ summary.umbrella = function(object, digits = 3, ...) {
                     paste0("[", round(x_i$random$ci_lo, digits), ", ", round(x_i$random$ci_up, digits), "]"))
 
     p_value = ifelse(!is.na(as.numeric(as.character(x_i$random$p.value))),
-                     signif(as.numeric(as.character(x_i$random$p.value)), digits - 1),
-                     as.character(x_i$random$p.value)
-    )
+                     # signif(as.numeric(as.character(x_i$random$p.value)), digits - 0),
+                     sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$random$p.value)),
+                     as.character(x_i$random$p.value))
     # sample sizes
     total_n = x_i$n$cases_and_controls
     n_studies = x_i$n$studies
     n_cases = x_i$n$cases
     n_controls = x_i$n$controls
 
-    # I²
+    # I2
     I2 = ifelse(nrow(x_i$x) == 1, "only 1 study", round(.as_numeric(x_i$heterogeneity$i2), digits))
 
     # PI
@@ -185,11 +185,20 @@ summary.umbrella = function(object, digits = 3, ...) {
                      ifelse(sign(x_i$random$pi_lo) == sign(x_i$random$pi_up), "notnull", "null"),
                      "NA")
     # Egger
-    egger_p = ifelse(x_i$n$studies < 3, "< 3 studies", signif(.as_numeric(x_i$egger$p.value), digits - 1))
+    egger_p = ifelse(x_i$n$studies < 3,
+                     "< 3 studies",
+                     # signif(.as_numeric(x_i$egger$p.value), digits - 0)
+                     ifelse(!is.na(x_i$egger$p.value),
+                       sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$egger$p.value)),
+                       as.character(x_i$egger$p.value))
+    )
     egger_sign = factor(x_i$egger$p.value < 0.05, levels = c(FALSE, TRUE), labels = c("ns", "sig."))
 
     # ESB
-    ESB_p = signif(.as_numeric(x_i$esb$p.value), digits - 1)
+    ESB_p = ifelse(!is.na(x_i$esb$p.value),
+                   sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$esb$p.value)),
+                   as.character(x_i$esb$p.value))#signif(.as_numeric(x_i$esb$p.value), digits - 0)
+
     ESB_sign = factor(x_i$esb$p.value < 0.05, levels = c(FALSE, TRUE), labels = c("ns", "sig."))
 
     # Largest
@@ -200,7 +209,10 @@ summary.umbrella = function(object, digits = 3, ...) {
                             ", ", ifelse(measure != "SMD", round(.or_to_d(exp(x_i$largest$ci_up)), digits), largest_ci_up), "]")
 
     # JK
-    JK_p = ifelse(x_i$n$studies == 1, "only 1 study", signif(.as_numeric(max(x_i$jk)), digits - 1))
+    JK_p = ifelse(x_i$n$studies == 1, "only 1 study",
+                  # signif(.as_numeric(max(x_i$jk)), digits - 0)
+                  sprintf(paste0("%.", digits - 1, "e"), .as_numeric(max(x_i$jk)))
+                  )
     JK_sign = factor(JK_p < .05, levels = c(FALSE, TRUE), labels = c("n.s.", "sig."))
 
     # RoB
@@ -232,7 +244,8 @@ summary.umbrella = function(object, digits = 3, ...) {
 
       out_i = data.frame(
         Factor = name, n_studies, total_n, n_cases, n_controls,
-        measure, value, value_CI, eG, eG_CI, eOR, eOR_CI, p_value,
+        measure = ifelse(measure == "SMD", "G", measure),
+        value, value_CI, eG, eG_CI, eOR, eOR_CI, p_value,
         I2, PI_eG, PI_eOR,
         egger_p, ESB_p,
         power_med, JK_p,
@@ -248,7 +261,7 @@ summary.umbrella = function(object, digits = 3, ...) {
                   Factor = name,
                   Criteria = "Ioannidis",
                   Class = x_i$evidence,
-                  measure,
+                  measure = ifelse(measure == "SMD", "G", measure),
                   value,
                   value_CI,
                   eG,
@@ -274,7 +287,7 @@ summary.umbrella = function(object, digits = 3, ...) {
                 out_i = data.frame(Factor = name,
                                    Criteria = "Personalized",
                                    Class = x_i$evidence,
-                                   measure,
+                                   measure = ifelse(measure == "SMD", "G", measure),
                                    value,
                                    value_CI,
                                    eG,
@@ -315,7 +328,7 @@ summary.umbrella = function(object, digits = 3, ...) {
                   Factor = name,
                   Criteria = "GRADE",
                   Class = x_i$evidence,
-                  measure,
+                  measure = ifelse(measure == "SMD", "G", measure),
                   value,
                   value_CI,
                   eG,

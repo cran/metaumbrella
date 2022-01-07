@@ -3,16 +3,16 @@
 \docType{data}
 \name{df.OR.multi}
 \alias{df.OR.multi}
-\title{Meta-analysis of RCTs assessing the efficacy of n-3 fatty acids}
+\title{Meta-analysis of RCTs assessing different dietary interventions on a binary outcome.}
 \format{
 The dataset contains the following variables: \tabular{ll}{
   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
   \tab \cr
   \strong{factor} \tab name of the intervention studied.\cr
   \tab \cr
-  \strong{author} \tab first study author of the RCTs.\cr
+  \strong{author} \tab first study author of the individual studies\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{measure} \tab type of effect size (OR).\cr
   \tab \cr
@@ -30,7 +30,7 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
   \tab \cr
-  \strong{n_controls_exp} \tab number of controls in the exposed group..\cr
+  \strong{n_controls_exp} \tab number of controls in the exposed group.\cr
   \tab \cr
   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
   \tab \cr
@@ -38,7 +38,6 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{multiple_es} \tab indicates the reason of the presence for multiple effect sizes\cr
   \tab (due to multiple groups or outcomes) per study.\cr
-  \tab \cr
 }
 }
 \source{
@@ -48,8 +47,6 @@ No source, the data are entirely fictitious
 df.OR.multi
 }
 \description{
-Fictitious multilevel dataset of a meta-analysis of RCTs assessing the efficacy of n-3 fatty acids on binary outcomes.\cr
- The study of al-Jabara (2008) includes two effect sizes resulting from two independent RCTs.\cr
- The studies of Godebu (1985), Blase (2002) and Rivera (2000) include several effect sizes resulting from the presence of several outcomes measured in the same sample.
+Fictitious dataset including meta-analyses with dependent effect sizes.
 }
 \keyword{datasets}

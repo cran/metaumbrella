@@ -41,7 +41,6 @@ test_that(".estimate_irr_from_n() correctly estimates Incident Risk Ratio and st
   IRR_mfr <- exp(as.numeric(as.character(df.IRR.mfr$yi)))
   se_mfr <- sqrt(df.IRR.mfr$vi)
 
-  # tolerance 1e-15 leads to failure
   expect_equal(df$value, IRR_mfr, tolerance = 1e-14)
   expect_equal(df$se, se_mfr, tolerance = 1e-14)
 })

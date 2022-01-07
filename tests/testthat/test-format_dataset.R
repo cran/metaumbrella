@@ -9,18 +9,18 @@ test_that("format_dataset from raw information: SMD", {
   skip_on_cran()
   df <- df.SMD[df.SMD$factor == "Pharmacological", ]
   df.red <- subset(df, select = -c(value, se, ci_lo, ci_up))
-    df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
+  df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
+  df_umb <- umbrella(df.red)[[1]]$x
 
-  se <- sqrt(1 / df$n_cases + 1 / df$n_controls)
-  df$ci_lo <- df$value - qt(0.975, df$n_cases + df$n_controls - 2) * se
-  df$ci_up <- df$value + qt(0.975, df$n_cases + df$n_controls - 2) * se
+  G = .estimate_g_from_d(d = df$value, n_cases = df$n_cases, n_controls = df$n_controls)$value
+  se = .estimate_g_from_d(d = df$value, n_cases = df$n_cases, n_controls = df$n_controls)$se
+  ci_lo <- G - qt(0.975, df$n_cases + df$n_controls - 2) * se
+  ci_up <- G + qt(0.975, df$n_cases + df$n_controls - 2) * se
 
-  expect_equal(df$value, df_format$value, tolerance = 1e-13)
-  expect_equal(df$se, df_format$se, tolerance = 1e-13)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 1e-13)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 1e-13)
-  expect_equal(df$n_cases, df_format$n_cases)
-  expect_equal(df$n_controls, df_format$n_controls)
+  expect_equal(G, df_format$value, tolerance = 1e-13)
+  expect_equal(se, df_format$se, tolerance = 1e-13)
+  expect_equal(ci_lo, df_format$ci_lo, tolerance = 1e-13)
+  expect_equal(ci_up, df_format$ci_up, tolerance = 1e-13)
 })
 
 # OR
@@ -101,50 +101,29 @@ test_that("format_dataset from CI: SMD", {
   df$ci_lo <- df$ci_up <- NA
 
   df$se <- with(df, sqrt(1/n_cases + 1/n_controls))
-  for (i in 1:nrow(df)) {
-    df$ci_lo[i] = with(df, value[i] - se[i] * qt(0.975, n_cases[i] + n_controls[i] - 2))
-    df$ci_up[i] = with(df, value[i] + se[i] * qt(0.975, n_cases[i] + n_controls[i] - 2))
-  }
+  df$ci_lo = with(df, value - se * qt(0.975, n_cases + n_controls - 2))
+  df$ci_up = with(df, value + se * qt(0.975, n_cases + n_controls - 2))
 
-  dfred <- subset(df.SMD, factor == "Pharmacological", select = -c(value, se, mean_cases, mean_controls, sd_cases, sd_controls))
+
+  dfred <- subset(df, factor == "Pharmacological", select = -c(value, se))
 
   df_format <- .quiet(.format_dataset(attr(.check_data(dfred), "data")))
 
-  expect_equal(df$value, df_format$value, tolerance = 1e-8)
-  expect_equal(df$se, df_format$se, tolerance = 5e-2)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 5e-3)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 5e-3)
+  value = (dfred$ci_up + dfred$ci_lo)  / 2
+  se = (dfred$ci_up - dfred$ci_lo) / (2 * qt(0.975, df$n_cases + df$n_controls - 2))
+  G = .estimate_g_from_d(d = value, n_cases = df$n_cases, n_controls = df$n_controls, se = se)$value
+  se = .estimate_g_from_d(d = value, n_cases = df$n_cases, n_controls = df$n_controls, se = se)$se
+  ci_lo <- G - qt(0.975, df$n_cases + df$n_controls - 2) * se
+  ci_up <- G + qt(0.975, df$n_cases + df$n_controls - 2) * se
+
+  expect_equal(G, df_format$value, tolerance = 1e-6)
+  expect_equal(se, df_format$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_format$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_format$ci_up, tolerance = 1e-6)
   expect_equal(df$n_cases, df_format$n_cases)
   expect_equal(df$n_controls, df_format$n_controls)
 })
 
-test_that("format_dataset from CI: SMD", {
-  skip_on_cran()
-  df <- subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls))
-  df$ci_lo <- df$ci_up <- NA
-  df$measure = "G"
-  j = .d_j(df$n_cases + df$n_controls - 2)
-  df$value = df$value * j
-  df$se = df$se * j
-
-  for (i in 1:nrow(df)) {
-    df$ci_lo[i] = with(df, value[i] - se[i] * qt(0.975, n_cases[i] + n_controls[i] - 2))
-    df$ci_up[i] = with(df, value[i] + se[i] * qt(0.975, n_cases[i] + n_controls[i] - 2))
-  }
-  dfred <- subset(df.SMD, factor == "Pharmacological", select = -c(value, se, mean_cases, mean_controls, sd_cases, sd_controls))
-
-  df_format <- .quiet(.format_dataset(attr(.check_data(dfred), "data")))
-
-  df$value = df$value / j
-  df$se = df$se / j
-
-  expect_equal(df$value, df_format$value, tolerance = 1e-8)
-  expect_equal(df$se, df_format$se, tolerance = 5e-2)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 5e-3)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 5e-3)
-  expect_equal(df$n_cases, df_format$n_cases)
-  expect_equal(df$n_controls, df_format$n_controls)
-})
 ### OR
 test_that("format_dataset from CI: OR", {
   skip_on_cran()
@@ -228,15 +207,19 @@ test_that("format_dataset from value and N: SMD", {
   df <- df.SMD[df.SMD$factor == "Pharmacological", ]
   df.red <- subset(df, select = -c(ci_lo, ci_up, se,
                                mean_cases, mean_controls, sd_cases, sd_controls))
-    df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
 
-  se = with(df, .estimate_d_from_means(n_cases, n_controls, mean_cases, sd_cases, mean_controls, sd_controls)$se)
-  df$ci_lo <- df$value - qt(0.975, df$n_cases + df$n_controls - 2) * se
-  df$ci_up <- df$value + qt(0.975, df$n_cases + df$n_controls - 2) * se
+  df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
 
-  expect_equal(df$value, df_format$value, tolerance = 1e-6)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 1e-6)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 1e-6)
+
+  G = .estimate_g_from_d(d = df$value, n_cases = df$n_cases, n_controls = df$n_controls)$value
+  se = .estimate_g_from_d(d = df$value, n_cases = df$n_cases, n_controls = df$n_controls)$se
+  ci_lo <- G - qt(0.975, df$n_cases + df$n_controls - 2) * se
+  ci_up <- G + qt(0.975, df$n_cases + df$n_controls - 2) * se
+
+  expect_equal(G, df_format$value, tolerance = 1e-6)
+  expect_equal(se, df_format$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_format$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_format$ci_up, tolerance = 1e-6)
   expect_equal(df$n_cases, df_format$n_cases)
   expect_equal(df$n_controls, df_format$n_controls)
 })
@@ -246,17 +229,14 @@ test_that("format_dataset from value and N: G", {
   df <- df.SMD[df.SMD$factor == "Pharmacological", ]
   df_sauv <- df.SMD[df.SMD$factor == "Pharmacological", ]
 
-  J <- .d_j(df$n_cases + df$n_controls - 2)
-  se = with(df, .estimate_d_from_means(n_cases, n_controls, mean_cases, sd_cases, mean_controls, sd_controls)$se)
-
   # G
-  df$value <- df$value * J
-  df$ci_lo <- df$value - qt(0.975, df$n_cases + df$n_controls - 2) * (se* J)
-  df$ci_up <- df$value + qt(0.975, df$n_cases + df$n_controls - 2) * (se* J)
+  G = with(df, .estimate_g_from_d(value, n_cases, n_controls)$value)
+  se = with(df, .estimate_g_from_d(value, n_cases, n_controls)$se)
+  df$value = G; df$se = se
+  df$ci_lo <- df$value - qt(0.975, df$n_cases + df$n_controls - 2) * (df$se)
+  df$ci_up <- df$value + qt(0.975, df$n_cases + df$n_controls - 2) * (df$se)
 
-  # SMD
-  df_sauv$ci_lo = df_sauv$value - qt(0.975, df_sauv$n_cases + df_sauv$n_controls - 2) * (se)
-  df_sauv$ci_up <- df_sauv$value + qt(0.975, df_sauv$n_cases + df_sauv$n_controls - 2) * (se)
+  df_sauv <- df
 
   df$measure <- "G"
 
@@ -265,6 +245,7 @@ test_that("format_dataset from value and N: G", {
 
   df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
   expect_equal(df_sauv$value, df_format$value, tolerance = 1e-6)
+  expect_equal(df_sauv$se, df_format$se, tolerance = 1e-6)
   expect_equal(df_sauv$ci_lo, df_format$ci_lo, tolerance = 1e-6)
   expect_equal(df_sauv$ci_up, df_format$ci_up, tolerance = 1e-6)
   expect_equal(df_sauv$n_cases, df_format$n_cases)
@@ -299,3 +280,75 @@ test_that("format_dataset from value and N: OR", {
 })
 
 #----------------------------------------------------------
+
+
+test_that("format_dataset converts and back converts G correctly", {
+  df <- df.SMD[df.SMD$factor == "Pharmacological", ]
+  df <- subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up))
+  df$se = with(df, .estimate_se_from_d(n_cases, n_controls, value))$se
+
+  G = with(df, .estimate_g_from_d(value, n_cases, n_controls)$value)
+  se = with(df, .estimate_g_from_d(value, n_cases, n_controls)$se)
+  ci_lo = G - qt(0.975, df$n_cases + df$n_controls - 2) * (se)
+  ci_up = G + qt(0.975, df$n_cases + df$n_controls - 2) * (se)
+
+  df$value = G
+  df$se = se
+  df$measure <- "G"
+
+  df_G_SE <- df_G_CI <- df
+  df_G_CI$ci_lo = ci_lo
+  df_G_CI$ci_up = ci_up
+  df_SMD_SE_format = subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up))
+  df_SMD_SE_format$se = with(df_SMD_SE_format, .estimate_se_from_d(n_cases, n_controls, value))$se
+  df_G_SE <- .quiet(.format_dataset(attr(.check_data(df_G_SE), "data")))
+  df_G_CI <- .quiet(.format_dataset(attr(.check_data(df_G_CI), "data")))
+  df_SMD_SE <- .quiet(.format_dataset(attr(.check_data(df_SMD_SE_format), "data")))
+
+
+  expect_equal(G, df_G_SE$value, tolerance = 1e-6)
+  expect_equal(se, df_G_SE$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_G_SE$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_G_SE$ci_up, tolerance = 1e-6)
+
+  expect_equal(G, df_G_CI$value, tolerance = 1e-6)
+  expect_equal(se, df_G_CI$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_G_CI$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_G_CI$ci_up, tolerance = 1e-6)
+
+  expect_equal(G, df_SMD_SE$value, tolerance = 1e-6)
+  expect_equal(se, df_SMD_SE$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_SMD_SE$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_SMD_SE$ci_up, tolerance = 1e-6)
+})
+
+test_that("format_dataset converts and back converts G correctly", {
+  df <- df.SMD[df.SMD$factor == "Pharmacological", ]
+  df <- subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, se))
+
+  G = with(df, .estimate_g_from_d(value, n_cases, n_controls)$value)
+  se = with(df, .estimate_g_from_d(value, n_cases, n_controls)$se)
+  ci_lo = G - qt(0.975, df$n_cases + df$n_controls - 2) * (se)
+  ci_up = G + qt(0.975, df$n_cases + df$n_controls - 2) * (se)
+
+  df$value = G
+  df$ci_lo = ci_lo
+  df$ci_up = ci_up
+  df$measure <- "G"
+
+  df_G_CI <- .quiet(.format_dataset(attr(.check_data(df), "data")))
+
+  df_SMD_SE_format = subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up))
+  df_SMD_SE <- .quiet(.format_dataset(attr(.check_data(df_SMD_SE_format), "data")))
+
+
+  expect_equal(G, df_G_CI$value, tolerance = 1e-6)
+  expect_equal(se, df_G_CI$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_G_CI$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_G_CI$ci_up, tolerance = 1e-6)
+
+  expect_equal(G, df_SMD_SE$value, tolerance = 1e-6)
+  expect_equal(se, df_SMD_SE$se, tolerance = 1e-6)
+  expect_equal(ci_lo, df_SMD_SE$ci_lo, tolerance = 1e-6)
+  expect_equal(ci_up, df_SMD_SE$ci_up, tolerance = 1e-6)
+})

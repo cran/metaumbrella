@@ -1,8 +1,8 @@
-#' Forest plots for \dQuote{umbrella} objects
+#' Forest plots for objects of class \dQuote{umbrella}
 #'
-#' Draws a forest plot of the factors included in an umbrella review.
+#' Draw a forest plot of the factors included in an umbrella review.
 #'
-#' @param x an object of class umbrella.
+#' @param x an object of class \dQuote{umbrella}
 #' @param ... additional arguments that can be passed to this function
 #'
 #' @export forest
@@ -15,7 +15,7 @@
 #' @return
 #' In addition to the plot, the function returns a list including:
 #' \itemize{
-#'   \item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot.
+#'   \item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot. See the vignette dedicated to the forest plots for a concrete example.
 #'   \item the optimal width and height of the plot, useful when calling the function \code{pdf()} or \code{png()}.
 #'}
 #'
@@ -30,23 +30,30 @@ forest <- function (x, ...) {
 
 #' Forest plots for \dQuote{umbrella} objects
 #'
-#' Draws a forest plot of the factors included in an umbrella review.
+#' Draw a forest plot of the factors included in an umbrella review.
+#' The basic version of this plot contains three parts:
+#'  * a column displaying the name of the factors (referred to as the \code{'factor'} column).
+#'  * a graphical representation of the pooled effect sizes and 95% CI of the factors.
+#'  * a column displaying the numeric values of the pooled effect size and 95% CI of the factors (referred to as the \code{'value'} column).
 #'
 #' @param x an object of class \dQuote{umbrella}.
 #' @param measure type of effect size used in the plot. Default is equivalent Hedges' g (\code{"eG"}). Alternatively, equivalent Odds Ratio (\code{"eOR"}) can be used.
 #' @param main_title the title of the plot
-#' @param main_value a title for the header displaying the values.
+#' @param main_value a title for the header of the 'value' column.
 #' @param main_x_axis title of the x-axis
 #' @param max.value the maximum value that will be plotted on the x-axis.
 #' Must be strictly superior to 1 when equivalent odds ratio (eOR) measure is used, and strictly superior to 0 when SMD measure is used.
 #' Note that minimum value will be automatically set to the inverse of \code{max.value} for eOR measure and to \code{- max.value} for SMD measure.
 #' @param print.classes a vector of classes. Only factors reaching these classes will be displayed on the plot.
-#' These classes must be "I", "II", "III", "IV" and/or "ns" for the "Ioannidis" criteria; "High", "Moderate", "Weak" and/or "Very weak" for the "GRADE" criteria; "I", "II", "III", "IV", and/or "V" for the "Personalized" criteria.
+#' These classes must be:
+#' - "I", "II", "III", "IV" and/or "ns" for the "Ioannidis" classification
+#' - "High", "Moderate", "Weak" and/or "Very weak" for the "GRADE" classification
+#' - "I", "II", "III", "IV", and/or "V" for the "Personalized" classification
 #' @param col_sig a vector of two colors. Statistically significant factors are displayed using these colors:
 #' - Protective factors (i.e., with an eOR < 1 or an SMD < 0) are displayed with the first color
 #' - Risk factors (i.e., with an eOR >= 1 or an SMD >= 0) will be displayed with the second color.
 #' - Non-significant factors are displayed with the color indicated in the 'col_dots' argument.
-#' @param log_cex_dots a logical value indicating whether the natural logarithm of the size of the dot should be used (should be TRUE or FALSE). When set as TRUE, this argument can be used to reduce very large disparities in the size of the dots between factors.
+#' @param log_cex_dots a logical value indicating whether the logarithm of the size of the dot should be used (should be TRUE or FALSE). When set as TRUE, this argument allows to reduce the disparities in the size of the dots between factors.
 #' @param fix_size_dots a unique positive numeric value that is used to fix the size of all dots
 #' @param xlim a vector containing the limits of the x-axis (x1, x2) of the plot.
 #' @param xlim_main_title position of the title of the plot on the x-axis.
@@ -72,22 +79,22 @@ forest <- function (x, ...) {
 #' @param col_lines color of the lines.
 #' @param pos_value type of centering of the column displaying the values. Must be either "left-align", "center", or "right-align".
 #' @param pos_text type of centering of the 'factor' column. Must be either "left-align", "center", or "right-align".
-#' @param add_columns a vector/dataframe containing the columns that should be added to the plot.
-#' @param main_add_columns the name of the header of the new columns added to the plot (default is the name of the columns in the dataset).
+#' @param add_columns a vector/dataframe containing the columns that should be added to the plot. The number of rows of the columns added to the plot should be equal to the number of factors.
+#' @param main_add_columns a vector containing the name of the header of the new columns added to the plot (default is the name of the columns in the dataset).
 #' @param xlim_add_columns position of the new columns added on x-axis. Should be a numeric vector containing the exact same number values as the number of columns added. Mandatory when columns are added to the plot.
 #' @param x_lim_adj a numeric value that can be used to adjust the size of the window of the plot on the x-axis.
 #' @param y_lim_adj a numeric value that can be used to adjust the size of the window of the plot on the y-axis.
-#' @param x_axis_adj a numeric value that can be used to adjust the height of the x-axis.
+#' @param x_axis_adj a numeric value that can be used to adjust the height of the space between the x-axis and the title of the x-axis.
 #' @param ... additional arguments that can be passed to the forest.umbrella function
 #'
 #' @details
-#' The function allows to have a visualization of the results of the umbrella review.
-#' Various parameters, such as the type of effect size displayed, the restriction to some classes or the color, allows to simplify the visualization.
+#' The function allows to have a visualization of the results of an umbrella review.
+#' Various parameters, such as the type of effect size displayed, the restriction to some classes or the color of the dots, allows to simplify the visualization.
 #'
 #' @return
 #' In addition to the plot, the function returns a list including:
 #' \itemize{
-#'   \item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot.
+#'   \item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot. See the vignette dedicated to the forest plots for a concrete example.
 #'   \item the optimal width and height of the plot, useful when calling the function \code{pdf()} or \code{png()}.
 #'}
 #'
@@ -98,9 +105,8 @@ forest <- function (x, ...) {
 #' @md
 #'
 #' @references
-#' Fullana, M.A., Tortella-Feliu, M., Fernandez de la Cruz, L., Chamorro, J., Perez-Vigil, A., Ioannidis, J.P.A., Solanes, A., Guardiola, M., Almodovar, C., Miranda-Olivos, R., Ramella-Cravaro, V., Vilar, A., Reichenberg, A., Mataix-Cols, D., Vieta, E., Fusar-Poli, P., Fatjo-Vilas, M., Radua, J. (2019)
-#' Risk and protective factors for anxiety and obsessive-compulsive disorders: an umbrella review of systematic reviews and meta-analyses.
-#' \emph{Psychological Medicine}.
+#' Tortella-Feliu, M. and Fullana, M.A., Perez-Vigil, A., Torres, X., Chamorro, J., and Littarelli, S.A., ..., & Radua, J. (2019). Risk Factors for Posttraumatic Stress Disorder: An Umbrella Review of Systematic Reviews and Meta-Analyses.
+#' \emph{Neuroscience & Biobehavioral Reviews}, \bold{107}, 154--165.
 #'
 #' @examples
 #' \donttest{
@@ -396,7 +402,7 @@ forest.umbrella <- function (x,
         text(x = xlim_factor, y = - 0.05 + n.classes + n.stud + ylim_correction_text + pos_text_ylim_cor, "Class I", pos = pos_text, font = 2, col = "#252525", family = "sans", cex = cex_value_header)
       }
       if (any(y$class == 2)) {
-        text(x = xlim_factor, y = - 0.05 + sum(y$class > 1) + any(y$class == 3) + any(y$class == 4) + any(y$class == 5) + 1 + ylim_correction_text + pos_text_ylim_cor, "Class II:", pos = pos_text, font = 2, col = "#252525", family = "sans", cex = cex_value_header)
+        text(x = xlim_factor, y = - 0.05 + sum(y$class > 1) + any(y$class == 3) + any(y$class == 4) + any(y$class == 5) + 1 + ylim_correction_text + pos_text_ylim_cor, "Class II", pos = pos_text, font = 2, col = "#252525", family = "sans", cex = cex_value_header)
       }
       if (any(y$class == 3)) {
         text(x = xlim_factor, y = - 0.05 + sum(y$class > 2) + any(y$class == 4) + any(y$class == 5) + 1 + ylim_correction_text + pos_text_ylim_cor, "Class III", pos = pos_text, font = 2, col = "#252525", family = "sans", cex = cex_value_header)

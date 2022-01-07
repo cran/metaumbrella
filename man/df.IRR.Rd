@@ -5,15 +5,14 @@
 \alias{df.IRR}
 \title{Meta-analysis exploring adverse events of smoking.}
 \format{
-The dataset contains the following variables: \tabular{ll}{
+The dataset contains the following variables:\tabular{ll}{
   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
   \tab \cr
-  \strong{factor} \tab name of the neurodevelopmental disorders on which the effect of the risk factor\cr
-  \tab is studied\cr
+  \strong{factor} \tab name of the factor (only one factor is included).\cr
   \tab \cr
-  \strong{author} \tab first study author of the retrospective cohorts.\cr
+  \strong{author} \tab first study author of the individual studies\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{measure} \tab type of effect size (IRR).\cr
   \tab \cr
@@ -36,7 +35,6 @@ The dataset contains the following variables: \tabular{ll}{
   \strong{time_exp} \tab person-time at risk in the exposed group.\cr
   \tab \cr
   \strong{time_nexp} \tab person-time at risk in the non-exposed group.\cr
-  \tab \cr
 }
 }
 \source{
@@ -46,6 +44,6 @@ No source, the data are entirely fictitious
 df.IRR
 }
 \description{
-Fictitious dataset of a meta-analysis of prospective controlled cohorts assessing adverse effects of smoking.
+Fictitious dataset of a meta-analysis of prospective cohorts assessing adverse effects of smoking on one binary outcome.
 }
 \keyword{datasets}

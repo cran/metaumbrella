@@ -240,23 +240,31 @@ test_that(".shared_adjustment_mod provides adequate sample size and effect size 
   tmp2 <- .estimate_d_from_means(n_cases = df$n_cases[2], n_controls = df$n_controls[2] / 2,
                                   mean_cases = df$mean_cases[2], sd_cases = df$sd_cases[2],
                                   mean_controls = df$mean_controls[2], sd_controls = df$sd_controls[2])
+
   tmp3 <- .estimate_d_from_means(n_cases = df$n_cases[3], n_controls = df$n_controls[3] / 2,
                                   mean_cases = df$mean_cases[3], sd_cases = df$sd_cases[3],
                                   mean_controls = df$mean_controls[3], sd_controls = df$sd_controls[3])
 
+  tmp2G <- data.frame(value = .estimate_g_from_d(tmp2$value, df$n_cases[2], df$n_controls[2] / 2, tmp2$se)$value,
+                      se =    .estimate_g_from_d(tmp2$value, df$n_cases[2], df$n_controls[2] / 2, tmp2$se)$se)
 
-  ci_lo <- c(tmp2$value - tmp2$se * qt(0.975, (df$n_cases[2]) + (df$n_controls[2] / 2) - 2),
-             tmp3$value - tmp3$se * qt(0.975, (df$n_cases[3]) + (df$n_controls[3] / 2) - 2))
-  ci_up <- c(tmp2$value + tmp2$se * qt(0.975, (df$n_cases[2]) + (df$n_controls[2] / 2) - 2),
-             tmp3$value + tmp3$se * qt(0.975, (df$n_cases[3]) + (df$n_controls[3] / 2) - 2))
+  tmp3G <- data.frame(value = .estimate_g_from_d(tmp3$value, df$n_cases[3], df$n_controls[3] / 2, tmp3$se)$value,
+                      se =    .estimate_g_from_d(tmp3$value, df$n_cases[3], df$n_controls[3] / 2, tmp3$se)$se)
+
+  ci_loG1 <- tmp2G$value - tmp2G$se * qt(0.975, (df$n_cases[2]) + (df$n_controls[2] / 2) - 2)
+  ci_loG2 <- tmp3G$value - tmp3G$se * qt(0.975, (df$n_cases[3]) + (df$n_controls[3] / 2) - 2)
+
+  ci_upG1 <- tmp2G$value + tmp2G$se * qt(0.975, (df$n_cases[2]) + (df$n_controls[2] / 2) - 2)
+  ci_upG2 <- tmp3G$value + tmp3G$se * qt(0.975, (df$n_cases[3]) + (df$n_controls[3] / 2) - 2)
 
   expect_equal(df_adj[2:3, ]$n_cases_raw, df[2:3, ]$n_cases)
   expect_equal(df_adj[2:3, ]$n_controls_adj, df[2:3, ]$n_controls / 2, tolerance = 1e-6)
   expect_equal(sum(df_adj$n_cases_adj, df_adj$n_controls_adj), umb$Pharmacological$n$cases_and_controls, tolerance = 1e-6)
 
-  expect_equal(df_adj[2:3, ]$ci_lo_adj, ci_lo, tolerance = 1e-6)
-  expect_equal(df_adj[2:3, ]$ci_up_adj, ci_up, tolerance = 1e-6)
-
+  expect_equal(df_adj$ci_lo_adj[2], ci_loG1, tolerance = 1e-6)
+  expect_equal(df_adj$ci_up_adj[2], ci_upG1, tolerance = 1e-6)
+  expect_equal(df_adj$ci_lo_adj[3], ci_loG2, tolerance = 1e-6)
+  expect_equal(df_adj$ci_up_adj[3], ci_upG2, tolerance = 1e-6)
 })
 # SAMPLE SIZE and EFFECT SIZE ESTIMATE - multilevel - SMD
 test_that(".shared_adjustment_mod provides adequate sample size and effect size correction for MULTILEVEL situations SMD", {
@@ -271,7 +279,6 @@ test_that(".shared_adjustment_mod provides adequate sample size and effect size 
   df$multiple_es <- NA ; df$multiple_es[c(1,4)] <- "outcomes"
   adj <- .shared_adjustment_mod(shared = df$shared_controls, author = df$author, year = df$year)
 
-  .format_dataset(attr(.check_data(df), "data"), mult.level = TRUE)
   umb <- .quiet(umbrella(df, mult.level = TRUE))
 
   df_adj <- umb[[1]]$x_shared
@@ -284,18 +291,32 @@ test_that(".shared_adjustment_mod provides adequate sample size and effect size 
   expect_equal(df_adj$ci_up_raw, df$ci_up, tolerance = 1e-6)
 
   # adjusted values
-  tmp <- .estimate_d_from_means(n_cases = df$n_cases, n_controls = df$n_controls / 2,
-                                 mean_cases = df$mean_cases, sd_cases = df$sd_cases,
-                                 mean_controls = df$mean_controls, sd_controls = df$sd_controls)
+  tmp1 <- .estimate_d_from_means(n_cases = df$n_cases[1], n_controls = df$n_controls[1] / 2,
+                                 mean_cases = df$mean_cases[1], sd_cases = df$sd_cases[1],
+                                 mean_controls = df$mean_controls[1], sd_controls = df$sd_controls[1])
+  tmp4 <- .estimate_d_from_means(n_cases = df$n_cases[4], n_controls = df$n_controls[4] / 2,
+                                mean_cases = df$mean_cases[4], sd_cases = df$sd_cases[4],
+                                mean_controls = df$mean_controls[4], sd_controls = df$sd_controls[4])
+
+  tmpG1 <- data.frame(value = .estimate_g_from_d(tmp1$value, df$n_cases[1], df$n_controls[1] / 2, tmp1$se)$value,
+                      se = .estimate_g_from_d(tmp1$value, df$n_cases[1], df$n_controls[1] / 2, tmp1$se)$se)
+
+  ci_loG1 <- tmpG1$value - tmpG1$se * qt(0.975, df$n_cases[1] + df$n_controls[1] / 2 - 2)
+  ci_upG1 <- tmpG1$value + tmpG1$se * qt(0.975, df$n_cases[1] + df$n_controls[1] / 2 - 2)
 
 
-  ci_lo <- tmp$value - tmp$se * qt(0.975, df$n_cases + df$n_controls / 2 - 2)
-  ci_up <- tmp$value + tmp$se * qt(0.975, df$n_cases + df$n_controls / 2 - 2)
+  tmpG4 <- data.frame(value = .estimate_g_from_d(tmp4$value, df$n_cases[4], df$n_controls[4] / 2, tmp4$se)$value,
+                      se = .estimate_g_from_d(tmp4$value, df$n_cases[4], df$n_controls[4] / 2, tmp4$se)$se)
+
+  ci_loG4 <- tmpG4$value - tmpG4$se * qt(0.975, df$n_cases[4] + df$n_controls[4] / 2 - 2)
+  ci_upG4 <- tmpG4$value + tmpG4$se * qt(0.975, df$n_cases[4] + df$n_controls[4] / 2 - 2)
 
   expect_equal(df_adj$n_cases_raw, df$n_cases)
   expect_equal(df_adj$n_controls_adj, df$n_controls / 2, tolerance = 1e-6)
-  expect_equal(df_adj$ci_lo_adj, ci_lo, tolerance = 1e-6)
-  expect_equal(df_adj$ci_up_adj, ci_up, tolerance = 1e-6)
+  expect_equal(df_adj$ci_lo_adj[1], ci_loG1, tolerance = 1e-6)
+  expect_equal(df_adj$ci_up_adj[1], ci_upG1, tolerance = 1e-6)
+  expect_equal(df_adj$ci_lo_adj[4], ci_loG4, tolerance = 1e-6)
+  expect_equal(df_adj$ci_up_adj[4], ci_upG4, tolerance = 1e-6)
   expect_equal(sum(df_adj$n_cases_raw[2:5], df_adj$n_controls_adj[2:5]), umb$Pharmacological$n$cases_and_controls, tolerance = 1e-6)
 
 })

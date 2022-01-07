@@ -17,14 +17,19 @@ The \code{umbrella.gui()} function returns several elements including \tabular{l
 }
 }
 \description{
-The \code{umbrella.gui} function allows to perform an umbrella review in R with a graphical user interface.
+The \code{umbrella.gui} function allows to perform an umbrella review in R with a graphical user interface and to generate results outside of R.
 }
 \details{
-After entering \code{umbrella.gui()} in the R console, a window will open.
+This function implicitly calls the \code{view.errors.umbrella()} to check the formatting of the data,
+the \code{umbrella()} function to perform calculations, the \code{add.evidence()} function to stratify evidence (limited to "Ioannidis" and "GRADE" classifications for now)
+and the \code{forest()} function to generate a visual representation of the results.
+
+To use this function:
 \itemize{
-\item The first step is to load your dataset by clicking on the button at the right of the "Excel file" label. An explorator window will open, allowing you to select the file you want to upload.
-\item The second step is to select the folder where the results will be exported. Again, click on the button at the right of the "Output folder" label, and select the appropriate folder thanks to the explorator window.
-\item Last, select the criteria you want to use for stratifying evidence. For now, "Ioannidis" and "GRADE" criteria are available.
+\item The first step is to type \code{umbrella.gui()} in the console. This will open a pop-up window.
+\item The second step is to load a well-formatted dataset (stored in an excel file) by clicking on the button at the right of the "Excel file" label. An exploratory window will open, allowing to select the file that should be uploaded.
+\item The third step is to select the folder where the results will be exported. Again, this can be achieved by clicking on the button at the right of the "Output folder" label, and selecting the appropriate folder thanks to the exploratory window.
+\item Last, the classification that should be used for stratifying the evidence has to be selected. For now, "Ioannidis" and "GRADE" classifications are available.
 }
 }
 \examples{
@@ -34,5 +39,7 @@ umbrella.gui()
 }
 }
 \seealso{
-See \code{\link{umbrella}()}, \code{\link{add.evidence}()}, and \code{\link{summary.umbrella}()} for more information.
+\code{\link{umbrella}()}\cr
+\code{\link{add.evidence}()}\cr
+\code{\link{summary.umbrella}()}
 }

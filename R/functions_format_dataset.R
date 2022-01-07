@@ -21,28 +21,32 @@
     x_i[i, "measure"] = "SMD"
     x_i[i, "situation"] = gsub("_CI", "", as.character(x_i[i, "situation"]))
   }
+
   # Convert g to SMD
   for (i in which(x_i[, "measure"] == "G")) {
     df_i = x_i[i, "n_cases"] + x_i[i, "n_controls"] - 2
 
-    j = .d_j(df_i)
+    G_i = x_i[i, "value"]
 
-    x_i[i, "value"] = x_i[i, "value"] / j
+    x_i[i, "value"] = .estimate_d_from_g(g = x_i[i, "value"], n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"])$value
 
     if (is.na(x_i[i, "se"])) {
       if (!is.na(x_i[i, "ci_lo"]) & !is.na(x_i[i, "ci_up"])) {
         se_g_i = (x_i[i, "ci_up"] - x_i[i, "ci_lo"]) / (2 * qt(0.975, df_i))
-        se_i = se_g_i / j
+        se_i = .estimate_d_from_g(g = G_i, n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"], se = se_g_i)$se
         x_i[i, "ci_lo"] = x_i[i, "value"] - se_i * qt(0.975, df_i)
         x_i[i, "ci_up"] = x_i[i, "value"] + se_i * qt(0.975, df_i)
       }
     } else {
-      x_i[i, "se"] = sqrt(x_i[i, "se"]^2 - ((1 - (df_i - 2) / (df_i * .d_j(df_i)^2)) * (x_i[i, "value"] * j)^2))
+      se_i = .estimate_d_from_g(g = G_i, n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"], se = x_i[i, "se"])$se
+      x_i[i, "se"] = se_i
       x_i[i, "ci_lo"] = x_i[i, "value"] - x_i[i, "se"] * qt(0.975, df_i)
       x_i[i, "ci_up"] = x_i[i, "value"] + x_i[i, "se"] * qt(0.975, df_i)
     }
+
     x_i[i, "measure"] = "SMD"
   }
+
   # Convert log OR to OR
   for (i in which(x_i[, "measure"] == "logOR")) {
     x_i[i, "value"] = exp(x_i[i, "value"])
@@ -50,6 +54,7 @@
     x_i[i, "ci_up"] = exp(x_i[i, "ci_up"])
     x_i[i, "measure"] = "OR"
   }
+
   # Convert log RR to RR
   for (i in which(x_i[, "measure"] == "logRR")) {
     x_i[i, "value"] = exp(x_i[i, "value"])
@@ -57,6 +62,7 @@
     x_i[i, "ci_up"] = exp(x_i[i, "ci_up"])
     x_i[i, "measure"] = "RR"
   }
+
   # Convert log IRR to IRR
   for (i in which(x_i[, "measure"] == "logIRR")) {
     x_i[i, "value"] = exp(x_i[i, "value"])
@@ -64,6 +70,7 @@
     x_i[i, "ci_up"] = exp(x_i[i, "ci_up"])
     x_i[i, "measure"] = "IRR"
   }
+
   # Convert log HR to HR
   for (i in which(x_i[, "measure"] == "logHR")) {
     x_i[i, "value"] = exp(x_i[i, "value"])
@@ -630,6 +637,22 @@
                               reverse_es = x_raw_i$reverse_es,
                               r = x_raw_i$r))
   }
+
+  # convert SMD to G
+
+  if (measure == "SMD") {
+    value_G = .estimate_g_from_d(d = x_i_ok$value, n_cases = x_i_ok$n_cases, n_controls = x_i_ok$n_controls, se = x_i_ok$se)$value
+    se_G = .estimate_g_from_d(d = x_i_ok$value, n_cases = x_i_ok$n_cases, n_controls = x_i_ok$n_controls, se = x_i_ok$se)$se
+    ci_lo_G = value_G - se_G * qt(0.975, x_i_ok$n_cases + x_i_ok$n_controls - 2)
+    ci_up_G = value_G + se_G * qt(0.975, x_i_ok$n_cases + x_i_ok$n_controls - 2)
+
+    x_i_ok$value = value_G
+    x_i_ok$se = se_G
+    x_i_ok$ci_lo = ci_lo_G
+    x_i_ok$ci_up = ci_up_G
+    x_i_ok$measure = "G"
+  }
+
 
   # reverse data when needed
   for (i in which(x_i_ok[, "reverse_es"] %in% c("reverse", "reversed", "Reverse", "Reversed"))) {

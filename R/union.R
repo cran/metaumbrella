@@ -1,17 +1,17 @@
 #' Union of two objects of class \dQuote{umbrella}
 #'
-#' Combines the factors included in two umbrella objects
-#' @param x an object of class \code{umbrella}.
-#' @param y an object of class \code{umbrella}.
+#' Combine the factors included in two umbrella objects
+#' @param x an object of class \dQuote{umbrella}.
+#' @param y an object of class \dQuote{umbrella}.
 #' @param ... other arguments that can be passed to the function
 #'
 #' @details
 #' This function allows to combine the results of two objects of class \dQuote{umbrella}.
-#' This function is particularly useful when different meta-analytic models should be used for different factors.
-#' Note that it is note possible to union two umbrella objects returned by the \code{add.evidence()} function with different criteria.
+#' This function is particularly useful when different specifications are used to analyze different factors.
+#' It is not possible to union two objects of class \dQuote{umbrella} with different classifications.
 #'
 #' @return
-#' Returns an object of class\dQuote{umbrella}, with the factors of the two merged objects of class \dQuote{umbrella}.
+#' Return an object of class\dQuote{umbrella}, with the factors of the two objects of class \dQuote{umbrella}.
 #'
 #' @export union.umbrella
 #'
@@ -25,7 +25,7 @@
 #' umb.union <- union.umbrella(umb1, umb2)
 #' summary(add.evidence(umb.union, criteria = "GRADE"))
 #'
-#' ### union umbrella objects after apllying stratification of evidence
+#' ### union umbrella objects after applying stratification of evidence
 #' umb1 <- add.evidence(umbrella(df.SMD), criteria = "GRADE")
 #' umb2 <- add.evidence(umbrella(df.OR), criteria = "GRADE")
 #' umb3 <- add.evidence(umbrella(df.IRR), criteria = "GRADE")

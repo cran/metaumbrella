@@ -32,7 +32,7 @@ test_that(".meta_to_umbrella_x correctly extracts information and produces appro
   # standard OR
   metaor <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
                           event.c = n_cases_nexp, n.c = n_nexp,
-                          data = dfor, sm = "OR")
+                          data = dfor, sm = "OR", method.tau = "REML")
 
   res_metaor <- .meta_to_umbrella_x(metaor, n_cases = NULL, n_controls = NULL, measure = "OR")
 
@@ -44,13 +44,13 @@ test_that(".meta_to_umbrella_x correctly extracts information and produces appro
   # unsupported measure
   metarr <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
                           event.c = n_cases_nexp, n.c = n_nexp,
-                          data = df.RR, sm = "RR")
+                          data = df.RR, sm = "RR", method.tau = "REML")
   expect_error(.meta_to_umbrella_x(metarr, n_cases = NULL, n_controls = NULL, measure = "RR"),
-               "The esb.test function can be called from a 'meta' object only with 'SMD' or 'OR' as effect size measures.",
+               "The esb.test function can be called from a 'meta' object only with 'G', 'SMD' or 'OR' as effect size measures.",
                fixed = TRUE)
 
   # missing measure
-  metagenor <- meta::metagen(TE = log(value), seTE = se, data = dfor)
+  metagenor <- meta::metagen(TE = log(value), seTE = se, data = dfor, method.tau = "REML")
   expect_error(.meta_to_umbrella_x(metagenor,
                                    n_cases = df$n_cases,
                                    n_controls = df$n_controls,
@@ -60,7 +60,7 @@ test_that(".meta_to_umbrella_x correctly extracts information and produces appro
                fixed = TRUE)
 
   # missing sample sizes
-  metagenor <- meta::metagen(TE = log(value), seTE = se, data = dfor, sm = "OR")
+  metagenor <- meta::metagen(TE = log(value), seTE = se, data = dfor, sm = "OR", method.tau = "REML")
   #n_controls
   expect_error(.meta_to_umbrella_x(metagenor,
                                    n_cases = df$n_cases,
@@ -78,7 +78,7 @@ test_that(".meta_to_umbrella_x correctly extracts information from generic input
   df <- df.SMD
   # generic SMD
   j = .d_j(df$n_cases + df$n_controls - 2)
-  metagensmd <- meta::metagen(TE = value * j, seTE = se * j, data = df)
+  metagensmd <- meta::metagen(TE = value * j, seTE = se * j, data = df, method.tau = "REML")
 
   resgen <- .meta_to_umbrella_x(metagensmd,
                                 n_cases = df$n_cases,
@@ -99,7 +99,7 @@ test_that(".meta_to_umbrella_x correctly extracts information from generic input
   df$se <- with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
                                         n_controls_exp, n_controls_nexp)$se)
 
-  metagenor <- meta::metagen(TE = log(value), seTE = se, data = df)
+  metagenor <- meta::metagen(TE = log(value), seTE = se, data = df, method.tau = "REML")
 
   resgen <- .meta_to_umbrella_x(metagenor,
                                 n_cases = df$n_cases,
@@ -164,7 +164,7 @@ test_that(".rma_to_umbrella_x correctly extracts information and produces approp
                              data = df, method = "DL", measure = "RR")
 
   expect_error(.rma_to_umbrella_x(metarr, n_cases = df$n_cases, n_controls = df$n_controls, measure = "RR"),
-               "The esb.test function can be called from an 'rma' or 'meta' object only with 'SMD' or 'OR' as effect size measure",
+               "The esb.test function can be called from an 'rma' or 'meta' object only with 'G', 'SMD' or 'OR' as effect size measure",
                fixed = TRUE)
 
   # missing measure

@@ -11,15 +11,13 @@ The dataset contains the following variables: \tabular{ll}{
   \strong{factor} \tab name of the neurodevelopmental disorders on which the effect of the risk factor\cr
   \tab is studied\cr
   \tab \cr
-  \strong{author} \tab first study author of the cross-sectional studies.\cr
+  \strong{author} \tab first study author of the individual studies.\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{measure} \tab type of effect size (OR).\cr
   \tab \cr
   \strong{value} \tab OR value.\cr
-  \tab \cr
-  \strong{se} \tab standard error of the log OR\cr
   \tab \cr
   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
   \tab \cr
@@ -31,20 +29,19 @@ The dataset contains the following variables: \tabular{ll}{
   \strong{n_controls} \tab number of controls (sum of the number of controls in the exposed\cr
   \tab and non-exposed groups).\cr
   \tab \cr
-  \strong{n_exp} \tab number of patients in the exposed group (sum of the number of cases and\cr
+  \strong{n_exp} \tab number of participants in the exposed group (sum of the number of cases and\cr
   \tab controls in the exposed group).\cr
   \tab \cr
-  \strong{n_nexp} \tab number of patients in the non-exposed group (sum of the number of cases\cr
+  \strong{n_nexp} \tab number of participants in the non-exposed group (sum of the number of cases\cr
   \tab and controls in the non-exposed group).\cr
   \tab \cr
   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
   \tab \cr
-  \strong{n_controls_exp} \tab number of controls in the exposed group..\cr
+  \strong{n_controls_exp} \tab number of controls in the exposed group.\cr
   \tab \cr
   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
   \tab \cr
   \strong{n_controls_nexp} \tab number of controls in the non-exposed group.\cr
-  \tab \cr
 }
 }
 \source{

@@ -1,6 +1,6 @@
 #' Add evidence classes to \dQuote{umbrella} objects
 #'
-#' Adds evidence classes to the factors included in an umbrella review.
+#' Add evidence classes to the factors included in an umbrella review.
 #'
 #' @param x an object of class \dQuote{umbrella}.
 #' @param criteria the evidence criteria. It must be "GRADE", "Ioannidis" or "Personalized".
@@ -12,31 +12,31 @@
 #'
 #' @details The \code{add.evidence()} function performs a stratification of evidence according to three criteria.
 #'
-#' ## \bold{"Ioannidis" criteria}
-#' This criteria allows to stratify evidence according to guidelines described in Fusar-Poli & Radua (2018).
-#'  This criteria proposes to stratify evidence in five ordinal classes: "Class I", "Class II", "Class III", "Class IV", "Class ns".
+#' ## \bold{"Ioannidis" classification}
+#' This classification allows to stratify evidence according to the criteria described in Fusar-Poli & Radua (2018).
+#'  This classification proposes to stratify evidence in five ordinal classes: "Class I", "Class II", "Class III", "Class IV", "Class ns".
 #'  The criteria for each class are the following:
-#' * \bold{Class I:} number of cases > 1000, p-value of the meta-analysis < 10e-6, I2 < 0.5, 95% prediction interval excluding the null, p-value of the Egger test > .05 and p-value of the Ioannidis test > .05.
-#' * \bold{Class II:} number of cases > 1000, p-value of the meta-analysis < 10e-6, largest study with a statistically significant effect and class I criteria not met.
-#' * \bold{Class III:} number of cases > 1000, p < 10e-3 and class I-II criteria not met.
-#' * \bold{Class IV:} p < 0.05 and class I-III criteria not met.
-#' * \bold{Class ns:} p > 0.05.
+#' * \bold{Class I:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-6}, \eqn{I^2} < 0.5, 95% prediction interval excluding the null, p-value of the Egger test > .05 and p-value of the Ioannidis test > .05.
+#' * \bold{Class II:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-6}, largest study with a statistically significant effect and class I criteria not met.
+#' * \bold{Class III:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-3} and class I-II criteria not met.
+#' * \bold{Class IV:} p-value of the meta-analysis < 0.05 and class I-III criteria not met.
+#' * \bold{Class ns:} p-value of the meta-analysis >= 0.05.
 #'
-#' ## \bold{"GRADE" criteria}
-#' This criteria allows to stratify evidence according to four ordinal classes: "High", "Moderate", "Low", "Very low".
-#'  Importantly, this criteria should not be taken as an equivalent to the subjective approach underlying the standard GRADE criteria.
-#'  However, in line with the standard GRADE approach, this rating system uses a downgrading procedure in which all factors start with a "High" evidence class that
+#' ## \bold{"GRADE" classification}
+#' This classification allows to stratify evidence according to four ordinal classes: "High", "Moderate", "Low", "Very low".
+#'  Importantly, this classification should not be taken as an equivalent to the subjective approach underlying the standard GRADE classification
+#'  However, in line with the standard GRADE approach, this classification uses a downgrading procedure in which all factors start with a "High" evidence class that
 #'   could then be downgraded according to the following criteria:
 #' * \bold{Imprecision:} a total number of participants included in the meta-analysis giving a lower power than 0.8 to detect a SMD = 0.20 leads to a downgrading of 1 class.
 #'  A number of participants giving a lower power than 0.8 to detect a SMD = 0.50, leads to a downgrading of 2 classes.
 #' * \bold{Limitations:} a proportion of participants included in studies at low risk of bias inferior to 75% leads to a downgrading of 1 class. A proportion inferior to 50% leads to a downgrading of 2 classes.
 #' * \bold{Publication bias:} a p-value of an Egger's test < .10 leads to a downgrading of 1 class.
-#' * \bold{Inconsistency:} an I2 value > 0.5 leads to a downgrading of 1 class.
+#' * \bold{Inconsistency:} an \eqn{I^2} value >= 0.5 leads to a downgrading of 1 class.
 #'
-#' ## \bold{"Personalized" criteria}
-#' Because the "Ioannidis" and "GRADE" criteria do not necessarily provide a rating system that perfectly matches the requirements of your umbrella review, the \code{add.evidence} function offers the possibility to use a "Personalized" criteria to stratify the evidence according to 13 criteria. This Personalized criteria proposes to stratify the evidence in 5 ordinal classes: "Class I", "Class II", "Class III", "Class IV" and "Class V". "Class I" is the highest class that could be achieved and "Class V" is the lowest.\cr
-#' The overall class achieved by a factor is equal to the lowest class achieved by the criteria used to stratify evidence. For example, if users choose to stratify the evidence according to 3 criteria (the p-value of the meta-analysis, the inconsistency, the publication bias), and that the classes achieved by these 3 criteria are respectively "Class I", "Class III" and "Class IV", the overall Class reached by the factor will be "Class IV".\cr
-#' To determine the class that should be assigned to a factor, users have to indicate - for each class - a vector/list of threshold values for all the criteria that should be used to stratify the evidence.
+#' ## \bold{"Personalized" classification}
+#' Because the "Ioannidis" and "GRADE" classifications do not necessarily provide a rating system that perfectly matches the requirements of your umbrella review, the \code{add.evidence()} function offers the possibility to use a "Personalized" criteria to stratify the evidence according to 13 criteria. This Personalized criteria proposes to stratify the evidence in 5 ordinal classes: "Class I", "Class II", "Class III", "Class IV" and "Class V". "Class I" is the highest class that could be achieved and "Class V" is the lowest.\cr
+#' The overall class achieved by a factor is equal to the lowest class achieved by all the criteria used to stratify evidence. For example, if users choose to stratify the evidence according to 3 criteria (the p-value of the meta-analysis, the inconsistency, the publication bias), and that the classes achieved by these 3 criteria are respectively "Class I", "Class III" and "Class IV", the overall class reached by the factor will be "Class IV".\cr
+#' To determine the class that should be assigned to a factor, users have to indicate - for each class - a vector/list of threshold values for all the criteria that are used to stratify the evidence.
 #' A description of the criteria and their corresponding inputs is provided below:
 #' 1. \code{n_studies}: a number of studies included in the meta-analysis. If the number of studies included in the meta-analysis is \bold{strictly superior} to the threshold value indicated in \code{studies}, the class for which this value is indicated can be reached.
 #' 1. \code{total_n}: a total number of participants included in the meta-analysis. If the total number of participants included in the meta-analysis is \bold{strictly superior} to the threshold value indicated in \code{total_n}, the class for which this value is indicated can be reached.
@@ -44,11 +44,11 @@
 #' 1. \code{p_value}: a p-value of the pooled effect size under the random-effects model. If the p-value of the pooled effect size is \bold{strictly inferior} to the threshold value indicated in \code{p.value}, the class for which this value is indicated can be reached.
 #' 1. \code{I2}: an i-squared (\eqn{I^2}) value. If the \eqn{I^2} value of the meta-analysis is \bold{strictly inferior} to the threshold value indicated in \code{I2}, the class for which this value is indicated can be reached.
 #' 1. \code{imprecision}: a SMD value that will be used to calculate the statistical power of the meta-analysis. If the number of participants included in the meta-analyses allows to obtain a statistical power \bold{strictly superior} to 80% for the SMD value indicated in \code{imprecision}, the class for which this value is indicated can be reached.
-#' 1. \code{rob}: a percentage of participants included in studies \bold{at low risk of bias}. Note that that the approach to determining whether a study is at low risk of bias is left to the user. If the percentage of participants included in studies at low risk of bias is \bold{strictly superior} to the threshold value indicated in \code{rob}, the class for which this value is indicated can be reached.
+#' 1. \code{rob}: a percentage of participants included in studies \bold{at low risk of bias}. Note that the approach to determining whether a study is at low risk of bias is left to the user. If the percentage of participants included in studies at low risk of bias is \bold{strictly superior} to the threshold value indicated in \code{rob}, the class for which this value is indicated can be reached.
 #' 1. \code{amstar}: an AMSTAR rating on the methodological quality of the meta-analysis. If the AMSTAR value of the meta-analysis is \bold{strictly superior} to the threshold value indicated in \code{amstar}, the class for which this value is indicated can be reached.
-#' 1. \code{egger_p}: a p-value of an Egger's test for publication bias. If the p-value of the Egger's test is \bold{strictly superior} to the threshold value indicated in \code{egger}, the class for which this value is indicated can be reached.
-#' 1. \code{esb_p}: a p-value of an Ioannidis' test for the excess of significance bias (ESB). If the p-value  of the Ioannidis' test is \bold{strictly superior} to the threshold value indicated in \code{esb}, the class for which this value is indicated can be reached.
-#' 1. \code{JK_p}: the largest p-value obtained in the jackknife meta-analysis (JK). If the largest p-value obtained in the jackknife meta-analysis is \bold{strictly lower} to the threshold value indicated in \code{JK_p}, the class for which this value is indicated can be reached.
+#' 1. \code{egger_p}: a p-value of an Egger's test for publication bias. If the p-value of the Egger's test is \bold{strictly superior} to the threshold value indicated in \code{egger_p}, the class for which this value is indicated can be reached.
+#' 1. \code{esb_p}: a p-value of an Ioannidis' test for the excess of significance bias (ESB). If the p-value  of the Ioannidis' test is \bold{strictly superior} to the threshold value indicated in \code{esb_p}, the class for which this value is indicated can be reached.
+#' 1. \code{JK_p}: the largest p-value obtained in the jackknife meta-analysis (JK). If the largest p-value obtained in the jackknife meta-analysis is \bold{strictly inferior} to the threshold value indicated in \code{JK_p}, the class for which this value is indicated can be reached.
 #' 1. \code{pi}: a "notnull" value indicates that users request the 95% prediction interval of the meta-analysis to exclude the null value to achieve the class for which it is indicated.
 #' 1. \code{largest_CI}: a "notnull" value indicates that users request the 95% confidence interval of the largest study included in the meta-analysis to exclude the null value to achieve the class for which it is indicated.
 #'
@@ -67,26 +67,23 @@
 #' ### perform calculations required for an umbrella review
 #' umb.full <- umbrella(df.SMD)
 #'
-#'
 #' ### stratify evidence according to the algorithmic GRADE classification
 #' evid_grade <- add.evidence(umb.full, criteria = "GRADE")
 #' summary(evid_grade)
-#'
 #'
 #' ### stratify evidence according to the Ioannidis classification
 #' evid_ioannidis <- add.evidence(umb.full, criteria = "Ioannidis")
 #' summary(evid_ioannidis)
 #'
-#'
 #' ### stratify evidence according to the Personalized classification with
 #' ### the number of studies and cases, the inconsistency as criteria.
-#' ### a class I can be reached if the number of studies is > 10, the number of cases is > 500 and
-#' ### the I² is < 25%.
-#' ### a class II can be reached if the number of studies is > 5, the number of cases is > 400 and
-#' ### the I² is < 50%.
-#' ### a class III can be reached if the number of cases is > 300 and the I² is < 75%.
-#' ### a class IV can be reached if the number of cases is > 100.
-#' ### else, if the number of cases is <= 100, a class V is assigned.
+#' ### - a class I can be reached if the number of studies is > 10, the number of cases is > 500 and
+#' ###   the I² is < 25%.
+#' ### - a class II can be reached if the number of studies is > 5, the number of cases is > 400 and
+#' ###   the I² is < 50%.
+#' ### - a class III can be reached if the number of cases is > 300 and the I² is < 75%.
+#' ### - a class IV can be reached if the number of cases is > 100.
+#' ### - else, if the number of cases is <= 100, a class V is assigned.
 #' evid_perso1 <- add.evidence(umb.full, criteria = "Personalized",
 #'    class_I = c(n_studies = 10, n_cases = 500, I2 = 25),
 #'    class_II = c(n_studies = 5, n_cases = 400, I2 = 50),
@@ -94,21 +91,20 @@
 #'    class_IV = c(n_cases = 100))
 #' summary(evid_perso1)
 #'
-#'
 #' ### stratify evidence according to the Personalized classification with
 #' ### the risk of bias, the excess of significance the 95% prediction interval as criteria.
-#' ### a class I can be reached if the % of participants in studies at low risk of bias is > 80%,
+#' ### - a class I can be reached if the % of participants in studies at low risk of bias is > 80%,
 #' ### the p-value at the Ioannidis' test is > .10 and the 95% prediction interval excludes
 #' ### the null value.
-#' ### a class II can be reached if the % of participants in studies at low risk of bias is > 60%,
-#' ### the p-value at the Ioannidis' test is > .0.05 and the 95% prediction interval excludes
-#' ### the null value.
-#' ### a class III can be reached if the % of participants in studies at low risk of bias is > 40% and
-#' ### the p-value at the Ioannidis' test is > .0.05
-#' ### a class IV can be reached if the % of participants in studies at low risk of bias is > 20% and
-#' ### the p-value at the Ioannidis' test is > .0.05
-#' ### else, if the % of participants in studies at low risk of bias is < 20% or
-#' ### if there is evidence of excess significance bias (p <= .05), a class V is assigned.
+#' ### - a class II can be reached if the % of participants in studies at low risk of bias is > 60%,
+#' ###   the p-value at the Ioannidis' test is > .0.05 and the 95% prediction interval excludes
+#' ###   the null value.
+#' ### - a class III can be reached if the % of participants in studies at low risk of bias
+#' ###   is > 40% and the p-value at the Ioannidis' test is > .0.05
+#' ### - a class IV can be reached if the % of participants in studies at low risk of bias
+#' ###   is > 20% and the p-value at the Ioannidis' test is > .0.05
+#' ### - else, if the % of participants in studies at low risk of bias is < 20% or
+#' ###   if there is evidence of excess significance bias (p <= .05), a class V is assigned.
 #' evid_perso2 <- add.evidence(umb.full,
 #'    criteria = "Personalized",
 #'    class_I = c(rob = 80, esb_p = 0.10, pi = "notnull"),

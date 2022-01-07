@@ -3,23 +3,23 @@
 #' This function performs various calculations needed for an umbrella review.
 #'
 #' @param x a well-formatted dataset.
-#' @param method.var the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, Der-Simonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"}, maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.
+#' @param method.var the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.
 #' @param mult.level a logical variable indicating the presence of multiple effect sizes per study in at least one factor of the umbrella review. Default is \code{FALSE} (i.e., each study of all factors include only one effect size). If \code{mult.level = TRUE} is specified, the Borenstein's methods are used to generate only one effect size per study. See \code{\link{metaumbrella-package}} for more information.
-#' @param r a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with multiple outcomes that have no indication of correlation in the well-formatted dataset. Default is 0.5.
+#' @param r a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.
 #' @param true_effect the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is "largest".
-#' @param seed an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR},\dQuote{HR},\dQuote{IRR} or their logarithm) as effect size measures.
+#' @param seed an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.
 #' @param verbose a logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.
 #'
 #' @details
 #' This function automatically performs calculations allowing to stratify evidence according to various criteria.
-#' More precisely, this function :
-#'  * performs fixed- and random-effects meta-analyses with or without a Hartung-Knapp-Sidik-Jonkman correction.
+#' For each factor included in a well-formatted dataset, this function automatically:
+#'  * performs fixed- and random-effects meta-analyses.
 #'  * provides an estimation of the between-study variance and heterogeneity using three indicators (\eqn{tau^2}, Q-statistic and \eqn{I^2} statistic).
 #'  * estimates the 95% prediction interval (if the number of studies is equal or larger to 3).
 #'  * provides an identification of the statistical significance of the largest study included in the meta-analysis.
 #'  * provides an assessment of publication bias using the Egger's test (if the number of studies is equal or larger to 3).
 #'  * provides an assessment of excess significance bias using the Ioannidis' test.
-#'  * performs a jackknife leave-one-out meta-analysis(if the number of studies is equal or larger to 2).
+#'  * performs a jackknife leave-one-out meta-analysis (if the number of studies is equal or larger to 2).
 #'  * calculates the proportion of participants included in studies at low risk of bias (if study quality is indicated in the dataset).
 #'
 #' A specificity of this function is that it does not include arguments to specify the name of the columns of the dataset used as input.
@@ -27,17 +27,17 @@
 #' Details on how building this \code{well-formatted dataset} are given in the \code{\link{metaumbrella-package}} section of this manual and a vignette is specifically dedicated to this topic.
 #' Moreover, examples of \code{well-formatted datasets} are available as data distributed along with the package (see \link{df.OR}, \link{df.OR.multi}, \link{df.SMD}, \link{df.RR}, \link{df.HR}, \link{df.IRR}).
 #'
-#' When estimating the test for excess of significance, the \code{\link{umbrella}()} function should assume a value for the true effeect. The \code{true_effect} argument can be used to select the method that will be applied to estimate the true effect.
-#' * If \code{"largest"} is selected, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
-#' * If \code{"pooled"} is selected, the true effect size is assumed to be equal to the pooled effect of the meta-analysis.
-#' * If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user.
+#' When estimating the test for excess of significance, the \code{\link{umbrella}()} function must assume a best approximation of the true effect.
+#' The \code{true_effect} argument can be used to select the method that will be applied to estimate this approximation of the true effect.
+#' * If \code{"largest"} is selected, the best approximation of the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
+#' * If \code{"pooled"} is selected, the best approximation of the true effect size is assumed to be equal to the pooled effect size of the meta-analysis.
+#' * If a \code{numeric} value is entered, the best approximation of the true effect size is assumed to be equal to this numeric value. Note that when entering a numeric value for a ratio, the value should be given in its natural scale (and not in its logarithm).
 #'
 #' @return
 #' The \code{umbrella()} function returns an object of class \dQuote{umbrella}, which is a list containing information required for stratifying the evidence.
 #' This list contains, for each factor included in the umbrella review:
 #' \tabular{ll}{
-#'  \code{measure} \tab the measure of the effect used to perform the calculations: SMD, OR,\cr
-#'  \tab RR, HR, or IRR.\cr
+#'  \code{measure} \tab the measure of the effect used to perform the calculations.\cr
 #'  \tab \cr
 #'  \code{x} \tab the data used to conduct the meta-analysis. Note that these data may be\cr
 #'  \tab slightly different from the raw data introduced.\cr
@@ -45,7 +45,7 @@
 #'  \code{x_multi} \tab the original data when there is a multivariate structure.\cr
 #'  \tab Note that these data may be slightly different from the raw data introduced.\cr
 #'  \tab \cr
-#'  \code{x_shared} \tab dataframe allowing to compare adjustments made when a shared_nexp\cr
+#'  \code{x_shared} \tab a dataframe allowing to visualize adjustments made when a shared_nexp\cr
 #'  \tab or shared_controls correction is requested\cr
 #'  \tab (see \code{\link{metaumbrella-package}} for more information).\cr
 #'  \tab \cr
@@ -72,8 +72,7 @@
 #'  \tab \cr
 #'  \code{amstar} \tab AMSTAR score obtained by the meta-analysis.\cr
 #'  \tab \cr
-#'  \code{evidence} \tab evidence class according to some criteria.\cr
-#'  \tab \cr
+#'  \code{evidence} \tab evidence class according to some criteria.
 #'}
 #' The functions \code{print} and \code{summary} may be used to print the details or a summary of the results.
 #'
@@ -85,11 +84,11 @@
 #' \emph{World Psychiatry}, \bold{17}, 49--66.
 #'
 #' @seealso
-#' \code{\link{metaumbrella-package}} for the formatting of well-formatted datasets.
-#' \code{\link{add.evidence}()} for adding evidence classes to an umbrella review.
-#' \code{\link{forest}()} for drawing a forest plot of the factors included in an umbrella review.
-#' \code{\link{subset.umbrella}()} for retrieving a subset of the factors included in an umbrella review.
-#' \code{\link{union.umbrella}()} for combining the factors included in two umbrella reviews.
+#' \code{\link{metaumbrella-package}} for the formatting of well-formatted datasets\cr
+#' \code{\link{add.evidence}()} for stratifying the evidence in an umbrella review\cr
+#' \code{\link{forest}()} for drawing a forest plot of the factors included in an umbrella review\cr
+#' \code{\link{subset.umbrella}()} for retrieving a subset of the factors included in an umbrella review\cr
+#' \code{\link{union.umbrella}()} for combining the factors included in two umbrella reviews
 #'
 #' @export umbrella
 #'
@@ -112,7 +111,7 @@
 #' ### between all outcomes of the same study
 #' umb.multi <- umbrella(df.OR.multi, mult.level = TRUE, r = 0.8)
 #'
-#' ### the stratification of evidence can then normally be applied on this umbrella object
+#' ### obtain a stratification of the evidence according to the Ioannidis classification
 #' add.evidence(umb.multi, criteria = "Ioannidis")
 #' }
 umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_effect = "largest", seed = NA, verbose = TRUE) {
@@ -128,8 +127,10 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
 
   # if the dataset is well formatted, initialize some settings ------
   list_author_concern = list_factor_concern = NULL
-  eG_threshold = 5 # a warning occurs for all studies with a eG value > 5
-  eOR_threshold = 15 # a warning occurs for all studies with a eOR value > 15
+
+  # ---------------- for a future update: detecting atypically large ES
+  # eG_threshold = 5 # a warning occurs for all studies with a eG value > 5
+  # eOR_threshold = 15 # a warning occurs for all studies with a eOR value > 15
 
   y = list()
 
@@ -149,14 +150,15 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
       REPEATED_STUDIES <- attr(x_i_ok, "REPEATED_STUDIES")
       n_studies <- attr(x_i_ok, "n_studies")
 
+      # ---------------- for a future update: detecting atypically large ES
       # we check whether some studies have very large effect sizes
-      if (any((measure_length == "SMD" & abs(x_i_ok$value) > eG_threshold) | (measure_length != "SMD" & ( (x_i_ok$value) > eOR_threshold | (x_i_ok$value) < 1/eOR_threshold )))) {
-        row_concern = which( (measure_length == "SMD" & abs(x_i_ok$value) > eG_threshold) | (measure_length != "SMD" & ( (x_i_ok$value) > eOR_threshold | (x_i_ok$value) < 1/eOR_threshold )) )
-        author_concern = paste(paste0(x_i_ok$author[row_concern], " ", x_i_ok$year[row_concern], " (", measure_length[row_concern], " = ", round(x_i_ok$value[row_concern], 2), ")"), collapse = ", ")
-        factor_concern = factor
-        list_author_concern = append(list_author_concern, author_concern)
-        list_factor_concern = append(list_factor_concern, factor)
-      }
+      # if (any((measure_length == "SMD" & abs(x_i_ok$value) > eG_threshold) | (measure_length != "SMD" & ( (x_i_ok$value) > eOR_threshold | (x_i_ok$value) < 1/eOR_threshold )))) {
+      #   row_concern = which( (measure_length == "SMD" & abs(x_i_ok$value) > eG_threshold) | (measure_length != "SMD" & ( (x_i_ok$value) > eOR_threshold | (x_i_ok$value) < 1/eOR_threshold )) )
+      #   author_concern = paste(paste0(x_i_ok$author[row_concern], " ", x_i_ok$year[row_concern], " (", measure_length[row_concern], " = ", round(x_i_ok$value[row_concern], 2), ")"), collapse = ", ")
+      #   factor_concern = factor
+      #   list_author_concern = append(list_author_concern, author_concern)
+      #   list_factor_concern = append(list_factor_concern, factor)
+      # }
 
 
       # create an object storing information on sample sizes
@@ -174,7 +176,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
                       "IRR_standard_raw_information" = .meta_irr,
                       "SMD_multilevel_raw_information" =,
                       "SMD_multilevel_generic" =,
-                      "SMD_standard_generic" = .meta_gen_smd,
+                      "SMD_standard_generic" = .meta_gen_g,
                       "OR_multilevel_raw_information" =,
                       "OR_multilevel_generic" =,
                       "OR_standard_generic" = ,
@@ -375,24 +377,28 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
 
   if (verbose) {
 
-    if (!is.null(list_author_concern) | !is.null(list_factor_concern)) {
-
-      concern = aggregate(x = list_factor_concern,
-                          by = list(list_author_concern),
-                          FUN = function (x) { return(paste(x, collapse = ", ")) })
-
-      if (attr(checkings, "status") == "WARNINGS") {
-        attr(y, "message") = paste("Some effect sizes are very large. Please verify that no typo or extraction errors have been made for factors:",
-                paste("\n- '", concern$x, "', studies: ", concern$Group.1, collapse = ""),
-                "\nMoreover, some warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
-      } else {
-        attr(y, "message") = paste("Some effect sizes are very large. Please verify that no typo or extraction errors have been made for factors:",
-                paste("\n- '", concern$x, "', studies: ", concern$Group.1, collapse = ""))
-      }
-
-    } else if (attr(checkings, "status") == "WARNINGS") {
+    if (attr(checkings, "status") == "WARNINGS") {
       attr(y, "message") = paste("\nSome warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
     }
+
+    # if (!is.null(list_author_concern) | !is.null(list_factor_concern)) {
+    #
+    #   concern = aggregate(x = list_factor_concern,
+    #                       by = list(list_author_concern),
+    #                       FUN = function (x) { return(paste(x, collapse = ", ")) })
+    #
+    #   if (attr(checkings, "status") == "WARNINGS") {
+    #     attr(y, "message") = paste("Some effect sizes are very large. Please verify that no typo or extraction errors have been made for factors:",
+    #             paste("\n- '", concern$x, "', studies: ", concern$Group.1, collapse = ""),
+    #             "\nMoreover, some warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
+    #   } else {
+    #     attr(y, "message") = paste("Some effect sizes are very large. Please verify that no typo or extraction errors have been made for factors:",
+    #             paste("\n- '", concern$x, "', studies: ", concern$Group.1, collapse = ""))
+    #   }
+    #
+    # } else if (attr(checkings, "status") == "WARNINGS") {
+    #   attr(y, "message") = paste("\nSome warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
+    # }
   }
 
   message(attr(y, "message"))

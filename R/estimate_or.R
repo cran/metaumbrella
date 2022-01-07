@@ -27,8 +27,8 @@
 #'
 #' @noRd
 .estimate_se_from_or = function (or, n_cases, n_controls) {
-  ca_ex = 1:(n_cases-1)
-  ca_ne = n_cases-ca_ex
+  ca_ex = 1:(n_cases - 1)
+  ca_ne = n_cases - ca_ex
   co_ex = round(n_controls / (1 + ca_ne * or / ca_ex))
   co_ex[which(co_ex < 1 | co_ex > n_controls - 1)] = NA
   co_ne = n_controls - co_ex

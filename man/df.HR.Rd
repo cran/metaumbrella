@@ -10,9 +10,9 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{factor} \tab name of the intervention studied.\cr
   \tab \cr
-  \strong{author} \tab first study author of the RCTs.\cr
+  \strong{author} \tab first study author of the individual studies.\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{measure} \tab type of effect size (HR).\cr
   \tab \cr
@@ -25,7 +25,6 @@ The dataset contains the following variables: \tabular{ll}{
   \strong{n_cases} \tab number of cases.\cr
   \tab \cr
   \strong{n_controls} \tab number of controls.\cr
-  \tab \cr
 }
 }
 \source{
@@ -36,6 +35,6 @@ df.HR
 }
 \description{
 Fictitious dataset of four meta-analyses of RCTs assessing the efficacy of yoga, aerobic training,
-resistance training and mindfulness on a numeric outcome
+resistance training and mindfulness on a binary outcome
 }
 \keyword{datasets}

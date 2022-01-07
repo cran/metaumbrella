@@ -16,21 +16,25 @@ esb.test(
 )
 }
 \arguments{
-\item{x}{a well-formatted dataset or an object of class \code{rma} or \code{meta}. If a well-formatted dataset is used, only one factor should be included.}
+\item{x}{a well-formatted dataset or an object of class \dQuote{rma} or \dQuote{meta}. If a well-formatted dataset is used, only one factor should be included.}
 
-\item{input}{the type of object used as input. It must be \code{dataframe}, \code{rma} or \code{meta}.}
+\item{input}{the type of object used as input. It must be \code{"dataframe"}, \code{"rma"} or \code{"meta"}.}
 
-\item{n_cases}{vector with the number of cases of each included studies. Only required when \code{x} is an object of class \code{rma} or \code{meta}}
+\item{n_cases}{vector with the number of cases of each included studies. Only required when \code{x} is an object of class \dQuote{rma} or \dQuote{meta}.
+This information  can be indicated via the \code{n_cases} argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{n_controls}{vector with the number of controls of each included studies. Only required when \code{x} is an object of class \code{rma} or \code{meta}}
+\item{n_controls}{vector with the number of controls of each included studies. Only required when \code{x} is an object of class \dQuote{rma} or \dQuote{meta}
+This information  can be indicated via the \code{n_controls} argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{measure}{the measure of the effect: "SMD", "OR" or "logOR, "RR" or "logRR", "IRR" or "logIRR", "HR" or "logHR". If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either 'SMD' or 'OR'. The measure used can be indicated via the measure argument of the \code{esb.test} function or directly when calling the \code{rma} or \code{meta} functions (see examples below).}
+\item{measure}{the measure of the effect: "SMD", "MD", "G", "OR" or "logOR, "RR" or "logRR", "HR" or "logHR", "IRR" or "logIRR".
+If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either "SMD" or "OR". However, note that for \dQuote{rma} objects, a SMD is systematically assumed to be a G (to respect the naming used in the \pkg{metafor} package). For \dQuote{meta} objects, a SMD is assumed to be a G unless it is explicitly stated that this is not the case (i.e., using the \code{method.smd = "Cohen"} argument).
+The effect size measure used can be indicated via the measure argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{method}{the method used to conduct the test. It must be \code{binom.test} or \code{chisq.test} (see details). By default, the umbrella function uses a \code{binom.test} method.}
+\item{method}{the method used to conduct the test. It must be \code{binom.test} or \code{chisq.test} (see details). The \code{umbrella()} function uses a \code{binom.test} method.}
 
-\item{true_effect}{the method to estimate the true effect. It must be \code{largest} or a numeric value.}
+\item{true_effect}{the best approximation of the true effect. It must be \code{"largest"} or a numeric value (see details).}
 
-\item{seed}{an integer value used as an argument by the set.seed() function.}
+\item{seed}{an integer value used as an argument by the set.seed() function. Only used for measures "OR", "logOR, "RR", "logRR", "IRR" or "logIRR".}
 }
 \value{
 The dataset contains the following columns: \tabular{ll}{
@@ -38,10 +42,11 @@ The dataset contains the following columns: \tabular{ll}{
 \tab \cr
 \code{p.value} \tab p-value for the test statistic.\cr
 \tab \cr
-\code{power} \tab the power of each individual study to detect the \dQuote{true_effect} \cr
-\tab at an alpha of .05.\cr
+\code{power} \tab the power of each individual study to detect the best\cr
+\tab approximation of the true effect (\code{true_effect}) at an alpha of .05.\cr
 \tab \cr
-\code{mean_power} \tab the mean power of all individual studies to detect the \dQuote{true_effect}.\cr
+\code{mean_power} \tab the mean power of all individual studies to detect the best\cr
+\tab approximation of the true effect (\code{true_effect}) at an alpha of .05.\cr
 \tab \cr
 \code{k} \tab the total number of studies.\cr
 \tab \cr
@@ -54,22 +59,22 @@ The dataset contains the following columns: \tabular{ll}{
 }
 }
 \description{
-The \code{esb.test()} function performs the "Ioannidis test" to examine the presence of an excess of significance in a given set of studies.
+The \code{esb.test()} function performs the 'Ioannidis' test to examine the presence of an excess of significance in a given set of studies.
 This test aims to determine whether there is an excess in the observed number of studies with statistically significant results given the mean statistical power.
 An exact binomial test or a Chi-squared test is used.
 }
 \details{
-The function starts by calculating whether each individual study has significant results (p < .05). Then, it estimates the statistical power of each individual study to detect the 'true' effect size.
+The function starts by calculating whether each individual study has significant results (p < .05). Then, it estimates the statistical power of each individual study to detect an effect size equal to the best approximation of the true effect.
 The \code{true_effect} argument can be used to select the method that will be applied to estimate the true effect.
 \itemize{
-\item If \code{largest} is selected, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
-\item If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of the ratios (OR/RR/IRR/HR) must be in its natural scale).
+\item If \code{"largest"} is entered, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
+\item If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of ratios must be in their natural scale).
 }
 
 Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method} argument can be used to select the test.
 \itemize{
-\item If \code{binom.test} is selected, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the effect size obtained by the largest study is considered as the probability of success. The exact test is significant if the number of statistically significant studies is different from what could be have been expected given the mean observed power.
-\item If \code{chisq.test} is selected, the function performs a chi-square test based on the number of studies with significant results, on the number of studies with non-significant results and their associated probability of occurrence (i.e., their statistical power to detect the effect size obtained by the largest study). The chi-square test is significant if the number of statistically significant studies is different from what could be have been expected given their observed power.
+\item If \code{"binom.test"} is entered, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the best approximation of the true effect is considered as the probability of success. The exact test is significant if the number of statistically significant studies is higher than what could be have been expected given the mean observed power.
+\item If \code{"chisq.test"} is entered, the function performs a chi-square test based on the number of studies with significant results, the number of studies with non-significant results and their associated probability of occurrence (i.e., the statistical power to detect the best approximation of the true effect). The chi-square test is significant if the number of statistically significant studies is higher than what could be have been expected given the observed power.
 }
 }
 \examples{
@@ -77,24 +82,31 @@ Last, this function performs a statistical test to determine whether the observe
 df <- df.SMD[df.SMD$factor == "Surgical", ]
 
 ### perform an excess significance bias directly on this dataframe
-esb.test(df, measure = "SMD", input = "dataframe")
-
-### perform an excess significance bias on a rma object
-rma <- metafor::rma(yi = value, sei = (ci_up - ci_lo) / 3.92,
-                    measure = "SMD",
-                    data = df)
-
-esb.test(rma, n_cases = df$n_cases, n_controls = df$n_controls, input = "rma")
-
-### perform an excess significance bias on a meta object
-meta <- meta::metagen(TE = value, seTE = (ci_up - ci_lo) / 3.92,
-                      sm = "SMD",
-                      data = df)
-
-esb.test(meta, n_cases = df$n_cases, n_controls = df$n_controls, input = "meta")
+esb <- esb.test(df, measure = "SMD", input = "dataframe")
 
 ### perform an excess significance bias using the umbrella function
-umbrella(df)[[1]]$esb
+esb.umbrella <- umbrella(df)[[1]]$esb
+
+### perform an excess significance bias on a rma object
+### we convert the SMD into Hedges' g
+G <- metaumbrella:::.estimate_g_from_d(df$value, df$n_cases, df$n_controls)
+rma <- metafor::rma(yi = G$value, sei = G$se,
+                    measure = "SMD",
+                    ni = df$n_cases + df$n_controls,
+                    data = df)
+
+esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma")
+
+### perform an excess significance bias on a meta object
+meta <- meta::metagen(TE = G$value, seTE = G$se,
+                      sm = "SMD",
+                      n.e = df$n_cases,
+                      n.c = df$n_controls,
+                      data = df)
+
+esb.meta <- esb.test(meta, input = "meta")
+
+all.equal(esb$p.value, esb.umbrella$p.value, esb.rma$p.value, esb.meta$p.value)
 }
 \references{
 Ioannidis, JPA., Munafo, MR., Fusar-Poli, P., Nosek, BA., & David, SP. (2014). Publication and other reporting biases in cognitive sciences: detection, prevalence, and prevention. \emph{Trends in Cognitive Sciences}, \bold{18}, 235-241.

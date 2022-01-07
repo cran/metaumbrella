@@ -139,9 +139,9 @@ test_that(".estimate_n_from_rr correctly converts sample size", {
     n_exp_conv <- n_nexp_conv <- NA
 
   df <- df.RR
-  df$value <- with(df, .estimate_rr_from_n(n_cases_exp, n_exp,
+  df.RR$value <- with(df.RR, .estimate_rr_from_n(n_cases_exp, n_exp,
                                            n_cases_nexp, n_nexp)$value)
-  df$se <- with(df, .estimate_rr_from_n(n_cases_exp, n_exp,
+  df.RR$se <- with(df.RR, .estimate_rr_from_n(n_cases_exp, n_exp,
                                         n_cases_nexp, n_nexp)$se)
 
 
@@ -173,7 +173,7 @@ test_that(".estimate_n_from_rr correctly converts sample size", {
     se_conv[i] <- rr_transit_i$se
   }
 
-  expect_equal(df$value, rr_conv, tolerance = 0.01)
-  expect_equal(df$se, se_conv, tolerance = 0.1)
+  expect_equal(df.RR$value, rr_conv, tolerance = 0.01)
+  expect_equal(df.RR$se, se_conv, tolerance = 0.1)
 
 })

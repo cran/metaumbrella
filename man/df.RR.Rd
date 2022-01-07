@@ -10,9 +10,9 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{factor} \tab name of the type of antidepressant studied.\cr
   \tab \cr
-  \strong{author} \tab first study author of the cohort study.\cr
+  \strong{author} \tab first study author of the individual studies.\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{measure} \tab type of effect size (RR).\cr
   \tab \cr
@@ -24,14 +24,13 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
   \tab \cr
-  \strong{n_exp} \tab number of patients in the exposed group (sum of the number of cases and\cr
+  \strong{n_exp} \tab number of participants in the exposed group (sum of the number of cases and\cr
   \tab controls in the exposed group).\cr
   \tab \cr
   \strong{n_cases_nexp} \tab number of cases in the non-exposed group.\cr
   \tab \cr
-  \strong{n_nexp} \tab number of patients in the non-exposed group (sum of the number of cases\cr
+  \strong{n_nexp} \tab number of participants in the non-exposed group (sum of the number of cases\cr
   \tab and controls in the non-exposed group).\cr
-  \tab \cr
 }
 }
 \source{

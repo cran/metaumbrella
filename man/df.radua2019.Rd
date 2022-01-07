@@ -10,9 +10,9 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{factor} \tab name of the risk factor.\cr
   \tab \cr
-  \strong{author} \tab first study author of the RCTs.\cr
+  \strong{author} \tab first study author of the individual studies.\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{multiple_es} \tab indicates the reason of the presence of multiple effect sizes \cr
   \tab (due to multiple groups or outcomes) per study.\cr
@@ -29,10 +29,10 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{n_controls} \tab number of controls.\cr
   \tab \cr
-  \strong{n_exp} \tab number of patients in the exposed group (sum of the number of cases\cr
+  \strong{n_exp} \tab number of participants in the exposed group (sum of the number of cases\cr
   \tab and controls in the exposed group).\cr
   \tab \cr
-  \strong{n_nexp} \tab number of patients in the non-exposed group (sum of the number of cases\cr
+  \strong{n_nexp} \tab number of participants in the non-exposed group (sum of the number of cases\cr
   \tab and controls in the non-exposed group).\cr
   \tab \cr
   \strong{n_cases_exp} \tab number of cases in the exposed group.\cr
@@ -43,20 +43,19 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{n_controls_nexp} \tab number of controls in the non-exposed group.\cr
   \tab \cr
-  \strong{mean_cases} \tab means of patients in the experimental arm.\cr
+  \strong{mean_cases} \tab means of participants in the experimental arm.\cr
   \tab \cr
-  \strong{sd_cases} \tab standard errors of patients in the experimental arm.\cr
+  \strong{sd_cases} \tab standard deviation of participants in the experimental arm.\cr
   \tab \cr
-  \strong{mean_controls} \tab means of patients in the control arm.\cr
+  \strong{mean_controls} \tab means of participants in the control arm.\cr
   \tab \cr
-  \strong{sd_controls} \tab standard errors of patients in the control arm.\cr
+  \strong{sd_controls} \tab standard deviation of participants in the control arm.\cr
   \tab \cr
   \strong{amstar} \tab AMSTAR score of the meta-analysis\cr
-  \tab \cr
   }
 }
 \source{
-Tortella-Feliu, M. and Fullana, M.A., Perez-Vigil, A., Torres, X., Chamorro, J., and Littarelli, Sergio A., ..., & Radua, J. (2019). Risk Factors for Posttraumatic Stress Disorder: An Umbrella Review of Systematic Reviews and Meta-Analyses.
+Tortella-Feliu, M. and Fullana, M.A., Perez-Vigil, A., Torres, X., Chamorro, J., and Littarelli, S.A., ..., & Radua, J. (2019). Risk Factors for Posttraumatic Stress Disorder: An Umbrella Review of Systematic Reviews and Meta-Analyses.
 \emph{Neuroscience & Biobehavioral Reviews}, \bold{107}, 154--165.
 }
 \usage{

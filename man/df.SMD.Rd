@@ -10,9 +10,9 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{factor} \tab name of the intervention studied.\cr
   \tab \cr
-  \strong{author} \tab first study author of the RCTs.\cr
+  \strong{author} \tab first study author of the individual studies.\cr
   \tab \cr
-  \strong{year} \tab year of publication.\cr
+  \strong{year} \tab year of publication of the individual studies.\cr
   \tab \cr
   \strong{measure} \tab type of effect size (SMD).\cr
   \tab \cr
@@ -28,20 +28,17 @@ The dataset contains the following variables: \tabular{ll}{
   \tab \cr
   \strong{mean_controls} \tab means of patients in the control arm.\cr
   \tab \cr
-  \strong{sd_cases} \tab standard errors of patients in the experimental arm.\cr
+  \strong{sd_cases} \tab standard deviations of patients in the experimental arm.\cr
   \tab \cr
-  \strong{sd_controls} \tab standard errors of patients in the control arm.\cr
+  \strong{sd_controls} \tab standard deviations of patients in the control arm.\cr
   \tab \cr
   \strong{n_cases} \tab number of patients in the experimental arm.\cr
   \tab \cr
   \strong{n_controls} \tab number of patients in the control arm.\cr
   \tab \cr
-  \strong{rob} \tab risk of bias of the study\cr
+  \strong{rob} \tab risk of bias of the individual studies.\cr
   \tab \cr
-  \strong{amstar} \tab AMSTAR score of the meta-analysis\cr
-  \tab \cr
-  \strong{shared_controls} \tab studies with the same value shared their control group\cr
-  \tab \cr
+  \strong{amstar} \tab AMSTAR score of the meta-analysis.\cr
 }
 }
 \source{

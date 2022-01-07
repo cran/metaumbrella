@@ -23,22 +23,33 @@ test_that("publication bias correclty performs egger's test", {
 
   expect_equal(umb2[[1]]$egger$p.value, res_rma2$pval)
 
-  res1 <- .egger_pb(.as_numeric(rma1$yi), sqrt(rma1$vi), measure = "G")
-  res2 <- .egger_pb(.as_numeric(rma2$yi), sqrt(rma2$vi), measure = "G")
+  res1 <- .egger_pb(.as_numeric(rma1$yi), sqrt(rma1$vi), measure = "SMD")
+  res2 <- .egger_pb(.as_numeric(rma2$yi), sqrt(rma2$vi), measure = "SMD")
 
   df.smd2 <- subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls))
   df.or2 <- subset(df.OR, factor == "ADHD", select = -c(n_cases_exp, n_cases_nexp, n_controls_exp))
 
-  df.smd2$value <- .as_numeric(rma1$yi)
-  df.smd2$se <- sqrt(rma1$vi)
-  df.smd2$measure = "G"
 
   umb <- umbrella(df.smd2, method.var = "REML")
-
   expect_equal(umb[[1]]$egger$p.value, res_rma1$pval)
 
 
   umb <- umbrella(df.or2, method.var = "REML")
-
   expect_equal(umb[[1]]$egger$p.value, res_rma2$pval)
+})
+
+test_that("publication bias for different inputs", {
+
+  df1 <- df2 <- subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, ci_lo, ci_up))
+
+  G = .estimate_g_from_d(df2$value, df2$n_cases, df2$n_controls)$value
+  se = .estimate_g_from_d(df2$value, df2$n_cases, df2$n_controls)$se
+
+  df2$measure = "G"
+  df2$value = G
+  df2$se = se
+
+  umb1 <- umbrella(df1, method.var = "REML")
+  umb2 <- umbrella(df2, method.var = "REML")
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value)
 })

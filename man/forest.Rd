@@ -2,24 +2,24 @@
 % Please edit documentation in R/functions_forest_plot.R
 \name{forest}
 \alias{forest}
-\title{Forest plots for \dQuote{umbrella} objects}
+\title{Forest plots for objects of class \dQuote{umbrella}}
 \usage{
 forest(x, ...)
 }
 \arguments{
-\item{x}{an object of class umbrella.}
+\item{x}{an object of class \dQuote{umbrella}}
 
 \item{...}{additional arguments that can be passed to this function}
 }
 \value{
 In addition to the plot, the function returns a list including:
 \itemize{
-\item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot.
+\item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot. See the vignette dedicated to the forest plots for a concrete example.
 \item the optimal width and height of the plot, useful when calling the function \code{pdf()} or \code{png()}.
 }
 }
 \description{
-Draws a forest plot of the factors included in an umbrella review.
+Draw a forest plot of the factors included in an umbrella review.
 }
 \details{
 For now, this function simply applies the \code{\link{forest.umbrella}()} function on an object of class \dQuote{umbrella}.
