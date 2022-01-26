@@ -166,7 +166,7 @@
 
   x_i_ok = NULL
 
-  metagenSMD <- metagenOR <- metagenRR <- metagenIRR <- rep(TRUE, n_outcomes)
+  metagenG <- metagenOR <- metagenRR <- metagenIRR <- rep(TRUE, n_outcomes)
 
   for (i in 1:n_outcomes) {
 
@@ -224,8 +224,6 @@
         se_i = tmp$se
         ci_lo_i = value_i - se_i * qt(0.975, n_cases_i + n_controls_i - 2)
         ci_up_i = value_i + se_i * qt(0.975, n_cases_i + n_controls_i - 2)
-
-        metagenSMD[i] <- FALSE
 
         ###########################################
         # SMD situation 2: ES + SE + sample sizes #
@@ -751,7 +749,9 @@
 
   # create a path for the meta-analysis
   reap <- ifelse(REPEATED_STUDIES, "multilevel", "standard")
-  gen <- ifelse(all(!metagenSMD), "raw_information", "generic")
+  gen <- ifelse(
+    any(all(!metagenG), all(!metagenOR), all(!metagenRR), all(!metagenIRR)),
+    "raw_information", "generic")
 
   path_meta <- paste0(measure, "_", reap, "_", gen)
 

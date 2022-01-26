@@ -422,7 +422,7 @@ test_that(".check_data correctly identify wrong sample size inputs: RR", {
 
 
   df2 <- df.RR
-  df2$n_cases_nexp[3] <- NA #df2$n_cases[3] <- NA;
+  df2$n_cases_nexp[3] <- NA
   dferror2 <- attr(.check_data(df2), "data")
   verif2 <- grepl("For RR measure, one group between (n_cases, n_controls) / (n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp) has to be indicated",
                   dferror2[dferror2$row_index == 3,]$column_errors, fixed = TRUE)
@@ -457,22 +457,12 @@ test_that(".check_data correctly identify wrong sample size inputs: RR", {
   expect_equal(check4, TRUE)
 
   df7 <- df.RR
-  df7$n_cases[3] <- NA; df7$n_controls[3] <- NA
-  # df9$n_cases_exp[3] <- NA; df9$n_cases_nexp[3] <- NA
-  # df9$n_controls_exp[3] <- NA;  df9$n_controls_nexp[3] <- NA
+  df7$n_cases[3] <- NA;
   dferror7 <- attr(.check_data(df7), "data")
   check7 <- grepl("Your dataset is well formatted.",
                    attr(.check_data(dferror7), "message"), fixed = TRUE)
 
   expect_equal(check7, TRUE)
-
-  df8 <- df.RR
-  # df8$n_cases[3] <- NA; df8$n_controls[3] <- NA
-  dferror8 <- attr(.check_data(df8), "data")
-  check8 <- grepl("Your dataset is well formatted.",
-                   attr(.check_data(dferror8), "message"), fixed = TRUE)
-
-  expect_equal(check8, TRUE)
 
 })
 
@@ -557,79 +547,77 @@ test_that(".check_data correctly identify both shared_nexp/n_controls entry", {
   verif <- grepl("The 'shared_nexp' and 'shared_controls' columns cannot be indicated for the same study.",
                  unique(dferror$column_errors), fixed = TRUE)
 
-  check <- grepl("The 'shared_nexp' and 'shared_controls' columns cannot be indicated for the same study.",
-                 attr(.check_data(df), "message"), fixed = TRUE)
   expect_equal(verif, TRUE)
 })
 
 test_that(".check_data correctly prevents users to apply a shared corrections with specific measures", {
-df1 <- df.IRR
-df2 <- df.RR
-df3 <- df.HR
-df4 <- df.HR
-df5 <- df.SMD
-df6 <- df.SMD; df6$measure <- "MD"
-df7 <- df.SMD; df6$measure <- "G"
-df1$shared_controls <- c(1,1,1,2:(nrow(df1)-2))
-df2$shared_controls <- c(1,1,1,2:(nrow(df2)-2))
-df3$shared_controls <- c(1,1,1,2:(nrow(df3)-2))
-df4$shared_nexp <- c(1,1,1,2:(nrow(df4)-2))
-df5$shared_nexp <- c(1,1,1,2:(nrow(df5)-2))
-df6$shared_nexp <- c(1,1,1,2:(nrow(df6)-2))
-df7$shared_nexp <- c(1,1,1,2:(nrow(df7)-2))
-dferror1 <- attr(.check_data(df1), "data")
-dferror2 <- attr(.check_data(df2), "data")
-dferror3 <- attr(.check_data(df3), "data")
-dferror4 <- attr(.check_data(df4), "data")
-dferror5 <- attr(.check_data(df5), "data")
-dferror6 <- attr(.check_data(df6), "data")
-dferror7 <- attr(.check_data(df7), "data")
+  df1 <- df.IRR
+  df2 <- df.RR
+  df3 <- df.HR
+  df4 <- df.HR
+  df5 <- df.SMD
+  df6 <- df.SMD; df6$measure <- "MD"
+  df7 <- df.SMD; df6$measure <- "G"
+  df1$shared_controls <- c(1,1,1,2:(nrow(df1)-2))
+  df2$shared_controls <- c(1,1,1,2:(nrow(df2)-2))
+  df3$shared_controls <- c(1,1,1,2:(nrow(df3)-2))
+  df4$shared_nexp <- c(1,1,1,2:(nrow(df4)-2))
+  df5$shared_nexp <- c(1,1,1,2:(nrow(df5)-2))
+  df6$shared_nexp <- c(1,1,1,2:(nrow(df6)-2))
+  df7$shared_nexp <- c(1,1,1,2:(nrow(df7)-2))
+  dferror1 <- attr(.check_data(df1), "data")
+  dferror2 <- attr(.check_data(df2), "data")
+  dferror3 <- attr(.check_data(df3), "data")
+  dferror4 <- attr(.check_data(df4), "data")
+  dferror5 <- attr(.check_data(df5), "data")
+  dferror6 <- attr(.check_data(df6), "data")
+  dferror7 <- attr(.check_data(df7), "data")
 
-verif1 <- grepl("The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' effect size",
-                unique(dferror1$column_errors), fixed = TRUE)
-verif2 <- grepl("The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' effect size",
-                unique(dferror2$column_errors), fixed = TRUE)
-verif3 <- grepl("The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' effect size",
-                unique(dferror3$column_errors), fixed = TRUE)
-verif4 <- grepl("The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' effect size",
-                unique(dferror4$column_errors), fixed = TRUE)
-verif5 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
-                unique(dferror5$column_errors), fixed = TRUE)
-verif6 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size.",
-                unique(dferror6$column_errors), fixed = TRUE)
-verif7 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size.",
-                unique(dferror7$column_errors), fixed = TRUE)
+  verif1 <- grepl("The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' effect size",
+                  unique(dferror1$column_errors), fixed = TRUE)
+  verif2 <- grepl("The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' effect size",
+                  unique(dferror2$column_errors), fixed = TRUE)
+  verif3 <- grepl("The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' effect size",
+                  unique(dferror3$column_errors), fixed = TRUE)
+  verif4 <- grepl("The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' effect size",
+                  unique(dferror4$column_errors), fixed = TRUE)
+  verif5 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
+                  unique(dferror5$column_errors), fixed = TRUE)
+  verif6 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size.",
+                  unique(dferror6$column_errors), fixed = TRUE)
+  verif7 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size.",
+                  unique(dferror7$column_errors), fixed = TRUE)
 
-check1 <- grepl("The 'shared_controls' column is only supported for the SMD, MD, G or OR measure",
-                attr(.check_data(df1), "message"), fixed = TRUE)
-check2 <- grepl("The 'shared_controls' column is only supported for the SMD, MD, G or OR measure",
-                attr(.check_data(df2), "message"), fixed = TRUE)
-check3 <- grepl("The 'shared_nexp' and 'shared_controls' columns are currently not supported in combination with the HR statistics.",
-                attr(.check_data(df3), "message"), fixed = TRUE)
-check4 <- grepl("The 'shared_nexp' and 'shared_controls' columns are currently not supported in combination with the HR statistics.",
-                attr(.check_data(df4), "message"), fixed = TRUE)
+  check1 <- grepl("The 'shared_controls' column is only supported for the SMD, MD, G or OR measure",
+                  attr(.check_data(df1), "message"), fixed = TRUE)
+  check2 <- grepl("The 'shared_controls' column is only supported for the SMD, MD, G or OR measure",
+                  attr(.check_data(df2), "message"), fixed = TRUE)
+  check3 <- grepl("The 'shared_nexp' and 'shared_controls' columns are currently not supported in combination with the HR statistics.",
+                  attr(.check_data(df3), "message"), fixed = TRUE)
+  check4 <- grepl("The 'shared_nexp' and 'shared_controls' columns are currently not supported in combination with the HR statistics.",
+                  attr(.check_data(df4), "message"), fixed = TRUE)
 
-check5 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
-                attr(.check_data(df5), "message"), fixed = TRUE)
-check6 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
-                attr(.check_data(df6), "message"), fixed = TRUE)
-check7 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
-               attr(.check_data(df7), "message"), fixed = TRUE)
+  check5 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
+                  attr(.check_data(df5), "message"), fixed = TRUE)
+  check6 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
+                  attr(.check_data(df6), "message"), fixed = TRUE)
+  check7 <- grepl("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size",
+                 attr(.check_data(df7), "message"), fixed = TRUE)
 
-expect_equal(check1, TRUE)
-expect_equal(check2, TRUE)
-expect_equal(check3, TRUE)
-expect_equal(check4, TRUE)
-expect_equal(check5, TRUE)
-expect_equal(check6, TRUE)
-expect_equal(check7, TRUE)
-expect_equal(verif1, TRUE)
-expect_equal(verif2, TRUE)
-expect_equal(verif3, TRUE)
-expect_equal(verif4, TRUE)
-expect_equal(verif5, TRUE)
-expect_equal(verif6, TRUE)
-expect_equal(verif7, TRUE)
+  expect_equal(check1, TRUE)
+  expect_equal(check2, TRUE)
+  expect_equal(check3, TRUE)
+  expect_equal(check4, TRUE)
+  expect_equal(check5, TRUE)
+  expect_equal(check6, TRUE)
+  expect_equal(check7, TRUE)
+  expect_equal(verif1, TRUE)
+  expect_equal(verif2, TRUE)
+  expect_equal(verif3, TRUE)
+  expect_equal(verif4, TRUE)
+  expect_equal(verif5, TRUE)
+  expect_equal(verif6, TRUE)
+  expect_equal(verif7, TRUE)
 })
 
 
@@ -718,26 +706,26 @@ test_that(".check_data correctly identify multiple 'r' values per study", {
   expect_equal(check, TRUE)
 })
 
-test_that(".check_data correctly identify multiple 'reverse_es' values per study", {
-  # df <- df.SMD
-  # df$author[33] <- df$author[31]
-  # df$year[33] <- df$year[31]
-  # df$multiple_es <- NA
-  # df$multiple_es[c(31, 33)] <- "groups"
-  # df$reverse_es <- NA
-  # df$reverse_es[c(31)] <- "reverse"
-  #
-  # dferror <- attr(.check_data(df), "data")
-  # verif1 <- grepl("Study with several 'reverse_es' values. For now, 'reverse_es' values should be constant within a study (you can only reverse all or none effect sizes).",
-  #                 dferror[dferror$row_index == 31,]$column_errors, fixed = TRUE)
-  # verif2 <- grepl("Study with several 'reverse_es' values. For now, 'reverse_es' values should be constant within a study (you can only reverse all or none effect sizes).",
-  #                 dferror[dferror$row_index == 33,]$column_errors, fixed = TRUE)
-  #
-  # check <- grepl("Study with several 'reverse_es' values. For now, 'reverse_es' values should be constant within a study (you can only reverse all or none effect sizes)",
-  #                attr(.check_data(df), "message"), fixed = TRUE)
-  # expect_equal(check, TRUE)
-  # expect_equal(verif1, TRUE)
-  # expect_equal(verif2, TRUE)
+test_that(".check_data correctly detects multiple 'reverse_es' values per study", {
+  df <- df.SMD
+  df$author[33] <- df$author[31]
+  df$year[33] <- df$year[31]
+  df$multiple_es <- NA
+  df$multiple_es[c(31, 33)] <- "groups"
+  df$reverse_es <- NA
+  df$reverse_es[c(31)] <- "reverse"
+
+  dferror <- attr(.check_data(df), "data")
+  verif1 <- grepl("Some but not all effect sizes are reversed for this factor. Check this is what you want",
+                  dferror[dferror$row_index == 31,]$column_errors, fixed = TRUE)
+  verif2 <- grepl("Some but not all effect sizes are reversed for this factor. Check this is what you want",
+                  dferror[dferror$row_index == 33,]$column_errors, fixed = TRUE)
+
+  check <- grepl("Some but not all effect sizes are reversed for a factor. Check this is what you want (this is only a warning, not an error)",
+                 attr(.check_data(df), "message"), fixed = TRUE)
+  expect_equal(check, TRUE)
+  expect_equal(verif1, TRUE)
+  expect_equal(verif2, TRUE)
 })
 
 test_that(".check_data correctly identify multiple 'shared_controls' values per multivariate study", {

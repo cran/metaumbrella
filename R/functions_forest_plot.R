@@ -313,13 +313,13 @@ forest.umbrella <- function (x,
     lwd <- rep(fix_size_dots, nrow(y))
   }
   if (measure == "eG") {
-    value.text <- paste0(format(round(y$y, 2), nsmall = 2), " [",
-                         format(round(y$ci_lo, 2), nsmall = 2), ", ",
-                         format(round(y$ci_up, 2), nsmall = 2), "]")
+    value.text <- paste0(gsub(" ", "", format(round(y$y, 2), nsmall = 2)), " [",
+                         gsub(" ", "", format(round(y$ci_lo, 2), nsmall = 2)), ", ",
+                         gsub(" ", "", format(round(y$ci_up, 2), nsmall = 2)), "]")
   } else {
-    value.text <- paste0(format(round(exp(y$y), 2), nsmall = 2), " [",
-                         format(round(exp(y$ci_lo), 2), nsmall = 2), ", ",
-                         format(round(exp(y$ci_up), 2), nsmall = 2), "]")
+    value.text <- paste0(gsub(" ", "", format(round(exp(y$y), 2), nsmall = 2)), " [",
+                         gsub(" ", "", format(round(exp(y$ci_lo), 2), nsmall = 2)), ", ",
+                         gsub(" ", "", format(round(exp(y$ci_up), 2), nsmall = 2)), "]")
 
   }
 

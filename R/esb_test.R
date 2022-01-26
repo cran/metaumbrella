@@ -149,7 +149,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
         se_g_i = x[i, "se"]
         x[i, "value"] = .estimate_d_from_g(g = G_i, n_cases = x[i, "n_cases"], n_controls = x[i, "n_controls"], se = se_g_i)$value
         x[i, "se"] = .estimate_d_from_g(g = G_i, n_cases = x[i, "n_cases"], n_controls = x[i, "n_controls"], se = se_g_i)$se
-        x[i, "ci_lo"] = x[i, "value"] - x[i, "se"] * qt(0.975, x[i, "n_cases"]+ x[i, "n_controls"] - 2)
+        x[i, "ci_lo"] = x[i, "value"] - x[i, "se"] * qt(0.975, x[i, "n_cases"] + x[i, "n_controls"] - 2)
         x[i, "ci_up"] = x[i, "value"] + x[i, "se"] * qt(0.975, x[i, "n_cases"] + x[i, "n_controls"] - 2)
         x[i, "measure"] = "SMD"
       }
@@ -174,6 +174,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
                           )))
   }
   x$signif = is.na(x$p.value) | x$p.value < 0.05 # is.na for NSUEs
+
   # Estimate statistical powers
   if (true_effect == "largest") {
     if (measure == "IRR") {
@@ -185,6 +186,8 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     }
   } else if (is.numeric(true_effect)) {
     true_value = true_effect
+  } else {
+    stop("The true_effect argument should be either 'largest', 'pooled' (only if you call the umbrella() function) or a numeric value. Please see the manual for more information.")
   }
 
   x$power = NA

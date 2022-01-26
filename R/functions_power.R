@@ -36,6 +36,7 @@
   }, 0.01:100)$minimum
   return(powerSurvEpi::powerCT.default0(k, n_cases, hr))
 }
+
 #' Calculate power of incidence risk ratio
 #'
 #' @param xi dataset

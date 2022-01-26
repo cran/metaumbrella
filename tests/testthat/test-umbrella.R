@@ -1,3 +1,9 @@
+tol_large = 1e-10
+tol_med = 1e-6
+tol_ok = 1e-3
+col_rand = c("value", "p.value", "ci_lo", "ci_up", "pi_lo", "pi_up")
+col_rand_woPI = c("value", "p.value", "ci_lo", "ci_up")
+
 test_that("mult.level creates message for multilevel studies", {
   skip_on_cran()
   df <- df.OR.multi
@@ -16,30 +22,7 @@ test_that("error: mult.level = FALSE", {
 ##########################
 
 ##### SMD -----------------
-test_that("different measures lead to similar results: CI vs means/SD", {
-  skip_on_cran()
-  dfsmd <- df.SMD
-
-  tmp = with(dfsmd, .estimate_d_from_means(n_cases, n_controls,
-                                            mean_cases, sd_cases,
-                                            mean_controls, sd_controls))
-
-  dfsmd$value = tmp$value
-  dfsmd$se = tmp$se
-  dfsmd$ci_lo = dfsmd$value - dfsmd$se * qt(0.975, dfsmd$n_cases + dfsmd$n_controls - 2)
-  dfsmd$ci_up = dfsmd$value + dfsmd$se * qt(0.975, dfsmd$n_cases + dfsmd$n_controls - 2)
-
-
-  dfwoVAL <- subset(dfsmd, select = -c(value, se, mean_cases, mean_controls, sd_cases, sd_controls))
-
-  umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
-  umb2 <- .quiet(umbrella(dfwoVAL, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
-})
-
-test_that("different measures lead to similar results: SMD + SE vs means/SD", {
+test_that("different measures lead to similar results: value + SE vs means/SD", {
   dfsmd <- df.SMD
   tmp = with(dfsmd, .estimate_d_from_means(n_cases, n_controls,
                                            mean_cases, sd_cases,
@@ -54,9 +37,10 @@ test_that("different measures lead to similar results: SMD + SE vs means/SD", {
 
   umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
   umb2 <- .quiet(umbrella(dfwomean, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
 })
 
 test_that("different measures lead to similar results: SMD + var vs means/SD", {
@@ -67,9 +51,31 @@ test_that("different measures lead to similar results: SMD + var vs means/SD", {
   dfwomean$var <- with(dfwomean, 1 / n_cases + 1 / n_controls)
   umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
   umb2 <- .quiet(umbrella(dfwomean, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+})
+
+test_that("different measures lead to similar results: CI vs means/SD", {
+  skip_on_cran()
+  dfsmd <- df.SMD
+  tmp = with(dfsmd, .estimate_d_from_means(n_cases, n_controls,
+                                            mean_cases, sd_cases,
+                                            mean_controls, sd_controls))
+  dfsmd$value = tmp$value
+  dfsmd$se = tmp$se
+  dfsmd$ci_lo = dfsmd$value - dfsmd$se * qt(0.975, dfsmd$n_cases + dfsmd$n_controls - 2)
+  dfsmd$ci_up = dfsmd$value + dfsmd$se * qt(0.975, dfsmd$n_cases + dfsmd$n_controls - 2)
+
+  dfwoVAL <- subset(dfsmd, select = -c(value, se, mean_cases, mean_controls, sd_cases, sd_controls))
+
+  umb1 <- umbrella(dfsmd, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfwoVAL, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
 test_that("different measures lead to similar results: SMD w/o CI vs means/SD", {
@@ -78,11 +84,12 @@ test_that("different measures lead to similar results: SMD w/o CI vs means/SD", 
 
   dfwoCI <- subset(df.SMD, select = -c(se, ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
-  umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
-  umb2 <- .quiet(umbrella(dfwoCI, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfsmd, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfwoCI, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
 })
 
 test_that("different measures lead to similar results: SMD v MD+CI", {
@@ -98,17 +105,19 @@ test_that("different measures lead to similar results: SMD v MD+CI", {
                           n2i = n_controls,
                           measure = "MD",
                           data = dfmd)
-  dfmd <- subset(dfmd, select = -c(se, mean_cases, mean_controls, sd_cases, sd_controls))
+  dfmd <- subset(dfmd, select = -c(value, se, ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
   dfmd$value <- as.numeric(as.character(dfmd$yi))
-  dfmd$ci_lo <- dfmd$value - qt(0.975, (dfmd$n_cases + dfmd$n_controls - 2)) * sqrt(dfmd$vi)
-  dfmd$ci_up <- dfmd$value + qt(0.975, (dfmd$n_cases + dfmd$n_controls - 2)) * sqrt(dfmd$vi)
+  dfmd$var <- as.numeric(as.character(dfmd$vi))
 
-  umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
-  umb2 <- .quiet(umbrella(dfmd, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 5e-2)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 6e-2)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  umb1 <-  umbrella(dfsmd, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfmd, seed = 4321, verbose = FALSE)
+
+  expect_equal(umb1[[1]]$random[, c("value", "p.value")], umb2[[1]]$random[, c("value", "p.value")], tolerance = 3e-3)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = 5e-2)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_ok)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 5e-2)
 })
 
 test_that("different measures lead to similar results: SMD v MD+SE", {
@@ -127,16 +136,39 @@ test_that("different measures lead to similar results: SMD v MD+SE", {
   dfmd <- subset(dfmd, select = -c(value, se, ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
   dfmd$value <- as.numeric(as.character(dfmd$yi))
-  dfmd$var <- as.numeric(as.character(dfmd$vi))
+  dfmd$ci_lo = dfmd$value - sqrt(as.numeric(as.character(dfmd$vi))) * qt(0.975, dfmd$n_cases + dfmd$n_controls - 2)
+  dfmd$ci_up = dfmd$value + sqrt(as.numeric(as.character(dfmd$vi)))  * qt(0.975, dfmd$n_cases + dfmd$n_controls - 2)
 
-  umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
-  umb2 <- .quiet(umbrella(dfmd, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 5e-2)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 6e-2)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfsmd, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfmd, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, c("value", "p.value")], umb2[[1]]$random[, c("value", "p.value")], tolerance = 3e-3)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = 5e-2)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_ok)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 5e-2)
 })
 
-test_that("different measures lead to similar results: SMD v G", {
+
+test_that("different measures lead to similar results: means/SD v G+SE", {
+  skip_on_cran()
+  dfsmd <- df.SMD; dfsmd$measure <- "SMD"
+
+  dfg <- dfsmd; dfg$measure <- "G"
+
+  dfg$value = .estimate_g_from_d(d = dfsmd$value, n_cases = dfsmd$n_cases, n_controls = dfsmd$n_controls)$value
+  dfg$se = .estimate_g_from_d(d = dfsmd$value, n_cases = dfsmd$n_cases, n_controls = dfsmd$n_controls)$se
+
+  dfg <- subset(dfsmd, select = -c(ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
+
+  umb1 <- umbrella(dfsmd, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfg, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+})
+
+test_that("different measures lead to similar results: means/SD v value G", {
   skip_on_cran()
   dfsmd <- df.SMD; dfsmd$measure <- "SMD"
 
@@ -147,41 +179,14 @@ test_that("different measures lead to similar results: SMD v G", {
 
   dfg <- subset(dfsmd, select = -c(se, ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
-  umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
-  umb2 <- .quiet(umbrella(dfg, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 1e-4)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfsmd, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfg, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
 })
 
-test_that("different measures lead to similar results: SMD v G+SE", {
-  skip_on_cran()
-  dfsmd <- df.SMD; dfsmd$measure <- "SMD"
-  tmp = with(dfsmd, .estimate_d_from_means(n_cases, n_controls,
-                                           mean_cases, sd_cases,
-                                           mean_controls, sd_controls))
-
-  dfsmd$value = tmp$value
-  dfsmd$se = tmp$se
-  dfsmd$ci_lo = dfsmd$value - dfsmd$se * qt(0.975, dfsmd$n_cases + dfsmd$n_controls - 2)
-  dfsmd$ci_up = dfsmd$value + dfsmd$se * qt(0.975, dfsmd$n_cases + dfsmd$n_controls - 2)
-
-  dfg <- dfsmd; dfg$measure <- "G"
-  dfg$value = .estimate_g_from_d(d = dfg$value, n_cases = dfg$n_cases, n_controls = dfg$n_controls)$value
-  dfg$se = .estimate_g_from_d(d = dfg$value, n_cases = dfg$n_cases, n_controls = dfg$n_controls)$se
-
-  dfg$ci_lo = dfg$value - dfg$se * qt(0.975, dfg$n_cases + dfg$n_controls - 2)
-  dfg$ci_up = dfg$value + dfg$se * qt(0.975, dfg$n_cases + dfg$n_controls - 2)
-
-
-  dfg <- subset(dfg, select = -c(ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
-
-  umb1 <- .quiet(umbrella(dfsmd, seed = 4321))
-  umb2 <- .quiet(umbrella(dfg, seed = 4321))
-  expect_equal(umb1$Pharmacological$random, umb2$Pharmacological$random, tolerance = 1e-3)
-  expect_equal(umb1$Pharmacological$heterogeneity, umb2$Pharmacological$heterogeneity, tolerance = 5e-3)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-15)
-})
 test_that("different measures lead to similar results: G with / without CI", {
   skip_on_cran()
   dfsmd <- df.SMD; dfsmd$measure <- "SMD"
@@ -193,12 +198,14 @@ test_that("different measures lead to similar results: G with / without CI", {
   dfg$ci_lo <- dfg$value - qt(0.975, (dfg$n_cases + dfg$n_controls - 2)) * dfg$se
   dfg$ci_up <- dfg$value + qt(0.975, (dfg$n_cases + dfg$n_controls - 2)) * dfg$se
   dfg.comp <- subset(dfg, select = -c(se, ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
+  dfg <- subset(dfg, select = -c(se, mean_cases, mean_controls, sd_cases, sd_controls))
 
-  umb1 <- .quiet(umbrella(dfg, seed = 4321))
-  umb2 <- .quiet(umbrella(dfg.comp, seed = 4321))
-  expect_equal(dfg$Pharmacological$random, dfg.comp$Pharmacological$random, tolerance = 1e-10)
-  expect_equal(dfg$Pharmacological$heterogeneity, dfg.comp$Pharmacological$heterogeneity, tolerance = 1e-10)
-  expect_equal(umb1$Pharmacological$esb$p.value, umb2$Pharmacological$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfg, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfg.comp, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
 ##### OR -----------------
@@ -208,61 +215,75 @@ test_that("different measures lead to similar results: OR n_cases/controls vs. n
   dfor1 <- subset(df.OR, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
   dfor2 <- subset(df.OR, select = -c(n_cases, n_controls, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
 
-  umb1 <- .quiet(umbrella(dfor1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfor2, seed = 4321))
-  expect_equal(umb1$ID$random, umb2$ID$random, tolerance = 1e-10)
-  expect_equal(umb1$ID$heterogeneity, umb2$ID$heterogeneity, tolerance = 1e-10)
-  expect_equal(umb1$ID$esb$p.value, umb2$ID$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfor1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfor2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
 })
 
-test_that("different measures lead to similar results: OR n_cases/controls vs. 2x2 table", {
+test_that("different measures lead to similar results: OR + CI n_cases/controls vs. 2x2 table", {
   skip_on_cran()
-  dfor1 <- subset(df.OR, factor == "ID", select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
-  dfor2 <- subset(df.OR, factor == "ID", select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
 
-  umb1 <- .quiet(umbrella(dfor1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfor2, seed = 4321))
-  expect_equal(umb1$ID$random, umb2$ID$random, tolerance = 1e-4)
-  expect_equal(umb1$ID$heterogeneity, umb2$ID$heterogeneity, tolerance = 1e-3)
-  expect_equal(umb1$ID$esb$p.value, umb2$ID$esb$p.value, tolerance = 1e-16)
+  dfor1 <- subset(df.OR, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+  dfor2 <- subset(df.OR, select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
+  se =   with(df.OR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
+  dfor1$ci_lo = dfor1$value / exp(qnorm(0.975) * se)
+  dfor1$ci_up = dfor1$value * exp(qnorm(0.975) * se)
+
+  # approximation due to .improve_ci
+  umb1 <- umbrella(dfor1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfor2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 5*tol_ok)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
 test_that("different measures lead to similar results: OR n_cases/controls SE vs. 2x2 table", {
   skip_on_cran()
-  dfor1 <- subset(df.OR, factor == "ID", select = -c(ci_lo, ci_up, n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
-  dfor2 <- subset(df.OR, factor == "ID", select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
+  dfor1 <- subset(df.OR, select = -c(ci_lo, ci_up, n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+  dfor2 <- subset(df.OR, select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
 
-  dfor1$se <- with(dfor2, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
-  umb1 <- .quiet(umbrella(dfor1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfor2, seed = 4321))
-  expect_equal(umb1$ID$random, umb2$ID$random, tolerance = 1e-10)
-  expect_equal(umb1$ID$heterogeneity, umb2$ID$heterogeneity, tolerance = 1e-10)
-  expect_equal(umb1$ID$esb$p.value, umb2$ID$esb$p.value, tolerance = 1e-16)
+  dfor1$se <- with(df.OR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
+
+  umb1 <- umbrella(dfor1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfor2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
 })
 
 test_that("different measures lead to similar results: OR n_exp/n_nexp vs. 2x2 table", {
   skip_on_cran()
   dfor1 <- subset(df.OR, select = -c(n_cases, n_controls, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
   dfor2 <- subset(df.OR, select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
+  se = with(df.OR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
+  dfor1$ci_lo = dfor1$value / exp(qnorm(0.975) * se)
+  dfor1$ci_up = dfor1$value * exp(qnorm(0.975) * se)
 
-  umb1 <- .quiet(umbrella(dfor1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfor2, seed = 4321))
-  expect_equal(umb1$ID$random, umb2$ID$random, tolerance = 1e-4)
-  expect_equal(umb1$ID$heterogeneity, umb2$ID$heterogeneity, tolerance = 1e-3)
-  expect_equal(umb1$ID$esb$p.value, umb2$ID$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfor1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfor2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 5*tol_ok)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
 test_that("different measures lead to similar results: OR n_exp/n_nexp SE vs. 2x2 table", {
   skip_on_cran()
-  dfor1 <- subset(df.OR, factor == "ID", select = -c(ci_lo, ci_up, n_controls, n_cases, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
-  dfor2 <- subset(df.OR, factor == "ID", select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
+  dfor1 <- subset(df.OR, select = -c(ci_lo, ci_up, n_controls, n_cases, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+  dfor2 <- subset(df.OR, select = -c(value, ci_lo, ci_up, n_cases, n_controls, n_exp, n_nexp))
 
   dfor1$se <- with(dfor2, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
-  umb1 <- .quiet(umbrella(dfor1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfor2, seed = 4321))
-  expect_equal(umb1$ID$random, umb2$ID$random, tolerance = 1e-10)
-  expect_equal(umb1$ID$heterogeneity, umb2$ID$heterogeneity, tolerance = 1e-10)
-  expect_equal(umb1$ID$esb$p.value, umb2$ID$esb$p.value, tolerance = 1e-16)
+  umb1 <- umbrella(dfor1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfor2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
 })
 
 test_that("different measures lead to similar results: OR n_cases/controls with / without CI", {
@@ -270,86 +291,129 @@ test_that("different measures lead to similar results: OR n_cases/controls with 
   dfor1 <- subset(df.OR, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
   dfor2 <- subset(df.OR, select = -c(ci_lo, ci_up, n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
 
-  umb1 <- .quiet(umbrella(dfor1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfor2, seed = 4321))
-  expect_equal(umb1$ID$random, umb2$ID$random, tolerance = 0.8)
-  expect_equal(umb1$ID$esb$p.value, umb2$ID$esb$p.value, tolerance = 1e-2)
+  se = with(df.OR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
+  dfor1$ci_lo = dfor1$value / exp(qnorm(0.975) * se)
+  dfor1$ci_up = dfor1$value * exp(qnorm(0.975) * se)
+
+  umb1 <- umbrella(dfor1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfor2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = 3e-1)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 7*tol_ok)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 5e-2)
 })
 
 ##### RR -----------------
 
-test_that("different measures lead to similar results: RR n_cases/controls vs. 2x2 table", {
+test_that("different measures lead to similar results: RR + CI n_cases/controls vs. 2x2 table", {
   skip_on_cran()
   dfrr1 <- df.RR
   dfrr1$n_cases = dfrr1$n_cases_exp + dfrr1$n_cases_nexp
   dfrr1$n_controls = dfrr1$n_exp + dfrr1$n_nexp - dfrr1$n_cases
   dfrr1 <- subset(dfrr1, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp))
+  se = with(df.RR, sqrt(1 / n_cases_exp - 1 / n_exp + 1 / n_cases_nexp - 1 / n_nexp))
+  dfrr1$ci_lo = dfrr1$value / exp(qnorm(0.975) * se)
+  dfrr1$ci_up = dfrr1$value * exp(qnorm(0.975) * se)
+
   dfrr2 <- df.RR
 
-  umb1 <- .quiet(umbrella(dfrr1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfrr2, seed = 4321))
-  expect_equal(umb1$SSRI$random, umb2$SSRI$random, tolerance = 1e-4)
-  expect_equal(umb1$SSRI$esb$p.value, umb2$SSRI$esb$p.value, tolerance = 1e-8)
+  umb1 <- umbrella(dfrr1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfrr2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
-
-test_that("different measures lead to similar results: RR n_cases/controls SE vs. RR n_cases/controls CI", {
+test_that("different measures lead to similar results: RR + SE n_cases/controls vs. 2x2 table", {
   skip_on_cran()
   dfrr1 <- df.RR
   dfrr1$n_cases = dfrr1$n_cases_exp + dfrr1$n_cases_nexp
   dfrr1$n_controls = dfrr1$n_exp + dfrr1$n_nexp - dfrr1$n_cases
+  dfrr1 <- subset(dfrr1, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp))
+  dfrr1$se = with(df.RR, sqrt(1 / n_cases_exp - 1 / n_exp + 1 / n_cases_nexp - 1 / n_nexp))
+  dfrr1$ci_lo = dfrr1$ci_up = NA
+
+  dfrr2 <- df.RR
+
+  umb1 <- umbrella(dfrr1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfrr2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+})
+test_that("different measures lead to similar results: RR n_cases/controls SE vs. RR n_cases/controls CI", {
+  skip_on_cran()
+
+  dfrr1 <- df.RR
+
+  dfrr1$n_cases = dfrr1$n_cases_exp + dfrr1$n_cases_nexp
+  dfrr1$n_controls = dfrr1$n_exp + dfrr1$n_nexp - dfrr1$n_cases
+
   dfrr1$se = with(dfrr1, sqrt(1 / n_cases_exp - 1 / n_exp + 1 / n_cases_nexp - 1 / n_nexp))
   dfrr1$ci_lo = with(dfrr1, value / exp(qnorm(0.975) * se))
   dfrr1$ci_up = with(dfrr1, value * exp(qnorm(0.975) * se))
+
   dfrr2 <- subset(dfrr1, select = -c(se, n_exp, n_nexp, n_cases_exp, n_cases_nexp))
-  dfrr1 <- subset(dfrr1, select = -c(ci_lo, ci_up, n_exp, n_nexp, n_cases_exp, n_cases_nexp))
+  dfrr3 <- subset(dfrr1, select = -c(ci_lo, ci_up, n_exp, n_nexp, n_cases_exp, n_cases_nexp))
 
-  umb1 <- .quiet(umbrella(dfrr1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfrr2, seed = 4321))
-  expect_equal(umb1$SSRI$random, umb2$SSRI$random, tolerance = 1e-7)
-  expect_equal(umb1$SSRI$esb$p.value, umb2$SSRI$esb$p.value, tolerance = 1e-10)
-})
-
-
-test_that("different measures lead to similar results: RR n_cases/controls vs. classic RR inputs (cases1/N1 and cases2/N2)", {
-  skip_on_cran()
-  dfrr1 <- df.RR
-  dfrr1$n_cases = dfrr1$n_cases_exp + dfrr1$n_cases_nexp
-  dfrr1$n_controls = dfrr1$n_exp + dfrr1$n_nexp - dfrr1$n_cases
-  dfrr1 <- subset(dfrr1, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp))
-
-  dfrr2 <- df.RR
-
-  umb1 <- .quiet(umbrella(dfrr1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfrr2, seed = 4321))
-  expect_equal(umb1$SSRI$random, umb2$SSRI$random, tolerance = 1e-4)
-  expect_equal(umb1$SSRI$esb$p.value, umb2$SSRI$esb$p.value, tolerance = 1e-8)
+  umb1 <- umbrella(dfrr2, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfrr3, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
 ##### IRR -----------------
 
-test_that("different measures lead to similar results: IRR n_cases/time vs. n_cases_exp-nexp/time-exp/nexp", {
+test_that("different measures lead to similar results: IRR + CI + n_cases/time vs. n_cases_exp-nexp/time-exp/nexp", {
   skip_on_cran()
   dfirr1 <- subset(df.IRR, select = -c(n_cases_exp, n_cases_nexp, time_exp, time_nexp))
   dfirr2 <- subset(df.IRR, select = -c(n_cases, time))
 
-  umb1 <- .quiet(umbrella(dfirr1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfirr2, seed = 4321))
-  expect_equal(umb1$Smoking$random, umb2$Smoking$random, tolerance = 1e-5)
-  expect_equal(umb1$Smoking$esb$p.value, umb2$Smoking$esb$p.value, tolerance = 1e-10)
-})
+  se = with(df.IRR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp))
+  dfirr1$ci_lo = dfirr1$value / exp(qnorm(0.975) * se)
+  dfirr1$ci_up = dfirr1$value * exp(qnorm(0.975) * se)
 
-test_that("different measures lead to similar results: IRR n_cases/time vs. n_cases_exp-nexp/time-exp/nexp", {
+
+  umb1 <- umbrella(dfirr1, seed = 4321)
+  umb2 <- umbrella(dfirr2, seed = 4321)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
+})
+test_that("different measures lead to similar results: IRR + SE + n_cases/time vs. n_cases_exp-nexp/time-exp/nexp", {
   skip_on_cran()
-  dfirr1 <- subset(df.IRR, select = -c(n_cases_exp, n_cases_nexp, time_exp, time_nexp))
-  dfirr2 <- subset(df.IRR, select = -c(ci_lo, ci_up, n_cases_exp, n_cases_nexp, time_exp, time_nexp))
-  dfirr2$var = with(df.IRR, 1 / n_cases_exp + 1 / n_cases_nexp)
+  dfirr1 <- subset(df.IRR, select = -c(ci_lo, ci_up, n_cases_exp, n_cases_nexp, time_exp, time_nexp))
+  dfirr2 <- subset(df.IRR, select = -c(n_cases, time))
 
-  umb1 <- .quiet(umbrella(dfirr1, seed = 4321))
-  umb2 <- .quiet(umbrella(dfirr2, seed = 4321))
-  expect_equal(umb1$Smoking$random, umb2$Smoking$random, tolerance = 1e-5)
-  expect_equal(umb1$Smoking$esb$p.value, umb2$Smoking$esb$p.value, tolerance = 1e-10)
+  dfirr1$se = with(df.IRR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp))
+
+  umb1 <- umbrella(dfirr1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfirr2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
+test_that("different measures lead to similar results: IRR + SE + n_cases/time vs. IRR + CI + n_cases/time", {
+  skip_on_cran()
+  dfirr1 <- subset(df.IRR, select = -c(ci_lo, ci_up, n_cases_exp, n_cases_nexp, time_exp, time_nexp))
+  dfirr2 <- subset(df.IRR, select = -c(ci_lo, ci_up, n_cases_exp, n_cases_nexp, time_exp, time_nexp))
+
+  dfirr1$se = with(df.IRR, sqrt(1 / n_cases_exp + 1 / n_cases_nexp))
+  dfirr2$ci_lo = dfirr1$value / exp(qnorm(0.975) * dfirr1$se)
+  dfirr2$ci_up = dfirr1$value * exp(qnorm(0.975) * dfirr1$se)
+
+  umb1 <- umbrella(dfirr1, seed = 4321, verbose = FALSE)
+  umb2 <- umbrella(dfirr2, seed = 4321, verbose = FALSE)
+  expect_equal(umb1[[1]]$random[, col_rand], umb2[[1]]$random[, col_rand], tolerance = tol_med)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_med)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
+})
 
 
 ### REVERSE ES
@@ -360,11 +424,15 @@ test_that("reverse ES leads to similar results: SMD", {
 
   umb1 <- .quiet(umbrella(dfsmd))
   umb2 <- .quiet(umbrella(df.SMD))
-  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 1e-8)
+  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,4], -umb2[[1]]$random[,5], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,5], -umb2[[1]]$random[,4], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,6], -umb2[[1]]$random[,7], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,7], -umb2[[1]]$random[,6], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
 })
 
 test_that("reverse ES leads to similar results: OR", {
@@ -373,12 +441,15 @@ test_that("reverse ES leads to similar results: OR", {
 
   umb1 <- .quiet(umbrella(dfor, seed = 4321))
   umb2 <- .quiet(umbrella(df.OR, seed = 4321))
-  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-
-  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 5e-3)
+  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,4], -umb2[[1]]$random[,5], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,5], -umb2[[1]]$random[,4], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,6], -umb2[[1]]$random[,7], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,7], -umb2[[1]]$random[,6], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 2*tol_ok)
 })
 
 test_that("reverse ES leads to similar results: RR", {
@@ -387,11 +458,15 @@ test_that("reverse ES leads to similar results: RR", {
 
   umb1 <- .quiet(umbrella(dfrr, seed = 4321))
   umb2 <- .quiet(umbrella(df.RR, seed = 4321))
-  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 1e-8)
+  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,4], -umb2[[1]]$random[,5], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,5], -umb2[[1]]$random[,4], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,6], -umb2[[1]]$random[,7], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,7], -umb2[[1]]$random[,6], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_med)
 })
 
 test_that("reverse ES leads to similar results: HR", {
@@ -400,11 +475,15 @@ test_that("reverse ES leads to similar results: HR", {
 
   umb1 <- .quiet(umbrella(dfhr, seed = 4321))
   umb2 <- .quiet(umbrella(df.HR, seed = 4321))
-  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 1e-1)
+  expect_equal(umb1[[2]]$random[,1], -umb2[[2]]$random[,1], tolerance = tol_large)
+  expect_equal(umb1[[2]]$random[,3], umb2[[2]]$random[,3], tolerance = tol_large)
+  expect_equal(umb1[[2]]$random[,4], -umb2[[2]]$random[,5], tolerance = tol_large)
+  expect_equal(umb1[[2]]$random[,5], -umb2[[2]]$random[,4], tolerance = tol_large)
+  expect_equal(umb1[[2]]$random[,6], -umb2[[2]]$random[,7], tolerance = tol_large)
+  expect_equal(umb1[[2]]$random[,7], -umb2[[2]]$random[,6], tolerance = tol_large)
+  expect_equal(umb1[[2]]$heterogeneity$i2, umb2[[2]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[2]]$egger$p.value, umb2[[2]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[2]]$esb$p.value, umb2[[2]]$esb$p.value, tolerance = 1e-6)
 })
 
 test_that("reverse ES leads to similar results: IRR", {
@@ -413,11 +492,15 @@ test_that("reverse ES leads to similar results: IRR", {
 
   umb1 <- .quiet(umbrella(dfirr, seed = 4321))
   umb2 <- .quiet(umbrella(df.IRR, seed = 4321))
-  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,2], -umb2[[1]]$random[,2], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = 1e-8)
-  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = 1e-8)
-  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = 1e-8)
+  expect_equal(umb1[[1]]$random[,1], -umb2[[1]]$random[,1], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,3], umb2[[1]]$random[,3], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,4], -umb2[[1]]$random[,5], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,5], -umb2[[1]]$random[,4], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,6], -umb2[[1]]$random[,7], tolerance = tol_large)
+  expect_equal(umb1[[1]]$random[,7], -umb2[[1]]$random[,6], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
 })
 
 
@@ -468,7 +551,7 @@ test_that("umbrella correctly handle multiple_es + shared_controls", {
   expect_equal(umb1[[1]]$x$se, sqrt(df.agg.mfr$vi), tolerance = 1e-13)
 })
 
-test_that("umbrella correctly handle multiple_es + shared_controls", {
+test_that("umbrella correctly handle multiple_es + shared_controls OR", {
   skip_on_cran()
   df <- df.OR[1:5,]
   df$shared_controls <- c(rep(1, 4), NA)
@@ -483,7 +566,7 @@ test_that("umbrella correctly handle multiple_es + shared_controls", {
                            df$n_controls_exp[1:4]/ 2,
                            df$n_controls_nexp[1:4] / 2)
 
-  # test that umbrella correctly estimate SMD from corrected sample size
+  # test that umbrella correctly estimate OR from corrected sample size
   expect_equal(umb1[[1]]$x_multi$value[1:4], or$value, tolerance = 1e-13)
   expect_equal(umb1[[1]]$x_multi$se[1:4], or$se, tolerance = 1e-13)
 
@@ -513,6 +596,51 @@ test_that("umbrella correctly handle multiple_es + shared_controls", {
 
 })
 
+test_that("umbrella correctly handle multiple_es + shared_nexp", {
+  skip_on_cran()
+  df <- df.OR[1:5,]
+  df$shared_nexp <- c(rep(1, 4), NA)
+  df$multiple_es <- c(rep("outcomes", 4), NA)
+  df$author[c(2, 4)] <- df$author[c(1,3)]
+  df$year[c(2, 4)] <- df$year[c(1,3)]
+
+  umb1 <- .quiet(umbrella(df, mult.level = TRUE, seed = 4321))
+
+
+  or = .estimate_or_from_n(df$n_cases_exp[1:4],
+                           df$n_cases_nexp[1:4] / 2,
+                           df$n_controls_exp[1:4],
+                           df$n_controls_nexp[1:4] / 2)
+
+  # test that umbrella correctly estimate OR from corrected sample size
+  expect_equal(umb1[[1]]$x_multi$value[1:4], or$value, tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x_multi$se[1:4], or$se, tolerance = 1e-13)
+
+  df.m <- df
+  df.m$n_cases_nexp[1:4] = df.m$n_cases_nexp[1:4] / 2
+  df.m$n_controls_nexp[1:4] = df.m$n_controls_nexp[1:4] / 2
+
+  ## metafor
+  df.mfr <- metafor::escalc(ai = n_cases_exp,
+                            bi = n_cases_nexp,
+                            ci = n_controls_exp,
+                            di = n_controls_nexp,
+                            data = df.m, measure = "OR")
+
+  expect_equal(umb1[[1]]$x_multi$value, exp(.as_numeric(df.mfr$yi)), tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x_multi$se, sqrt(df.mfr$vi), tolerance = 1e-13)
+
+
+  df.agg.mfr <- metafor::aggregate.escalc(df.mfr,
+                                          cluster = author,
+                                          struct = "CS",
+                                          weighted = FALSE,
+                                          rho = 0.5)
+
+  expect_equal(umb1[[1]]$x$value, exp(.as_numeric(df.agg.mfr$yi)), tolerance = 1e-13)
+  expect_equal(umb1[[1]]$x$se, sqrt(df.agg.mfr$vi), tolerance =1e-13)
+
+})
 
 
 # x<-dfmd; method.var = "REML"; mult.level = FALSE; r = 0.5; true_effect = "largest"; factor="Pharmacological"

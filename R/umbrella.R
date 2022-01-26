@@ -128,10 +128,6 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
   # if the dataset is well formatted, initialize some settings ------
   list_author_concern = list_factor_concern = NULL
 
-  # ---------------- for a future update: detecting atypically large ES
-  # eG_threshold = 5 # a warning occurs for all studies with a eG value > 5
-  # eOR_threshold = 15 # a warning occurs for all studies with a eOR value > 15
-
   y = list()
 
   # run factor-by-factor calculations
@@ -150,17 +146,6 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
       REPEATED_STUDIES <- attr(x_i_ok, "REPEATED_STUDIES")
       n_studies <- attr(x_i_ok, "n_studies")
 
-      # ---------------- for a future update: detecting atypically large ES
-      # we check whether some studies have very large effect sizes
-      # if (any((measure_length == "SMD" & abs(x_i_ok$value) > eG_threshold) | (measure_length != "SMD" & ( (x_i_ok$value) > eOR_threshold | (x_i_ok$value) < 1/eOR_threshold )))) {
-      #   row_concern = which( (measure_length == "SMD" & abs(x_i_ok$value) > eG_threshold) | (measure_length != "SMD" & ( (x_i_ok$value) > eOR_threshold | (x_i_ok$value) < 1/eOR_threshold )) )
-      #   author_concern = paste(paste0(x_i_ok$author[row_concern], " ", x_i_ok$year[row_concern], " (", measure_length[row_concern], " = ", round(x_i_ok$value[row_concern], 2), ")"), collapse = ", ")
-      #   factor_concern = factor
-      #   list_author_concern = append(list_author_concern, author_concern)
-      #   list_factor_concern = append(list_factor_concern, factor)
-      # }
-
-
       # create an object storing information on sample sizes
       n <- data.frame(studies = n_studies,
                       cases = sum(x_i_ok$n_cases),
@@ -170,10 +155,10 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
 
       # select the function performing the meta-analysis
       .meta <- switch(as.character(attr(x_i_ok, "meta")),
-                      "SMD_standard_raw_information" = .meta_d,
                       "OR_standard_raw_information" = .meta_or,
                       "RR_standard_raw_information" = .meta_rr,
                       "IRR_standard_raw_information" = .meta_irr,
+                      "SMD_standard_raw_information" =,
                       "SMD_multilevel_raw_information" =,
                       "SMD_multilevel_generic" =,
                       "SMD_standard_generic" = .meta_gen_g,
@@ -294,17 +279,15 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
       if (n_studies < 3) {
         egger = data.frame(statistic = NA, p.value = NA)
       } else {
-        if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) { #
-
-          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD",
-                         n_cases = x_i_ok$n_cases, n_controls = x_i_ok$n_controls)
+        if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) {
+          # for future updates
+          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD")
 
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
         } else if (measure == "SMD") {
 
-          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD",
-                         n_cases = x_i_ok$n_cases, n_controls = x_i_ok$n_controls)
+          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD")
 
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
@@ -376,29 +359,9 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
   class(y) = "umbrella"
 
   if (verbose) {
-
     if (attr(checkings, "status") == "WARNINGS") {
       attr(y, "message") = paste("\nSome warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
     }
-
-    # if (!is.null(list_author_concern) | !is.null(list_factor_concern)) {
-    #
-    #   concern = aggregate(x = list_factor_concern,
-    #                       by = list(list_author_concern),
-    #                       FUN = function (x) { return(paste(x, collapse = ", ")) })
-    #
-    #   if (attr(checkings, "status") == "WARNINGS") {
-    #     attr(y, "message") = paste("Some effect sizes are very large. Please verify that no typo or extraction errors have been made for factors:",
-    #             paste("\n- '", concern$x, "', studies: ", concern$Group.1, collapse = ""),
-    #             "\nMoreover, some warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
-    #   } else {
-    #     attr(y, "message") = paste("Some effect sizes are very large. Please verify that no typo or extraction errors have been made for factors:",
-    #             paste("\n- '", concern$x, "', studies: ", concern$Group.1, collapse = ""))
-    #   }
-    #
-    # } else if (attr(checkings, "status") == "WARNINGS") {
-    #   attr(y, "message") = paste("\nSome warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
-    # }
   }
 
   message(attr(y, "message"))

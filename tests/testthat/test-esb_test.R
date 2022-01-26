@@ -23,10 +23,11 @@ test_that("esb.test produced same results for different inputs: SMD", {
     rmasmd <- metafor::rma.uni(m1i = mean_cases, m2i = mean_controls,
                                 sd1i = sd_cases, sd2i = sd_controls,
                                 n1i = n_cases, n2i = n_controls,
-                                data = df, method = "REML", measure = "SMD")
+                                data = df, method = "REML", measure = "SMD", vtype = "UB")
 
-    df$value <- .as_numeric(rmasmd$yi)
-    df$se <- sqrt(.as_numeric(rmasmd$vi))
+    df$value = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$value
+    df$se = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se
+
     df$measure <- "G"
     esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method = "chisq.test", seed = 4321)))
     esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method = "binom.test", seed = 4321))
@@ -41,7 +42,7 @@ test_that("esb.test produced same results for different inputs: SMD", {
     rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
 
     umb <- .quiet(umbrella(df, seed = 4321))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls)), seed = 4321))
+    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up)), seed = 4321))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_med)
@@ -66,7 +67,7 @@ test_that("esb.test produced same results for different inputs: SMD", {
     expect_equal(.as_numeric(umb[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
     expect_equal(.as_numeric(umb[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
     expect_equal(.as_numeric(umb2[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = 2e-3)
+    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_limit)
 
 })
 
@@ -74,16 +75,18 @@ test_that("esb.test produced same results for generic inputs: SMD", {
     skip_on_cran()
     df <- df.SMD[df.SMD$factor == "Surgical", ]
     df$se <- with(df, .estimate_d_from_means(n_cases, n_controls, mean_cases, sd_cases, mean_controls, sd_controls)$se)
-    j = with(df, .d_j(n_cases + n_controls - 2))
-    metasmd1 <- meta::metagen(TE = value * j, seTE = se * j,
+    df$value = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$value
+    df$se = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se
+
+    metasmd1 <- meta::metagen(TE = value, seTE = se ,
                               method.tau = "REML", data = df,
                               sm = "SMD")
 
-    metasmd2 <- meta::metagen(TE = value * j, seTE = se * j, n.e = n_cases, n.c = n_controls,
+    metasmd2 <- meta::metagen(TE = value, seTE = se, n.e = n_cases, n.c = n_controls,
                              method.tau = "REML", data = df,
                              sm = "SMD")
 
-    rmasmd <- metafor::rma.uni(yi = value * j, sei = se * j, ni = n_cases + n_controls,
+    rmasmd <- metafor::rma.uni(yi = value, sei = se, ni = n_cases + n_controls,
                                data = df, method = "REML", measure = "SMD")
 
     esb.df.chisq <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "chisq.test", seed = 4321))

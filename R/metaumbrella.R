@@ -27,7 +27,7 @@
 #'  \item \bold{"IRR"} or \bold{"logIRR"}: incidence rate ratio or its logarithm
 #' }
 #'
-#' To estimate the effect size and the variance of each individual study, the \pkg{metaumbrella} allows for flexible inputs.
+#' To estimate the effect size and the variance of each individual study, the \pkg{metaumbrella} package allows for flexible inputs.
 #' We detail below (A) the variables that are mandatory and must be indicated in a well-formatted dataset, (B) the variables that vary depending on the effect size measure and (C) the variables that are optional but that can be indicated to benefit from certain features of the package.
 #' Note that the package includes examples of well-formatted datasets for each effect size measure (\code{\link{df.SMD}}, \code{\link{df.OR}}, \code{\link{df.RR}}, \code{\link{df.HR}} and \code{\link{df.IRR}}).
 #'

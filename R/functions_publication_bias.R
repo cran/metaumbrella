@@ -2,21 +2,14 @@
 #'
 #' @param value effect size
 #' @param se standard error
-#' @param n_cases number of cases
-#' @param n_controls number of controls
 #' @param measure effect size measure
 #'
 #' @noRd
-.egger_pb <- function(value, se, n_cases = NULL, n_controls = NULL, measure) {
+.egger_pb <- function(value, se, measure) {
 
   if (measure == "SMD") {
-     # value_ok = .estimate_g_from_d(d = value, n_cases = n_cases, n_controls = n_controls, se = se)$value
-     # se_ok = .estimate_g_from_d(d = value, n_cases = n_cases, n_controls = n_controls, se = se)$se
     value_ok = value
     se_ok = se
-  # } else if (measure == "G") {
-  #    value_ok = value
-  #    se_ok = se
   } else if (measure == "ratio") {
      value_ok = log(value)
      se_ok = se

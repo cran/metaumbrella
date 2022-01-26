@@ -1,7 +1,7 @@
 Package: metaumbrella
 Type: Package
 Title: Umbrella Review Package for R
-Version: 1.0.1
+Version: 1.0.2
 Author: Corentin J Gosling [aut, cre],
   Aleix Solanes [aut],
   Paolo Fusar-Poli [aut],
@@ -24,6 +24,6 @@ RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 Language: en-US
 NeedsCompilation: no
-Packaged: 2022-01-03 12:23:15 UTC; Corentin Gosling
+Packaged: 2022-01-26 12:52:04 UTC; Corentin Gosling
 Repository: CRAN
-Date/Publication: 2022-01-07 13:52:56 UTC
+Date/Publication: 2022-01-26 13:22:42 UTC

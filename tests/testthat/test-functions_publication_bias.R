@@ -4,10 +4,15 @@ test_that("publication bias correclty performs egger's test", {
   df.or <- subset(df.OR, factor == "ADHD")
   df.smd <- subset(df.SMD, factor == "Pharmacological")
 
-  rma1 <-  metafor::rma.uni(m1i = mean_cases, m2i = mean_controls,
-                            sd1i = sd_cases, sd2i = sd_controls,
-                            n1i = n_cases, n2i = n_controls,
-                            data = df.smd, method = "REML", measure = "SMD", vtype="UB")
+
+  df_mfr = metafor::escalc(m1i = mean_cases, m2i = mean_controls,
+                           sd1i = sd_cases, sd2i = sd_controls,
+                           n1i = n_cases, n2i = n_controls,
+                           data = df.smd, measure = "SMD", vtype = "UB")
+
+  rma1 <- metafor::rma.uni(yi = yi, vi = vi, data = df_mfr, method = "REML")
+
+
 
   rma2 <- metafor::rma.uni(ai = n_cases_exp, bi = n_cases_nexp,
                            ci = n_controls_exp, di = n_controls_nexp,

@@ -376,6 +376,7 @@ test_that("HR to OR", {
   umb2 <- .quiet(umbrella(df.save, seed = 4321))
   expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 1e-14)
   expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = 1e-14)
+  expect_equal(umb1$ASD$egger$p.value, umb2$ASD$egger$p.value, tolerance = 1e-14)
   expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = 1e-14)
 })
 
@@ -389,13 +390,14 @@ test_that("OR to SMD", {
   df$ci_lo[1:5] <- .d_to_or(df$ci_lo[1:5])
   df$ci_up[1:5] <- .d_to_or(df$ci_up[1:5])
 
-  dfsmd <- subset(df.save, select = -c(mean_cases, sd_cases, mean_controls, sd_controls))
-  dfmix <- subset(df, select = -c(mean_cases, sd_cases, mean_controls, sd_controls))
+  dfsmd <- subset(df.save, select = -c(se, mean_cases, sd_cases, mean_controls, sd_controls))
+  dfmix <- subset(df, select = -c(se, mean_cases, sd_cases, mean_controls, sd_controls))
 
   umb1 <- .quiet(umbrella(df, seed = 4321))
   umb2 <- .quiet(umbrella(df.save, seed = 4321))
   expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 1e-8)
-  expect_equal(umb1$Surgical$random, umb2$Surgical$random, tolerance = 1e-5)
+  expect_equal(umb1$Surgical$random, umb2$Surgical$random, tolerance = 1e-8)
+  expect_equal(umb1$Surgical$egger$p.value, umb2$Surgical$egger$p.value, tolerance = 1e-8)
   expect_equal(umb1$Surgical$esb$p.value, umb2$Surgical$esb$p.value, tolerance = 1e-5)
 })
 

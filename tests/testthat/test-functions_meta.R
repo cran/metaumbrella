@@ -1,65 +1,55 @@
+tol_large = 1e-10
 ###########
 ### SMD ###
 ###########
 
 # SMD - standard analysis
-test_that(".meta_d correctly estimates the pooled effect size for d values", {
+test_that(".meta_G correctly estimates the pooled effect size for d values with raw information", {
   df <- subset(df.SMD, factor == "Pharmacological", select = -c(value, se, ci_lo, ci_up))
 
   umb <- umbrella(df, method.var = "REML")[[1]]$random
-  meta_umb <- .meta_d(df, method.var = "REML")
-  meta <- metafor::rma.uni(m1i = mean_cases, m2i = mean_controls,
+
+  df_mfr = metafor::escalc(m1i = mean_cases, m2i = mean_controls,
                            sd1i = sd_cases, sd2i = sd_controls,
                            n1i = n_cases, n2i = n_controls,
-                           data = df, method = "REML", measure = "SMD", vtype = "UB")
+                           data = df, measure = "SMD", vtype = "UB")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-5)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 5e-5)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-5)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 5e-5)
+  meta <- metafor::rma.uni(yi = yi, vi = vi, data = df_mfr, method = "REML")
+
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
-
-# SMD - hksj estimator
-test_that(".meta_d correctly estimates the pooled effect size for d values and hksj estimator", {
-
-  df <- subset(df.SMD, factor == "Pharmacological")
-  umb <- umbrella(df, method.var = "hksj")[[1]]$random
-  meta_umb <- .meta_d(df, method.var = "hksj")
-
-  meta <- meta::metacont(n_cases, mean_cases, sd_cases,
-                         n_controls, mean_controls, sd_controls,
-                         method.tau = "DL", data = df,
-                         sm ="SMD", method.smd = "Hedges", hakn = TRUE)
-
-
-  expect_equal(meta_umb$TE.random, as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
-  expect_equal(meta_umb$pval.random, as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
-  expect_equal(umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
-  expect_equal(umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
-})
-
-# SMD - generic for multilevel
-test_that(".meta_gen_smd correctly estimates the pooled effect size for d values", {
+# SMD - generic
+test_that(".meta_G correctly estimates the pooled effect size for d values value/SE", {
 
 
   df <- subset(df.SMD, factor == "Pharmacological", select = -c(ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
   umb <- .quiet(umbrella(df, method.var = "REML")[[1]]$random)
-  df_form <- .quiet(umbrella(df, method.var = "REML")[[1]]$x)
-
-  meta_gen <- .meta_gen_smd(df_form, method.var = "REML")
 
   meta <- metafor::rma.uni(yi = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$value,
                            sei = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se,
                            data = df, method = "REML", measure = "SMD")
 
-  expect_equal(as.numeric(as.character(meta_gen$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-10)
-  expect_equal(as.numeric(as.character(meta_gen$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-10)
-  expect_equal(as.numeric(as.character(meta_gen$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-10)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-10)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-10)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
+})
 
+
+# SMD - hksj estimator
+test_that(".meta_G correctly estimates the pooled effect size for d values and hksj estimator", {
+
+  df <- subset(df.SMD, factor == "Pharmacological", select = -c(ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
+
+  umb <- .quiet(umbrella(df, method.var = "hksj")[[1]]$random)
+
+  meta <- meta::metagen(TE = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$value,
+                           seTE = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se,
+                           method.tau = "DL", hakn = TRUE)
+
+  expect_equal(umb$value, as.numeric(as.character(meta$TE.random)), tolerance = tol_large)
+  expect_equal(umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = tol_large)
 })
 
 ##########
@@ -77,11 +67,11 @@ test_that(".meta_or correctly estimates the pooled effect size from 2x2 table", 
                            ci = n_controls_exp, di = n_controls_nexp,
                            data = df, method = "REML", measure = "OR")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 
@@ -90,14 +80,13 @@ test_that(".meta_or correctly estimates the pooled effect size from 2x2 table an
 
   df <- subset(df.OR, factor == "ASD")
 
-  umb <- umbrella(df, method.var = "hksj")
-  meta_umb <- umb[[1]]$random
+  meta_umb <- umbrella(df, method.var = "hksj")[[1]]$random
   meta <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
                         event.c = n_cases_nexp, n.c = n_nexp,
                         data = df, sm = "OR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-5)
-  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-5)
+  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = tol_large)
+  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = tol_large)
 })
 
 # OR - generic
@@ -115,8 +104,8 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for OR value
   meta <- metafor::rma.uni(yi = log(value), sei = se,
                            data = df, method = "REML", measure = "OR")
 
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 ##########
@@ -135,11 +124,11 @@ test_that(".meta_rr correctly estimates the pooled effect size", {
                            ci = n_cases_nexp, n2i = n_nexp,
                            data = df, method = "REML", measure = "RR")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 
@@ -148,14 +137,13 @@ test_that(".meta_rr correctly estimates the pooled effect size with hksj estimat
 
   df <- df.RR
 
-  umb <- umbrella(df, method.var = "hksj")
-  meta_umb <- umb[[1]]$random
+  meta_umb <- umbrella(df, method.var = "hksj")[[1]]$random
   meta <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
                         event.c = n_cases_nexp, n.c = n_nexp,
                         data = df, sm = "RR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-3)
-  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-10)
+  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = tol_large)
+  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = tol_large)
 })
 
 # RR - generic for multilevel
@@ -166,6 +154,7 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for RR value
 
   df.RR$n_cases = df.RR$n_cases_exp + df.RR$n_cases_nexp
   df.RR$n_controls = with(df.RR, n_exp + n_nexp - n_cases_exp - n_cases_nexp)
+
   df <- subset(df.RR, select = -c(n_cases_exp, n_cases_nexp,
                                   n_exp, n_nexp))
   df$se <- se
@@ -175,8 +164,8 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for RR value
   meta <- metafor::rma.uni(yi = log(value), sei = se,
                            data = df, method = "REML", measure = "RR")
 
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 ###########
@@ -188,15 +177,15 @@ test_that(".meta_irr correctly estimates the pooled effect size", {
 
   df <- df.IRR
 
-  umb <- .meta_irr(df, "DL")
+  umb <- .meta_irr(df, "REML")
 
   meta <- metafor::rma.uni(x1i = n_cases_exp, t1i = time_exp,
                            x2i = n_cases_nexp, t2i = time_nexp,
-                           data = df, method = "DL", measure = "IRR")
+                           data = df, method = "REML", measure = "IRR")
 
-  expect_equal(as.numeric(as.character(umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-5)
-  expect_equal(as.numeric(as.character(umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-5)
-  expect_equal(as.numeric(as.character(umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-5)
+  expect_equal(as.numeric(as.character(umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 
@@ -204,19 +193,17 @@ test_that(".meta_irr correctly estimates the pooled effect size", {
 test_that(".meta_irr correctly estimates the pooled effect size with hksj estimator", {
   df <- df.IRR
 
-  umb <- umbrella(df, method.var = "hksj")
-  meta_umb <- umb[[1]]$random
+  meta_umb <- umbrella(df, method.var = "hksj")[[1]]$random
   meta <- meta::metainc(event.e = n_cases_exp, time.e = time_exp,
                         event.c = n_cases_nexp, time.c = time_nexp,
-                        data = umb[[1]]$x, sm = "IRR", hakn = TRUE, method.tau = "DL")
+                        data = df, sm = "IRR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
-  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
+  expect_equal(meta_umb$value, as.numeric(as.character(meta$TE.random)), tolerance = tol_large)
+  expect_equal(meta_umb$p.value, as.numeric(as.character(meta$pval.random)), tolerance = tol_large)
 })
 
 # irr - generic for multilevel
 test_that(".meta_gen_log correctly estimates the pooled effect size for IRR values", {
-
 
   df <- df.IRR
 
@@ -225,16 +212,14 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for IRR valu
   df$se <- with(df, .estimate_irr_from_n(n_cases_exp, time_exp,
                                          n_cases_nexp, time_nexp)$se)
 
-
-
   df <- df[, c("value", "se", "n_cases_exp", "n_cases_nexp", "time_exp","time_nexp")]
 
   meta_gen <- .meta_gen_log(df, method.var = "REML")
   meta_umb <- .meta_irr(df, method.var = "REML")
 
-  expect_equal(as.numeric(as.character(meta_gen$TE.random)), as.numeric(as.character(meta_umb$TE.random)), tolerance = 1e-4)
-  expect_equal(as.numeric(as.character(meta_gen$seTE.random)), as.numeric(as.character(meta_umb$seTE.random)), tolerance = 1e-2)
-  expect_equal(as.numeric(as.character(meta_gen$pval.random)), as.numeric(as.character(meta_umb$pval.random)), tolerance = 1e-2)
+  expect_equal(as.numeric(as.character(meta_gen$TE.random)), as.numeric(as.character(meta_umb$TE.random)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_gen$seTE.random)), as.numeric(as.character(meta_umb$seTE.random)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_gen$pval.random)), as.numeric(as.character(meta_umb$pval.random)), tolerance = tol_large)
 })
 
 
@@ -256,11 +241,11 @@ test_that(".meta_irr correctly estimates the pooled effect size", {
                            x2i = n_cases_nexp, t2i = time_nexp,
                            data = df, method = "REML", measure = "IRR")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$se)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 
@@ -269,18 +254,13 @@ test_that(".meta_irr correctly estimates the pooled effect size with hksj estima
 
   df <- subset(df.IRR, select = -c(value, ci_lo, ci_up))
 
-  umb <- umbrella(df, method.var = "hksj")[[1]]$random
-  meta_umb <- .meta_irr(df, method.var = "hksj")
+  meta_umb <- umbrella(df, method.var = "hksj")[[1]]$random
   meta <- meta::metainc(event.e = n_cases_exp, time.e = time_exp,
                         event.c = n_cases_nexp, time.c = time_nexp,
                         data = df, measure = "IRR", hakn = TRUE, method.tau = "DL")
 
-  expect_equal(as.numeric(as.character(meta_umb$TE.random)), as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
-  expect_equal(as.numeric(as.character(meta_umb$seTE.random)), as.numeric(as.character(meta$seTE.random)), tolerance = 1e-6)
-  expect_equal(as.numeric(as.character(meta_umb$pval.random)), as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$TE.random)), tolerance = 1e-6)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval.random)), tolerance = 1e-6)
-
+  expect_equal(as.numeric(as.character(meta_umb$value)), as.numeric(as.character(meta$TE.random)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(meta_umb$p.value)), as.numeric(as.character(meta$pval.random)), tolerance = tol_large)
 })
 
 # IRR - generic for multilevel
@@ -295,11 +275,11 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for IRR valu
   umb <- .quiet(umbrella(df, method.var = "REML")[[1]]$random)
 
   meta <- metafor::rma.uni(yi = log(value), sei = se,
-                           data = df, method = "REML", measure = "IRR")
+                           data = df, method = "REML")
 
   #
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
 
@@ -310,12 +290,161 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for HR value
   df <- subset(df.HR, factor == "Yoga")
   df$se <- se[which(df.HR$factor == "Yoga")]
 
-  umb <- .quiet(umbrella(df, method.var = "REML")[[1]]$random)
+  umb <- umbrella(df, method.var = "REML", verbose = FALSE)[[1]]$random
 
   meta <- metafor::rma.uni(yi = log(value), sei = se,
-                           data = df, method = "REML", measure = "IRR")
+                           data = df, method = "REML")
 
   #
-  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = 1e-13)
-  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = 1e-13)
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
+
+#######################################################################################
+
+test_that(".format_dataset selects appropriate meta analysis type: OR", {
+
+  # simple level
+  df1 = subset(df.OR, factor = unique(df.OR$factor)[1])
+  format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
+  expect_equal(attr(format1, "meta"), "OR_standard_raw_information")
+
+  n_cases = with(df.OR, n_cases_exp + n_cases_nexp)
+  n_controls = with(df.OR, n_controls_exp + n_controls_nexp)
+  df2 = subset(df.OR, factor = unique(df.OR$factor)[1], select = -c(n_cases_exp, n_controls_exp, n_cases_nexp, n_controls_nexp))
+  df2$n_cases = n_cases
+  df2$n_controls = n_controls
+  format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
+  expect_equal(attr(format2, "meta"), "OR_standard_generic")
+
+  # multilevel
+  df3 = subset(df.OR.multi, factor = unique(df.OR.multi$factor)[1])
+  format3 = .quiet(.format_dataset(attr(.check_data(df3), "data"), mult.level = TRUE))
+  expect_equal(attr(format3, "meta"), "OR_multilevel_raw_information")
+
+  n_cases = with(df.OR.multi, n_cases_exp + n_cases_nexp)
+  n_controls = with(df.OR.multi, n_controls_exp + n_controls_nexp)
+  df4 = subset(df.OR.multi, factor = unique(df.OR.multi$factor)[1], select = -c(n_cases_exp, n_controls_exp, n_cases_nexp, n_controls_nexp))
+  df4$n_cases = n_cases
+  df4$n_controls = n_controls
+  format4 = .quiet(.format_dataset(attr(.check_data(df4), "data"), mult.level = TRUE))
+  expect_equal(attr(format4, "meta"), "OR_multilevel_generic")
+})
+
+test_that(".format_dataset selects appropriate meta analysis type: SMD", {
+
+  # when SMD/MD/G is used only metagen is used to allow a unique estimation of G
+
+  # simple level
+  df1 = subset(df.SMD, factor = unique(df.SMD$factor)[1])
+  format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
+  expect_equal(attr(format1, "meta"), "SMD_standard_generic")
+
+  df2 = subset(df.SMD, factor = unique(df.SMD$factor)[1], select = -c(mean_cases, mean_controls))
+  format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
+  expect_equal(attr(format2, "meta"), "SMD_standard_generic")
+
+
+  # multi level
+  df1$author[2] <- df1$author[1]
+  df1$year[2] <- df1$year[1]
+  df1$multiple_es <- NA
+  df1$multiple_es[1:2] <- "outcomes"
+  format3 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
+  expect_equal(attr(format3, "meta"), "SMD_multilevel_generic")
+
+  df2$author[2] <- df2$author[1]
+  df2$year[2] <- df2$year[1]
+  df2$multiple_es <- NA
+  df2$multiple_es[1:2] <- "outcomes"
+  format4 = .quiet(.format_dataset(attr(.check_data(df2), "data"), mult.level = TRUE))
+  expect_equal(attr(format4, "meta"), "SMD_multilevel_generic")
+})
+
+test_that(".format_dataset selects appropriate meta analysis type: RR", {
+
+  # simple level
+  df1 = subset(df.RR, factor = unique(df.RR$factor)[1])
+  format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
+  expect_equal(attr(format1, "meta"), "RR_standard_raw_information")
+
+  n_cases = with(df.RR, n_cases_exp + n_cases_nexp)
+  n_controls = with(df.RR, n_exp + n_nexp - n_cases_exp - n_cases_nexp)
+  df2 = subset(df.RR, factor = unique(df.RR$factor)[1], select = -c(n_cases_exp, n_cases_nexp, n_exp, n_nexp))
+  df2$n_cases = n_cases
+  df2$n_controls = n_controls
+  format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
+  expect_equal(attr(format2, "meta"), "RR_standard_generic")
+
+
+  # multi level
+  df1$author[2] <- df1$author[1]
+  df1$year[2] <- df1$year[1]
+  df1$multiple_es <- NA
+  df1$multiple_es[1:2] <- "outcomes"
+  format3 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
+  expect_equal(attr(format3, "meta"), "RR_multilevel_raw_information")
+
+  df2$author[2] <- df2$author[1]
+  df2$year[2] <- df2$year[1]
+  df2$multiple_es <- NA
+  df2$multiple_es[1:2] <- "outcomes"
+  format4 = .quiet(.format_dataset(attr(.check_data(df2), "data"), mult.level = TRUE))
+  expect_equal(attr(format4, "meta"), "RR_multilevel_generic")
+})
+
+test_that(".format_dataset selects appropriate meta analysis type: HR", {
+
+  # simple level
+  df1 = subset(df.HR, factor = unique(df.HR$factor)[1])
+  format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
+  expect_equal(attr(format1, "meta"), "HR_standard_generic")
+
+
+  # multi level
+  df1$author[2] <- df1$author[1]
+  df1$year[2] <- df1$year[1]
+  df1$multiple_es <- NA
+  df1$multiple_es[1:2] <- "outcomes"
+  format2 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
+  expect_equal(attr(format2, "meta"), "HR_multilevel_generic")
+
+  df2 <- df.RR
+  df2$measure <- "HR"
+  df2$n_cases = with(df2, n_cases_exp + n_cases_nexp)
+  df2$n_controls = with(df2, n_exp + n_nexp - n_cases_exp - n_cases_nexp)
+
+  format3 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
+  expect_equal(attr(format3, "meta"), "HR_standard_generic")
+})
+
+
+test_that(".format_dataset selects appropriate meta analysis type: IRR", {
+
+  # simple level
+  df1 = subset(df.IRR, factor = unique(df.IRR$factor)[1])
+  format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
+  expect_equal(attr(format1, "meta"), "IRR_standard_raw_information")
+
+  df2 = subset(df.IRR, factor = unique(df.IRR$factor)[1], select = -c(time_exp, time_nexp))
+  format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
+  expect_equal(attr(format2, "meta"), "IRR_standard_generic")
+
+  # multi level
+  df1$author[2] <- df1$author[1]
+  df1$year[2] <- df1$year[1]
+  df1$multiple_es <- NA
+  df1$multiple_es[1:2] <- "outcomes"
+  format3 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
+  expect_equal(attr(format3, "meta"), "IRR_multilevel_raw_information")
+  umb3 = umbrella(df1, mult.level = TRUE)
+
+  df2$author[2] <- df2$author[1]
+  df2$year[2] <- df2$year[1]
+  df2$multiple_es <- NA
+  df2$multiple_es[1:2] <- "outcomes"
+  format4 = .quiet(.format_dataset(attr(.check_data(df2), "data"), mult.level = TRUE))
+  expect_equal(attr(format4, "meta"), "IRR_multilevel_generic")
+
+})
+

@@ -7,5 +7,5 @@ citEntry(
   year     = "2022",
   url      = "https://www.metaumbrella.org/",
   textVersion = paste(
- "Corentin J Gosling, Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella: An R Package for Conducting Umbrella Reviews. R package version 1.0.1.")
+ "Corentin J Gosling, Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella: An R Package for Conducting Umbrella Reviews. R package version 1.0.2.")
 )

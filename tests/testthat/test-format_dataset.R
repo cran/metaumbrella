@@ -1,3 +1,6 @@
+tol_large = 1e-10
+tol_med = 1e-6
+tol_ok = 1e-3
 # We check that the umbrella function correctly estimates value + se + CI + samples sizes ---
 
 
@@ -10,17 +13,16 @@ test_that("format_dataset from raw information: SMD", {
   df <- df.SMD[df.SMD$factor == "Pharmacological", ]
   df.red <- subset(df, select = -c(value, se, ci_lo, ci_up))
   df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
-  df_umb <- umbrella(df.red)[[1]]$x
 
   G = .estimate_g_from_d(d = df$value, n_cases = df$n_cases, n_controls = df$n_controls)$value
   se = .estimate_g_from_d(d = df$value, n_cases = df$n_cases, n_controls = df$n_controls)$se
-  ci_lo <- G - qt(0.975, df$n_cases + df$n_controls - 2) * se
-  ci_up <- G + qt(0.975, df$n_cases + df$n_controls - 2) * se
+  ci_lo = G - qt(0.975, df$n_cases + df$n_controls - 2) * se
+  ci_up = G + qt(0.975, df$n_cases + df$n_controls - 2) * se
 
-  expect_equal(G, df_format$value, tolerance = 1e-13)
-  expect_equal(se, df_format$se, tolerance = 1e-13)
-  expect_equal(ci_lo, df_format$ci_lo, tolerance = 1e-13)
-  expect_equal(ci_up, df_format$ci_up, tolerance = 1e-13)
+  expect_equal(G, df_format$value, tolerance = tol_large)
+  expect_equal(se, df_format$se, tolerance = tol_large)
+  expect_equal(ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(ci_up, df_format$ci_up, tolerance = tol_large)
 })
 
 # OR
@@ -30,17 +32,17 @@ test_that("format_dataset from raw information: OR", {
   df.red <- subset(df, select = -c(value, ci_lo, ci_up,
                                    n_cases, n_controls,
                                    n_exp, n_nexp))
-    df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
+  df_format <- .quiet(.format_dataset(attr(.check_data(df.red), "data")))
 
   se = with(df, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
 
   df$ci_lo <- df$value / exp(qnorm(0.975) * se)
   df$ci_up <- df$value * exp(qnorm(0.975) * se)
 
-  expect_equal(df$value, df_format$value, tolerance = 1e-13)
-  expect_equal(se, df_format$se, tolerance = 1e-13)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 1e-13)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 1e-13)
+  expect_equal(df$value, df_format$value, tolerance = tol_large)
+  expect_equal(se, df_format$se, tolerance = tol_large)
+  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(df$ci_up, df_format$ci_up, tolerance = tol_large)
   expect_equal(df$n_cases, df_format$n_cases)
   expect_equal(df$n_controls, df_format$n_controls)
 })
@@ -58,10 +60,10 @@ test_that("format_dataset from raw information: RR", {
   df$ci_lo <- df$value / exp(qnorm(0.975) * se)
   df$ci_up <- df$value * exp(qnorm(0.975) * se)
 
-  expect_equal(df$value, df_format$value, tolerance = 1e-13)
-  expect_equal(se, df_format$se, tolerance = 1e-13)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 1e-13)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 1e-13)
+  expect_equal(df$value, df_format$value, tolerance = tol_large)
+  expect_equal(se, df_format$se, tolerance = tol_large)
+  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(df$ci_up, df_format$ci_up, tolerance = tol_large)
   expect_equal(df$n_cases_exp, df_format$n_cases_exp)
   expect_equal(df$n_exp, df_format$n_exp)
   expect_equal(df$n_cases_nexp, df_format$n_cases_nexp)
@@ -80,10 +82,10 @@ test_that("format_dataset from raw information: IRR", {
   df$ci_lo <- df$value / exp(qnorm(0.975) * se)
   df$ci_up <- df$value * exp(qnorm(0.975) * se)
 
-  expect_equal(df$value, df_format$value, tolerance = 1e-13)
-  expect_equal(se, df_format$se, tolerance = 1e-13)
-  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = 1e-13)
-  expect_equal(df$ci_up, df_format$ci_up, tolerance = 1e-13)
+  expect_equal(df$value, df_format$value, tolerance = tol_large)
+  expect_equal(se, df_format$se, tolerance = tol_large)
+  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(df$ci_up, df_format$ci_up, tolerance = tol_large)
   expect_equal(df$time, df_format$time)
   expect_equal(df$n_cases, df_format$n_cases)
 })
@@ -97,17 +99,28 @@ test_that("format_dataset from raw information: IRR", {
 # SMD
 test_that("format_dataset from CI: SMD", {
   skip_on_cran()
-  df <- subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls))
+  df <- subset(df.SMD, factor == "Pharmacological",
+               select = -c(mean_cases, mean_controls, sd_cases, sd_controls))
   df$ci_lo <- df$ci_up <- NA
 
   df$se <- with(df, sqrt(1/n_cases + 1/n_controls))
   df$ci_lo = with(df, value - se * qt(0.975, n_cases + n_controls - 2))
   df$ci_up = with(df, value + se * qt(0.975, n_cases + n_controls - 2))
 
+  opt = data.frame(value = rep(NA, nrow(df)), ci_lo = rep(NA, nrow(df)), ci_up =rep(NA, nrow(df)))
 
-  dfred <- subset(df, factor == "Pharmacological", select = -c(value, se))
+  for (i in 1:nrow(df)) {
+    opt$value[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], FALSE)$value
+    opt$ci_lo[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], FALSE)$ci_lo
+    opt$ci_up[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], FALSE)$ci_up
+  }
+
+  dfred <- subset(df, select = -c(value, se))
 
   df_format <- .quiet(.format_dataset(attr(.check_data(dfred), "data")))
+
+  dfred$ci_lo = opt$ci_lo
+  dfred$ci_up = opt$ci_up
 
   value = (dfred$ci_up + dfred$ci_lo)  / 2
   se = (dfred$ci_up - dfred$ci_lo) / (2 * qt(0.975, df$n_cases + df$n_controls - 2))
@@ -116,10 +129,10 @@ test_that("format_dataset from CI: SMD", {
   ci_lo <- G - qt(0.975, df$n_cases + df$n_controls - 2) * se
   ci_up <- G + qt(0.975, df$n_cases + df$n_controls - 2) * se
 
-  expect_equal(G, df_format$value, tolerance = 1e-6)
-  expect_equal(se, df_format$se, tolerance = 1e-6)
-  expect_equal(ci_lo, df_format$ci_lo, tolerance = 1e-6)
-  expect_equal(ci_up, df_format$ci_up, tolerance = 1e-6)
+  expect_equal(G, df_format$value, tolerance = tol_large)
+  expect_equal(se, df_format$se, tolerance = tol_large)
+  expect_equal(ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(ci_up, df_format$ci_up, tolerance = tol_large)
   expect_equal(df$n_cases, df_format$n_cases)
   expect_equal(df$n_controls, df_format$n_controls)
 })
@@ -127,76 +140,111 @@ test_that("format_dataset from CI: SMD", {
 ### OR
 test_that("format_dataset from CI: OR", {
   skip_on_cran()
-  dfsave <- df.OR[df.OR$factor == "ADHD", ]
-  dfsave$se <- with(dfsave, sqrt(1/n_cases_exp +1/ n_cases_nexp +1/n_controls_exp +1/ n_controls_nexp))
   df <- df.OR[df.OR$factor == "ADHD", ]
-  df <- subset(df, select = -c(value, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
-  df_format <- .quiet(.format_dataset(attr(.check_data(df), "data")))
+  df$se <- with(df, sqrt(1/n_cases_exp + 1/ n_cases_nexp + 1/n_controls_exp + 1/n_controls_nexp))
+  df$ci_lo = with(df, value / exp(qnorm(0.975) * se))
+  df$ci_up = with(df, value * exp(qnorm(0.975) * se))
 
-  expect_equal(dfsave$value, df_format$value, tolerance = 1e-6)
-  expect_equal(dfsave$se, df_format$se, tolerance = 1e-4)
-  expect_equal(dfsave$ci_lo, df_format$ci_lo, tolerance = 1e-6)
-  expect_equal(dfsave$ci_up, df_format$ci_up, tolerance = 1e-6)
-  expect_equal(dfsave$n_cases, df_format$n_cases)
-  expect_equal(dfsave$n_controls, df_format$n_controls)
-  expect_equal(dfsave$n_cases_exp, df_format$n_cases_exp)
-  expect_equal(dfsave$n_cases_nexp, df_format$n_cases_nexp)
-  expect_equal(dfsave$n_controls_exp, df_format$n_controls_exp)
-  expect_equal(dfsave$n_controls_nexp, df_format$n_controls_nexp)
+  opt = data.frame(value = rep(NA, nrow(df)), ci_lo = rep(NA, nrow(df)), ci_up = rep(NA, nrow(df)))
+
+  for (i in 1:nrow(df)) {
+    opt$value[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$value
+    opt$ci_lo[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$ci_lo
+    opt$ci_up[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$ci_up
+  }
+
+  dfred <- subset(df, select = -c(value, se, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+
+  df_format <- .quiet(.format_dataset(attr(.check_data(dfred), "data")))
+
+  df$ci_lo = opt$ci_lo
+  df$ci_up = opt$ci_up
+
+  expect_equal(df$value, df_format$value, tolerance = tol_med)
+  expect_equal(df$se, df_format$se, tolerance = tol_med)
+  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(df$ci_up, df_format$ci_up, tolerance = tol_large)
+  expect_equal(df$n_cases, df_format$n_cases)
+  expect_equal(df$n_controls, df_format$n_controls)
+  expect_equal(df$n_cases_exp, df_format$n_cases_exp)
+  expect_equal(df$n_cases_nexp, df_format$n_cases_nexp)
+  expect_equal(df$n_controls_exp, df_format$n_controls_exp)
+  expect_equal(df$n_controls_nexp, df_format$n_controls_nexp)
 })
-
+### RR
 test_that("format_dataset from CI: RR", {
   skip_on_cran()
-  dfsave <- df.RR[df.RR$factor == "SSRI", ]
+  df <- df.RR
+  df$se <- with(df, sqrt(1 / n_cases_exp - 1 / n_exp + 1 / n_cases_nexp - 1 / n_nexp))
+  df$ci_lo = with(df, value / exp(qnorm(0.975) * se))
+  df$ci_up = with(df, value * exp(qnorm(0.975) * se))
 
-  df <- df.RR[df.RR$factor == "SSRI", ]
-  df$n_cases <- df$n_cases_exp + df$n_cases_nexp
-  df$n_controls <- df$n_exp + df$n_nexp - df$n_cases_exp - df$n_cases_nexp
-  dfsave <- df
-  df <- subset(df, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp))
-  df_format <- .quiet(.format_dataset(attr(.check_data(df), "data")))
+  opt = data.frame(value = rep(NA, nrow(df)), ci_lo = rep(NA, nrow(df)), ci_up = rep(NA, nrow(df)))
 
-  dfsave$se <- with(dfsave, sqrt(1 / n_cases_exp - 1 / n_exp + 1 / n_cases_nexp - 1 / n_nexp))
-  expect_equal(dfsave$value, df_format$value, tolerance = 1e-6)
-  expect_equal(dfsave$se, df_format$se, tolerance = 1e-4)
-  expect_equal(dfsave$ci_lo, df_format$ci_lo, tolerance = 1e-6)
-  expect_equal(dfsave$ci_up, df_format$ci_up, tolerance = 1e-6)
+  for (i in 1:nrow(df)) {
+    opt$value[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$value
+    opt$ci_lo[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$ci_lo
+    opt$ci_up[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$ci_up
+  }
 
-  expect_equal(dfsave$n_cases, df_format$n_cases)
-  expect_equal(dfsave$n_controls, df_format$n_controls)
+  df$n_cases = df$n_cases_exp + df$n_cases_nexp
+  df$n_controls = df$n_exp + df$n_nexp - df$n_cases_exp - df$n_cases_nexp
+  dfred <- subset(df, select = -c(value, se, n_cases_exp, n_cases_nexp, n_exp, n_nexp))
 
-  # Incongruities due to approximations made in .estimate_n_from_rr
-  expect_equal(dfsave$n_cases_exp, df_format$n_cases_exp, tolerance = 1)
-  expect_equal(dfsave$n_cases_nexp, df_format$n_cases_nexp, tolerance = 1)
-  expect_equal(dfsave$n_exp, df_format$n_exp, tolerance = 1)
-  expect_equal(dfsave$n_nexp, df_format$n_nexp, tolerance = 1)
+  df_format <- .quiet(.format_dataset(attr(.check_data(dfred), "data")))
+
+  df$ci_lo = opt$ci_lo
+  df$ci_up = opt$ci_up
+
+  expect_equal(df$value, df_format$value, tolerance = tol_med)
+  expect_equal(df$se, df_format$se, tolerance = tol_med)
+  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(df$ci_up, df_format$ci_up, tolerance = tol_large)
+  expect_equal(df$n_cases, df_format$n_cases)
+  expect_equal(df$n_controls, df_format$n_controls)
+
+  # approximations made in .estimate_n_from_rr
+  expect_equal(df$n_cases_exp, df_format$n_cases_exp, tolerance = 1)
+  expect_equal(df$n_cases_nexp, df_format$n_cases_nexp, tolerance = 1)
+  expect_equal(df$n_exp, df_format$n_exp, tolerance = 1)
+  expect_equal(df$n_nexp, df_format$n_nexp, tolerance = 1)
 })
-
+### IRR
 test_that("format_dataset from CI: IRR", {
   skip_on_cran()
-  dfsave <- df.IRR[df.IRR$factor == "Smoking", ]
-  df <- df.IRR[df.IRR$factor == "Smoking", ]
-  df <- subset(df, select = -c(value, n_cases_exp, n_cases_nexp, time_exp, time_nexp))
+  df <- df.IRR
+  df$se <- with(df, sqrt(1 / n_cases_exp + 1 / n_cases_nexp))
+  df$ci_lo = with(df, value / exp(qnorm(0.975) * se))
+  df$ci_up = with(df, value * exp(qnorm(0.975) * se))
 
-  df_format <- .quiet(.format_dataset(attr(.check_data(df), "data")))
+  opt = data.frame(value = rep(NA, nrow(df)), ci_lo = rep(NA, nrow(df)), ci_up = rep(NA, nrow(df)))
 
-  dfsave$se <- with(dfsave, sqrt(1/n_cases_exp +1/ n_cases_nexp))
+  for (i in 1:nrow(df)) {
+    opt$value[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$value
+    opt$ci_lo[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$ci_lo
+    opt$ci_up[i] = .improve_ci(df$value[i], df$ci_lo[i], df$ci_up[i], TRUE)$ci_up
+  }
 
-  expect_equal(dfsave$value, df_format$value, tolerance = 1e-6)
-  expect_equal(dfsave$se, df_format$se, tolerance = 1e-4)
-  expect_equal(dfsave$ci_lo, df_format$ci_lo, tolerance = 1e-6)
-  expect_equal(dfsave$ci_up, df_format$ci_up, tolerance = 1e-6)
-  expect_equal(dfsave$n_cases, df_format$n_cases)
-  expect_equal(dfsave$time, df_format$time)
-  # Incongruities due to approximations made in .estimate_n_from_rr
-  expect_equal(dfsave$n_cases_exp, round(df_format$n_cases_exp), tolerance = 1)
-  expect_equal(dfsave$n_cases_nexp, round(df_format$n_cases_exp), tolerance = 1)
-  expect_equal(dfsave$time_exp, df_format$time_exp, tolerance = 1)
-  expect_equal(dfsave$time_nexp, df_format$time_nexp, tolerance = 1)
+  df$n_cases = df$n_cases_exp + df$n_cases_nexp
+  dfred <- subset(df, select = -c(value, se, n_cases_exp, n_cases_nexp, time_exp, time_nexp))
+
+  df_format <- .quiet(.format_dataset(attr(.check_data(dfred), "data")))
+
+  df$ci_lo = opt$ci_lo
+  df$ci_up = opt$ci_up
+
+  expect_equal(df$value, df_format$value, tolerance = tol_med)
+  expect_equal(df$se, df_format$se, tolerance = tol_med)
+  expect_equal(df$ci_lo, df_format$ci_lo, tolerance = tol_large)
+  expect_equal(df$ci_up, df_format$ci_up, tolerance = tol_large)
+  expect_equal(df$n_cases, df_format$n_cases)
+
+  # approximations made in .estimate_n_from_irr
+  expect_equal(df$n_cases_exp, df_format$n_cases_exp, tolerance = 1)
+  expect_equal(df$n_cases_nexp, df_format$n_cases_nexp, tolerance = 1)
+  expect_equal(df$time_exp, df_format$time_exp, tolerance = 1)
+  expect_equal(df$time_nexp, df_format$time_nexp, tolerance = 1)
 })
-
-
-
 #########################
 # SE + CI not indicated #
 #########################
@@ -284,8 +332,11 @@ test_that("format_dataset from value and N: OR", {
 
 test_that("format_dataset converts and back converts G correctly", {
   df <- df.SMD[df.SMD$factor == "Pharmacological", ]
-  df <- subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up))
-  df$se = with(df, .estimate_se_from_d(n_cases, n_controls, value))$se
+
+  df$value = with(df, .estimate_d_from_means(n_cases, n_controls, mean_cases, sd_cases, mean_controls, sd_controls))$value
+  df$se = with(df, .estimate_d_from_means(n_cases, n_controls, mean_cases, sd_cases, mean_controls, sd_controls))$se
+
+  df <- subset(df, select = -c(se, ci_lo, ci_up, mean_cases, mean_controls, sd_cases, sd_controls))
 
   G = with(df, .estimate_g_from_d(value, n_cases, n_controls)$value)
   se = with(df, .estimate_g_from_d(value, n_cases, n_controls)$se)
@@ -301,54 +352,39 @@ test_that("format_dataset converts and back converts G correctly", {
   df_G_CI$ci_up = ci_up
   df_SMD_SE_format = subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up))
   df_SMD_SE_format$se = with(df_SMD_SE_format, .estimate_se_from_d(n_cases, n_controls, value))$se
-  df_G_SE <- .quiet(.format_dataset(attr(.check_data(df_G_SE), "data")))
-  df_G_CI <- .quiet(.format_dataset(attr(.check_data(df_G_CI), "data")))
-  df_SMD_SE <- .quiet(.format_dataset(attr(.check_data(df_SMD_SE_format), "data")))
 
+  df_SMD_CI_format = subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls, se))
+  se_smd = with(df, sqrt(1/n_cases + 1/n_controls))
 
-  expect_equal(G, df_G_SE$value, tolerance = 1e-6)
-  expect_equal(se, df_G_SE$se, tolerance = 1e-6)
-  expect_equal(ci_lo, df_G_SE$ci_lo, tolerance = 1e-6)
-  expect_equal(ci_up, df_G_SE$ci_up, tolerance = 1e-6)
+  df_SMD_CI_format$ci_lo = with(df_SMD_CI_format, value - qt(0.975, n_cases + n_controls - 2) * (se_smd))
+  df_SMD_CI_format$ci_up = with(df_SMD_CI_format, value + qt(0.975, n_cases + n_controls - 2) * (se_smd))
 
-  expect_equal(G, df_G_CI$value, tolerance = 1e-6)
-  expect_equal(se, df_G_CI$se, tolerance = 1e-6)
-  expect_equal(ci_lo, df_G_CI$ci_lo, tolerance = 1e-6)
-  expect_equal(ci_up, df_G_CI$ci_up, tolerance = 1e-6)
+  # G + SE (no 95CI)
+  format_df_G_SE <- .quiet(.format_dataset(attr(.check_data(df_G_SE), "data")))
+  # G + 95CI (no SE)
+  format_df_G_CI <- .quiet(.format_dataset(attr(.check_data(df_G_CI), "data")))
+  # SMD + SE (no 95CI)
+  format_df_SMD_SE <- .quiet(.format_dataset(attr(.check_data(df_SMD_SE_format), "data")))
+  # SMD + 95CI (no se)
+  format_df_SMD_CI <- .quiet(.format_dataset(attr(.check_data(df_SMD_CI_format), "data")))
 
-  expect_equal(G, df_SMD_SE$value, tolerance = 1e-6)
-  expect_equal(se, df_SMD_SE$se, tolerance = 1e-6)
-  expect_equal(ci_lo, df_SMD_SE$ci_lo, tolerance = 1e-6)
-  expect_equal(ci_up, df_SMD_SE$ci_up, tolerance = 1e-6)
-})
+  expect_equal(G, format_df_G_SE$value, tolerance = tol_large)
+  expect_equal(se, format_df_G_SE$se, tolerance = tol_large)
+  expect_equal(ci_lo, format_df_G_SE$ci_lo, tolerance = tol_large)
+  expect_equal(ci_up, format_df_G_SE$ci_up, tolerance = tol_large)
 
-test_that("format_dataset converts and back converts G correctly", {
-  df <- df.SMD[df.SMD$factor == "Pharmacological", ]
-  df <- subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, se))
+  expect_equal(G, format_df_G_CI$value, tolerance = tol_large)
+  expect_equal(se, format_df_G_CI$se, tolerance = tol_large)
+  expect_equal(ci_lo, format_df_G_CI$ci_lo, tolerance = tol_large)
+  expect_equal(ci_up, format_df_G_CI$ci_up, tolerance = tol_large)
 
-  G = with(df, .estimate_g_from_d(value, n_cases, n_controls)$value)
-  se = with(df, .estimate_g_from_d(value, n_cases, n_controls)$se)
-  ci_lo = G - qt(0.975, df$n_cases + df$n_controls - 2) * (se)
-  ci_up = G + qt(0.975, df$n_cases + df$n_controls - 2) * (se)
+  expect_equal(G, format_df_SMD_SE$value, tolerance = tol_large)
+  expect_equal(se, format_df_SMD_SE$se, tolerance =  tol_large)
+  expect_equal(ci_lo, format_df_SMD_SE$ci_lo, tolerance = tol_large)
+  expect_equal(ci_up, format_df_SMD_SE$ci_up, tolerance = tol_large)
 
-  df$value = G
-  df$ci_lo = ci_lo
-  df$ci_up = ci_up
-  df$measure <- "G"
-
-  df_G_CI <- .quiet(.format_dataset(attr(.check_data(df), "data")))
-
-  df_SMD_SE_format = subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up))
-  df_SMD_SE <- .quiet(.format_dataset(attr(.check_data(df_SMD_SE_format), "data")))
-
-
-  expect_equal(G, df_G_CI$value, tolerance = 1e-6)
-  expect_equal(se, df_G_CI$se, tolerance = 1e-6)
-  expect_equal(ci_lo, df_G_CI$ci_lo, tolerance = 1e-6)
-  expect_equal(ci_up, df_G_CI$ci_up, tolerance = 1e-6)
-
-  expect_equal(G, df_SMD_SE$value, tolerance = 1e-6)
-  expect_equal(se, df_SMD_SE$se, tolerance = 1e-6)
-  expect_equal(ci_lo, df_SMD_SE$ci_lo, tolerance = 1e-6)
-  expect_equal(ci_up, df_SMD_SE$ci_up, tolerance = 1e-6)
+  expect_equal(G, format_df_SMD_CI$value, tolerance = tol_med)
+  expect_equal(se, format_df_SMD_CI$se, tolerance =  tol_med)
+  expect_equal(ci_lo, format_df_SMD_CI$ci_lo, tolerance = tol_med)
+  expect_equal(ci_up, format_df_SMD_CI$ci_up, tolerance = tol_med)
 })
