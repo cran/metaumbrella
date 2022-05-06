@@ -2,7 +2,6 @@
 #'
 #' The \code{esb.test()} function performs the 'Ioannidis' test to examine the presence of an excess of significance in a given set of studies.
 #' This test aims to determine whether there is an excess in the observed number of studies with statistically significant results given the mean statistical power.
-#' An exact binomial test or a Chi-squared test is used.
 #'
 #' @param x a well-formatted dataset or an object of class \dQuote{rma} or \dQuote{meta}. If a well-formatted dataset is used, only one factor should be included.
 #' @param input the type of object used as input. It must be \code{"dataframe"}, \code{"rma"} or \code{"meta"}.
@@ -13,7 +12,7 @@
 #' @param measure the measure of the effect: "SMD", "MD", "G", "OR" or "logOR, "RR" or "logRR", "HR" or "logHR", "IRR" or "logIRR".
 #' If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either "SMD" or "OR". However, note that for \dQuote{rma} objects, a SMD is systematically assumed to be a G (to respect the naming used in the \pkg{metafor} package). For \dQuote{meta} objects, a SMD is assumed to be a G unless it is explicitly stated that this is not the case (i.e., using the \code{method.smd = "Cohen"} argument).
 #' The effect size measure used can be indicated via the measure argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).
-#' @param method the method used to conduct the test. It must be \code{binom.test} or \code{chisq.test} (see details). The \code{umbrella()} function uses a \code{binom.test} method.
+#' @param method the method used to conduct the test. It must be \code{IT.binom} or \code{IT.chisq}  (see details).
 #' @param true_effect the best approximation of the true effect. It must be \code{"largest"} or a numeric value (see details).
 #' @param seed an integer value used as an argument by the set.seed() function. Only used for measures "OR", "logOR, "RR", "logRR", "IRR" or "logIRR".
 #'
@@ -23,8 +22,8 @@
 #' * If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of ratios must be in their natural scale).
 #'
 #' Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method} argument can be used to select the test.
-#' * If \code{"binom.test"} is entered, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the best approximation of the true effect is considered as the probability of success. The exact test is significant if the number of statistically significant studies is higher than what could be have been expected given the mean observed power.
-#' * If \code{"chisq.test"} is entered, the function performs a chi-square test based on the number of studies with significant results, the number of studies with non-significant results and their associated probability of occurrence (i.e., the statistical power to detect the best approximation of the true effect). The chi-square test is significant if the number of statistically significant studies is higher than what could be have been expected given the observed power.
+#' * If \code{"IT.binom"} is entered, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the best approximation of the true effect is considered as the probability of success. The exact test is significant if the number of statistically significant studies is higher than what could be have been expected given the mean observed power.
+#' * If \code{"IT.chisq"} is entered, the function performs a chi-square test based on the number of studies with significant results, the number of studies with non-significant results and their associated probability of occurrence (i.e., the statistical power to detect the best approximation of the true effect). The chi-square test is significant if the number of statistically significant studies is higher than what could be have been expected given the observed power.
 #'
 #' @return
 #' The dataset contains the following columns: \tabular{ll}{
@@ -84,12 +83,19 @@
 #' esb.meta <- esb.test(meta, input = "meta")
 #'
 #' all.equal(esb$p.value, esb.umbrella$p.value, esb.rma$p.value, esb.meta$p.value)
-esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, measure = NULL, method = "binom.test", true_effect = "largest", seed = NA) {
+esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, measure = NULL, method = "IT.binom", true_effect = "largest", seed = NA) {
+
+  if (method == "binom.test") {
+    method = "IT.binom"
+  } else if (method == "chisq.test") {
+    method = "IT.chisq"
+  }
+
   # we check that, in case the input is a dataframe entered by user, it does not contain multiple factors
   if (length(unique(x$factor)) > 1) {
     stop("Only one factor can be assessed in the esb.test")
-  } else if (!method %in% c("binom.test", "chisq.test")) {
-    stop("The method argument must be either 'binom.test' or 'chisq.test'.)")
+  } else if (!method %in% c("IT.binom", "IT.chisq")) {
+    stop("The method argument must be either 'IT.binom' or 'IT.chisq'.)")
   }
 
   # we check that the input passed to the function is appropriate according to the input required
@@ -155,39 +161,49 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
       }
     }
 
-  if (!(measure %in% c("SMD", "HR", "IRR", "OR", "RR"))) {
+  if (!(measure %in% c("SMD", "SMC", "HR", "IRR", "OR", "RR", "Z"))) {
     stop("The measure should be one of 'SMD', 'HR', 'IRR', 'OR', 'RR'")
   }
 
-  k = nrow(x)
   # Estimate p.values
+  k = nrow(x)
   x$p.value = NA
+
   for (i in 1:k) {
     value_i = ifelse(measure %in% c("HR", "IRR", "OR", "RR"),
                      log(x$value[i]),
                      x$value[i])
     x$p.value[i] = ifelse(value_i == 0,
                           1,
-                          .two_tail(ifelse(measure == "SMD",
-                                           pt(value_i / x$se[i], x$n_cases[i] + x$n_controls[i] - 2),
-                                           pnorm(value_i / x$se[i])
+                          .two_tail(ifelse(measure %in% c("HR", "IRR", "OR", "RR", "Z", "SMC"),
+                                           pnorm(value_i / x$se[i]),
+                                           pt(value_i / x$se[i], x$n_cases[i] + x$n_controls[i] - 2)
                           )))
   }
+
   x$signif = is.na(x$p.value) | x$p.value < 0.05 # is.na for NSUEs
 
-  # Estimate statistical powers
-  if (true_effect == "largest") {
-    if (measure == "IRR") {
-      true_value = .largest_irr(x, return = "value")
-    } else if (measure %in% c("OR", "HR", "RR")) {
-      true_value = .largest_or_rr_hr(x, return = "value")
-    } else if (measure == "SMD") {
-      true_value = .largest_smd(x, return = "value")
-    }
-  } else if (is.numeric(true_effect)) {
-    true_value = true_effect
+  # Estimate statistical power
+  if (method %in% c("TESS", "PSST", "TESSPSST")) {
+    true_value = ifelse(measure %in% c("HR", "IRR", "OR", "RR"),
+                        weighted.mean(log(x$value), 1 / (x$se^2)^2),
+                        weighted.mean(x$value, 1 / (x$se^2)^2))
   } else {
-    stop("The true_effect argument should be either 'largest', 'pooled' (only if you call the umbrella() function) or a numeric value. Please see the manual for more information.")
+    if (true_effect == "largest") {
+      if (measure == "IRR") {
+        true_value = .largest_irr(x, return = "value")
+      } else if (measure %in% c("OR", "HR", "RR")) {
+        true_value = .largest_or_rr_hr(x, return = "value")
+      } else if (measure %in% c("SMD", "SMC")) {
+        true_value = .largest_smd(x, return = "value")
+      } else if (measure %in% c("Z")) {
+        true_value = .largest_z(x, return = "value")
+      }
+    } else if (is.numeric(true_effect)) {
+      true_value = true_effect
+    } else {
+      stop("The true_effect argument should be either 'largest', 'pooled' (only if you called the umbrella() function) or a numeric value. Please see the manual for more information.")
+    }
   }
 
   x$power = NA
@@ -198,9 +214,11 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     withr::local_seed(seed)
   }
 
+
   for (i in 1:k) {
     x$power[i] = switch (measure,
-                         "SMD" = .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i], true_d = true_value, se = x$se[i]),
+                         "SMD"=, "SMC" = .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i], true_d = true_value, se = x$se[i]),
+                         "Z" =  1 - pnorm((1.96 - abs(.as_numeric(true_value))) / (x$se[i])),
                          "HR" = .power_hr(x[i, ], true_value),
                          "IRR" = .power_irr(x[i, ], true_value),
                          "OR" = .power_or(x[i, ], true_value),
@@ -208,48 +226,109 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
                          NA
     )
   }
+
+
   # Conduct the test
   if (all(!is.na(x$power))) {
+    SS = sum(x$signif)
+    expected_mean_power = mean(x$power)
+    Esig = sum(x$power)
+
     esb = switch (method,
-                  "binom.test" = {
-                    observed = sum(x$signif)
-                    expected_mean_power = mean(x$power)
-                    test = binom.test(observed, k, expected_mean_power, alternative = "greater")
-                    names(observed) = "stat. sign. studies"
+                  "IT.binom" = {
+                    test = binom.test(SS, k, expected_mean_power, alternative = "greater")
+                    names(SS) = "number of stat. sign. studies"
+                    names(Esig) = "Expected number of stat. sign. studies"
                     names(k) = "total studies"
                     names(expected_mean_power) = "statistical power"
                     list(
-                      # statistic = observed,
-                      # parameter = k,
                       method = "Exact binomial test for excess significance bias",
                       p.value = test$p.value,
-                      # null.value = expected_mean_power,
-                      # alternative = test$alternative,
-                      # test = test,
                       power = x$power,
+                      sig = x$signif,
                       mean_power = expected_mean_power,
                       k = k,
-                      sig = x$signif,
-                      O = observed,
-                      E = expected_mean_power * k
+                      SS = SS,
+                      Esig = Esig
                     )
                   },
-                  "chisq.test" = {
-                    observed = sum(x$signif)
-                    expected_mean_power = mean(x$power)
-                    test = suppressWarnings(prop.test(observed, k, p = expected_mean_power, alternative = "greater", correct = FALSE))
+                  "IT.chisq" = {
+                    test = suppressWarnings(prop.test(SS, k, p = expected_mean_power, alternative = "greater", correct = FALSE))
+                    names(SS) = "number of stat. sign. studies"
+                    names(Esig) = "Expected number of stat. sign. studies"
+                    names(k) = "total studies"
+                    names(expected_mean_power) = "statistical power"
                     list(
                       method = "Chi-squared test for excess significance bias",
-                      # statistic = test$statistic,
-                      # parameter = test$parameter,
                       p.value = test$p.value,
-                      # test = test,
                       power = x$power,
+                      sig = x$signif,
                       mean_power = expected_mean_power,
                       k = k,
+                      SS = SS,
+                      Esig = Esig
+                    )
+                  },
+                  "TESS" = {
+                    ESS = (SS - Esig)/k
+                    z_TESS = (ESS - 0.05) / sqrt(0.05 * (1 - 0.05) / k)
+                    p_TESS = 1 - pnorm(z_TESS)
+                    names(SS) = "number of stat. sign. studies"
+                    names(Esig) = "Expected number of stat. sign. studies"
+                    names(k) = "total studies"
+                    names(expected_mean_power) = "statistical power"
+                    list(
+                      method = "New methods for excess significance bias (TESS)",
+                      p.value = p_TESS,
+                      power = x$power,
                       sig = x$signif,
-                      O = observed,
-                      E = expected_mean_power * k
+                      mean_power = expected_mean_power,
+                      k = k,
+                      SS = SS,
+                      Esig = Esig
+                    )
+                  },
+                  "PSST" = {
+                    ESS = (SS - Esig)/k
+                    z_PSST = (SS/k - Esig/k) / sqrt(Esig/k * (1 - Esig/k) / Esig/k)
+                    p_PSST = 1 - pnorm(z_PSST)
+                    names(SS) = "number of stat. sign. studies"
+                    names(Esig) = "Expected number of stat. sign. studies"
+                    names(k) = "total studies"
+                    names(expected_mean_power) = "statistical power"
+                    list(
+                      method = "New methods for excess significance bias (PSST)",
+                      p.value = p_PSST,
+                      power = x$power,
+                      sig = x$signif,
+                      mean_power = expected_mean_power,
+                      k = k,
+                      SS = SS,
+                      Esig = Esig
+                    )
+                  },
+                  "TESSPSST" = {
+                    ESS = (SS - Esig)/k
+                    z_PSST = (SS/k - Esig/k) / sqrt(Esig/k * (1 - Esig/k) / Esig/k)
+                    p_PSST = 1 - pnorm(z_PSST)
+                    z_TESS = (ESS - 0.05) / sqrt(0.05 * (1 - 0.05) / k)
+                    p_TESS = 1 - pnorm(z_TESS)
+                    p_TESS_PSST = min(p_PSST, p_TESS)
+                    names(SS) = "number of stat. sign. studies"
+                    names(Esig) = "Expected number of stat. sign. studies"
+                    names(k) = "total studies"
+                    names(expected_mean_power) = "statistical power"
+                    list(
+                      method = "New methods for excess significance bias (TESSPSST)",
+                      p.value = p_TESS_PSST,
+                      p.value.TESS = p_TESS,
+                      p.value.PSST = p_PSST,
+                      power = x$power,
+                      sig = x$signif,
+                      mean_power = expected_mean_power,
+                      k = k,
+                      SS = SS,
+                      Esig = Esig
                     )
                   }
     )

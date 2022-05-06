@@ -1,3 +1,5 @@
+tol_large = 1e-10
+
 test_that(".meta_to_umbrella_x correctly extracts information and produces appropriate error message when being called with inappropriate inputs", {
   df <- df.SMD
   # standard smd
@@ -8,9 +10,9 @@ test_that(".meta_to_umbrella_x correctly extracts information and produces appro
 
   res_metasmd <- .meta_to_umbrella_x(metasmd, n_cases = NULL, n_controls = NULL, measure = "SMD")
   expect_equal(df$value, res_metasmd$value, tolerance = 1e-6)
-  expect_equal(df$se, res_metasmd$se, tolerance = 1e-16)
-  expect_equal(df$n_cases, res_metasmd$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metasmd$n_controls, tolerance = 1e-16)
+  expect_equal(df$se, res_metasmd$se, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metasmd$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metasmd$n_controls, tolerance = tol_large)
 
   metasmd.C <- meta::metacont(n_cases, mean_cases, sd_cases,
                              n_controls, mean_controls, sd_controls,
@@ -18,10 +20,10 @@ test_that(".meta_to_umbrella_x correctly extracts information and produces appro
                              sm = "SMD", method.smd = "Cohen")
 
   res_metasmd.C <- .meta_to_umbrella_x(metasmd.C, n_cases = NULL, n_controls = NULL, measure = "SMD")
-  expect_equal(df$value, res_metasmd.C$value, tolerance = 1e-16)
-  expect_equal(df$se, res_metasmd.C$se, tolerance = 1e-16)
-  expect_equal(df$n_cases, res_metasmd.C$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metasmd.C$n_controls, tolerance = 1e-16)
+  expect_equal(df$value, res_metasmd.C$value, tolerance = tol_large)
+  expect_equal(df$se, res_metasmd.C$se, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metasmd.C$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metasmd.C$n_controls, tolerance = tol_large)
 
   dfor <- df.OR
   dfor$value <- with(dfor, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
@@ -38,8 +40,8 @@ test_that(".meta_to_umbrella_x correctly extracts information and produces appro
 
   expect_equal(dfor$value, res_metaor$value, tolerance = 1e-15)
   expect_equal(dfor$se, res_metaor$se, tolerance = 1e-15)
-  expect_equal(dfor$n_cases, res_metaor$n_cases, tolerance = 1e-16)
-  expect_equal(dfor$n_controls, res_metaor$n_controls, tolerance = 1e-16)
+  expect_equal(dfor$n_cases, res_metaor$n_cases, tolerance = tol_large)
+  expect_equal(dfor$n_controls, res_metaor$n_controls, tolerance = tol_large)
 
   # unsupported measure
   metarr <- meta::metabin(event.e = n_cases_exp, n.e = n_exp,
@@ -93,7 +95,7 @@ test_that(".meta_to_umbrella_x correctly extracts information from generic input
 
 test_that(".meta_to_umbrella_x correctly extracts information from generic inputs: OR", {
 
-  df <- df.OR
+  df <- subset(df.OR, factor == "ADHD")
   df$value <- with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
                                            n_controls_exp, n_controls_nexp)$value)
   df$se <- with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
@@ -135,14 +137,14 @@ test_that(".rma_to_umbrella_x correctly extracts information and produces approp
   res_metasmd_ca <- .rma_to_umbrella_x(metasmd, n_cases = df$n_cases, n_controls = NULL, measure = "SMD")
   res_metasmd_co <- .rma_to_umbrella_x(metasmd, n_cases = NULL, n_controls = df$n_controls, measure = "SMD")
 
-  expect_equal(df$value, res_metasmd_ca$value, tolerance = 1e-14)
-  expect_equal(df$n_cases, res_metasmd_ca$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metasmd_ca$n_controls, tolerance = 1e-16)
-  expect_equal(df$value, res_metasmd_co$value, tolerance = 1e-14)
-  expect_equal(df$n_cases, res_metasmd_co$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metasmd_co$n_controls, tolerance = 1e-16)
-  expect_equal(df$se, res_metasmd_ca$se, tolerance = 1e-16)
-  expect_equal(df$se, res_metasmd_co$se, tolerance = 1e-16)
+  expect_equal(df$value, res_metasmd_ca$value, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metasmd_ca$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metasmd_ca$n_controls, tolerance = tol_large)
+  expect_equal(df$value, res_metasmd_co$value, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metasmd_co$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metasmd_co$n_controls, tolerance = tol_large)
+  expect_equal(df$se, res_metasmd_ca$se, tolerance = tol_large)
+  expect_equal(df$se, res_metasmd_co$se, tolerance = tol_large)
 })
 
 test_that(".rma_to_umbrella_x correctly extracts information and produces appropriate error message when being called with inappropriate inputs: OR", {
@@ -204,23 +206,23 @@ test_that(".rma_to_umbrella_x correctly extracts information and produces approp
                                    n_controls = NULL,
                                    n_cases = df$n_cases, measure = "OR")
 
-  expect_equal(df$value, res_metaor_co$value, tolerance = 1e-14)
-  expect_equal(df$se, res_metaor_co$se, tolerance = 1e-14)
-  expect_equal(df$n_cases, res_metaor_co$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metaor_co$n_controls, tolerance = 1e-16)
-  expect_equal(df$value, res_metaor_ca$value, tolerance = 1e-14)
-  expect_equal(df$se, res_metaor_ca$se, tolerance = 1e-14)
-  expect_equal(df$n_cases, res_metaor_ca$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metaor_ca$n_controls, tolerance = 1e-16)
+  expect_equal(df$value, res_metaor_co$value, tolerance = tol_large)
+  expect_equal(df$se, res_metaor_co$se, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metaor_co$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metaor_co$n_controls, tolerance = tol_large)
+  expect_equal(df$value, res_metaor_ca$value, tolerance = tol_large)
+  expect_equal(df$se, res_metaor_ca$se, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metaor_ca$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metaor_ca$n_controls, tolerance = tol_large)
 
-  expect_equal(df$value, res_metagenor_co$value, tolerance = 1e-14)
-  expect_equal(df$se, res_metagenor_co$se, tolerance = 1e-14)
-  expect_equal(df$n_cases, res_metagenor_co$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metagenor_co$n_controls, tolerance = 1e-16)
-  expect_equal(df$value, res_metagenor_ca$value, tolerance = 1e-14)
-  expect_equal(df$se, res_metagenor_ca$se, tolerance = 1e-14)
-  expect_equal(df$n_cases, res_metagenor_ca$n_cases, tolerance = 1e-16)
-  expect_equal(df$n_controls, res_metagenor_ca$n_controls, tolerance = 1e-16)
+  expect_equal(df$value, res_metagenor_co$value, tolerance = tol_large)
+  expect_equal(df$se, res_metagenor_co$se, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metagenor_co$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metagenor_co$n_controls, tolerance = tol_large)
+  expect_equal(df$value, res_metagenor_ca$value, tolerance = tol_large)
+  expect_equal(df$se, res_metagenor_ca$se, tolerance = tol_large)
+  expect_equal(df$n_cases, res_metagenor_ca$n_cases, tolerance = tol_large)
+  expect_equal(df$n_controls, res_metagenor_ca$n_controls, tolerance = tol_large)
 })
 
 test_that(".rma_to_umbrella_x correctly extracts information from generic inputs: SMD", {
@@ -324,7 +326,20 @@ test_that(".largest_irr selects the largest study", {
 })
 
 #####################################################################################################
+
 ### CONVERSIONS BETWEEN MEASURES
+
+test_that(".d_to_or", {
+  or_umb = .d_to_or(df.SMD$value)
+  or_esc = esc::odds_ratio(d = df.SMD$value)
+  expect_equal(or_umb, or_esc, tolerance = tol_large)
+})
+test_that(".or_to_d", {
+  d_umb = .or_to_d(df.OR$value)
+  d_esc = esc::cohens_d(or = df.OR$value)
+  expect_equal(d_umb, d_esc, tolerance = tol_large)
+})
+
 
 ## RR to OR: full information
 test_that("RR to OR: full information", {
@@ -339,27 +354,27 @@ test_that("RR to OR: full information", {
 
   umb1 <- .quiet(umbrella(df, seed = 4321))
   umb2 <- .quiet(umbrella(df.save, seed = 4321))
-  expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 1e-14)
-  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = 1e-14)
-  expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = 1e-14)
+  expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = tol_large)
+  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = tol_large)
+  expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = tol_large)
 })
 
 ## RR to OR: ES CI N_cases
 test_that("RR to OR: ES CI N_cases", {
-  df.save <- subset(df.OR, factor == "ASD")
-  df <- subset(df.OR, factor == "ASD")
-  convert = .estimate_rr_from_n(n_cases_exp = df$n_cases_exp[1:5], n_exp = df$n_exp[1:5],
-                                n_cases_nexp = df$n_cases_nexp[1:5], n_nexp = df$n_nexp[1:5])
-  df$value[1:5] <- convert$value
-  df$ci_lo[1:5] <- convert$value/exp(qnorm(0.975) * convert$se)
-  df$ci_up[1:5] <- convert$value*exp(qnorm(0.975) * convert$se)
-  df$measure[1:5] <- "RR"
+  df.full.OR <- subset(df.OR, factor == "ASD")
+  df.OR.RR <- subset(df.OR, factor == "ASD")
+  convert = .estimate_rr_from_n(n_cases_exp = df.OR.RR$n_cases_exp[1:5], n_exp = df.OR.RR$n_exp[1:5],
+                                n_cases_nexp = df.OR.RR$n_cases_nexp[1:5], n_nexp = df.OR.RR$n_nexp[1:5])
+  df.OR.RR$value[1:5] <- convert$value
+  df.OR.RR$ci_lo[1:5] <- convert$value/exp(qnorm(0.975) * convert$se)
+  df.OR.RR$ci_up[1:5] <- convert$value*exp(qnorm(0.975) * convert$se)
+  df.OR.RR$measure[1:5] <- "RR"
 
-  dfor <- subset(df.save, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
-  dfmix <- subset(df, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+  df.full.OR <- subset(df.full.OR, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+  df.OR.RR <- subset(df.OR.RR, select = -c(n_exp, n_nexp, n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
 
-  umb1 <- .quiet(umbrella(dfor, seed = 4321))
-  umb2 <- .quiet(umbrella(dfmix, seed = 4321))
+  umb1 <- .quiet(umbrella(df.full.OR, seed = 4321))
+  umb2 <- .quiet(umbrella(df.OR.RR, seed = 4321))
   expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 5e-2)
   expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = 2e-1)
   expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = 5e-1)
@@ -374,33 +389,55 @@ test_that("HR to OR", {
 
   umb1 <- .quiet(umbrella(df, seed = 4321))
   umb2 <- .quiet(umbrella(df.save, seed = 4321))
-  expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 1e-14)
-  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = 1e-14)
-  expect_equal(umb1$ASD$egger$p.value, umb2$ASD$egger$p.value, tolerance = 1e-14)
-  expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = 1e-14)
+  expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = tol_large)
+  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = tol_large)
+  expect_equal(umb1$ASD$egger$p.value, umb2$ASD$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = tol_large)
 })
 
 ## OR to SMD
-test_that("OR to SMD", {
-  df.save <- subset(df.SMD, factor == "Surgical")
-  df <- subset(df.SMD, factor == "Surgical")
+test_that("OR to SMD correctly converted when value + CI", {
+  df.full.smd <- subset(df.SMD, factor == "Surgical")
+  df.mix.OR.SMD <- subset(df.SMD, factor == "Surgical")
 
-  df$measure[1:5] <- "OR"
-  df$value[1:5] <- .d_to_or(df$value[1:5])
-  df$ci_lo[1:5] <- .d_to_or(df$ci_lo[1:5])
-  df$ci_up[1:5] <- .d_to_or(df$ci_up[1:5])
+  df.mix.OR.SMD$measure[1:5] <- "OR"
+  df.mix.OR.SMD$value[1:5] <- .d_to_or(df.mix.OR.SMD$value[1:5])
+  df.mix.OR.SMD$ci_lo[1:5] <- .d_to_or(df.mix.OR.SMD$ci_lo[1:5])
+  df.mix.OR.SMD$ci_up[1:5] <- .d_to_or(df.mix.OR.SMD$ci_up[1:5])
 
-  dfsmd <- subset(df.save, select = -c(se, mean_cases, sd_cases, mean_controls, sd_controls))
-  dfmix <- subset(df, select = -c(se, mean_cases, sd_cases, mean_controls, sd_controls))
+  df.mix.OR.SMD <- subset(df.mix.OR.SMD, select = -c(se, mean_cases, sd_cases, mean_controls, sd_controls))
+  df.full.smd <- subset(df.full.smd, select = -c(se, mean_cases, sd_cases, mean_controls, sd_controls))
 
-  umb1 <- .quiet(umbrella(df, seed = 4321))
-  umb2 <- .quiet(umbrella(df.save, seed = 4321))
-  expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 1e-8)
-  expect_equal(umb1$Surgical$random, umb2$Surgical$random, tolerance = 1e-8)
-  expect_equal(umb1$Surgical$egger$p.value, umb2$Surgical$egger$p.value, tolerance = 1e-8)
-  expect_equal(umb1$Surgical$esb$p.value, umb2$Surgical$esb$p.value, tolerance = 1e-5)
+  umb.mix.OR.SMD <- .quiet(umbrella(df.mix.OR.SMD, seed = 4321))
+  umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
+  expect_equal(umb.mix.OR.SMD[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = 1e-6)
+  expect_equal(df.mix.OR.SMD$value[1:5], .d_to_or(umb.mix.OR.SMD[[1]]$x$value[1:5]), tolerance = 5e-3)
+  expect_equal(umb.mix.OR.SMD[[1]]$random, umb.full.smd[[1]]$random, tolerance = 1e-6)
+  expect_equal(umb.mix.OR.SMD[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = 1e-6)
+  expect_equal(umb.mix.OR.SMD[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = 1e-6)
 })
 
+## OR to SMD
+test_that("OR to SMD correctly converted when value + SE", {
+  df.full.smd <- subset(df.SMD, factor == "Surgical")
+  df.mix.OR.SMD <- subset(df.SMD, factor == "Surgical")
+
+  df.mix.OR.SMD$measure[1:5] <- "OR"
+  df.mix.OR.SMD$value[1:5] <- .d_to_or(df.mix.OR.SMD$value[1:5])
+  df.mix.OR.SMD$ci_lo[1:5] <- .d_to_or(df.mix.OR.SMD$ci_lo[1:5])
+  df.mix.OR.SMD$ci_up[1:5] <- .d_to_or(df.mix.OR.SMD$ci_up[1:5])
+
+  df.mix.OR.SMD <- subset(df.mix.OR.SMD, select = -c(ci_lo, ci_up, mean_cases, sd_cases, mean_controls, sd_controls))
+  df.full.smd <- subset(df.full.smd, select = -c(ci_lo, ci_up, mean_cases, sd_cases, mean_controls, sd_controls))
+
+  umb.mix.OR.SMD <- .quiet(umbrella(df.mix.OR.SMD, seed = 4321))
+  umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
+  expect_equal(umb.mix.OR.SMD[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = tol_large)
+  expect_equal(df.mix.OR.SMD$value[1:5], .d_to_or(umb.mix.OR.SMD[[1]]$x$value[1:5]), tolerance = 5e-3)
+  expect_equal(umb.mix.OR.SMD[[1]]$random, umb.full.smd[[1]]$random, tolerance = tol_large)
+  expect_equal(umb.mix.OR.SMD[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb.mix.OR.SMD[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = tol_large)
+})
 
 ## ERREUR IRR
 test_that("IRR to SMD", {

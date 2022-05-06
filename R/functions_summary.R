@@ -121,47 +121,74 @@ summary.umbrella = function(object, digits = 3, ...) {
     x_i = object[[name]]
 
     measure = x_i$measure
-    value = round(x_i$random$value, digits)
-    ci_lo = round(x_i$random$ci_lo, digits); ci_up = round(x_i$random$ci_up, digits)
-    pi_lo = round(x_i$random$pi_lo, digits); pi_up = round(x_i$random$pi_up, digits)
-    largest_ci_lo = round(x_i$largest$ci_lo, digits); largest_ci_up = round(x_i$largest$ci_up, digits)
 
-    if (measure != "SMD") {
+    if (measure %in% c("SMD", "SMC")) {
+      value = round(x_i$random$value, digits)
+      ci_lo = round(x_i$random$ci_lo, digits); ci_up = round(x_i$random$ci_up, digits)
+      pi_lo = round(x_i$random$pi_lo, digits); pi_up = round(x_i$random$pi_up, digits)
+      largest_ci_lo = round(x_i$largest$ci_lo, digits); largest_ci_up = round(x_i$largest$ci_up, digits)
+    } else if (measure %in% c("OR", "RR", "HR", "IRR")) {
       value = round(exp(x_i$random$value), digits)
       ci_lo = round(exp(x_i$random$ci_lo), digits);  ci_up = round(exp(x_i$random$ci_up), digits)
       pi_lo = round(exp(x_i$random$pi_lo), digits); pi_up = round(exp(x_i$random$pi_up), digits)
       largest_ci_lo = round(exp(x_i$largest$ci_lo), digits); largest_ci_up = round(exp(x_i$largest$ci_up), digits)
+    } else if (measure == "Z") {
+      value = round(.z_to_r(x_i$random$value), digits)
+      ci_lo = round(.z_to_r(x_i$random$ci_lo), digits);  ci_up = round(.z_to_r(x_i$random$ci_up), digits)
+      pi_lo = round(.z_to_r(x_i$random$pi_lo), digits); pi_up = round(.z_to_r(x_i$random$pi_up), digits)
+      largest_ci_lo = round(.z_to_r(x_i$largest$ci_lo), digits); largest_ci_up = round(.z_to_r(x_i$largest$ci_up), digits)
     }
 
-    value_CI = ifelse(measure == "SMD",
-                      paste0("[", round(x_i$random$ci_lo, digits), ", ", round(x_i$random$ci_up, digits), "]"),
-                      paste0("[", round(exp(x_i$random$ci_lo), digits), ", ", round(exp(x_i$random$ci_up), digits), "]"))
 
-    eOR = ifelse(measure == "SMD",
-                 round(.d_to_or(x_i$random$value), digits),
-                 round(exp(x_i$random$value), digits))
+    # value_CI = ifelse(measure == "SMD",
+    #                   paste0("[", round(x_i$random$ci_lo, digits), ", ", round(x_i$random$ci_up, digits), "]"),
+    #                   paste0("[", round(exp(x_i$random$ci_lo), digits), ", ", round(exp(x_i$random$ci_up), digits), "]"))
+    # eOR = ifelse(measure == "SMD",
+    #              round(.d_to_or(x_i$random$value), digits),
+    #              round(exp(x_i$random$value), digits))
+    #
+    # eG = ifelse(measure != "SMD",
+    #             round(.or_to_d(exp(x_i$random$value)), digits),
+    #             round(x_i$random$value, digits))
+    #
+    # eOR_CI = ifelse(measure == "SMD",
+    #                 paste0("[", round(.d_to_or(x_i$random$ci_lo), digits), ", ", round(.d_to_or(x_i$random$ci_up), digits), "]"),
+    #                 paste0("[", round(exp(x_i$random$ci_lo), digits), ", ", round(exp(x_i$random$ci_up), digits), "]"))
+    #
+    # eG_CI = ifelse(measure != "SMD",
+    #                paste0("[", round(.or_to_d(exp(x_i$random$ci_lo)), digits), ", ", round(.or_to_d(exp(x_i$random$ci_up)), digits), "]"),
+    #                paste0("[", round(x_i$random$ci_lo, digits), ", ", round(x_i$random$ci_up, digits), "]"))
 
-    eG = ifelse(measure != "SMD",
-                 round(.or_to_d(exp(x_i$random$value)), digits),
-                 round(x_i$random$value, digits))
+    value_CI =  paste0("[", ci_lo, ", ", ci_up, "]")
 
-    eOR_CI = ifelse(measure == "SMD",
-                    paste0("[", round(.d_to_or(x_i$random$ci_lo), digits), ", ", round(.d_to_or(x_i$random$ci_up), digits), "]"),
-                    paste0("[", round(exp(x_i$random$ci_lo), digits), ", ", round(exp(x_i$random$ci_up), digits), "]"))
+    eOR = switch(as.character(measure),
+                 "SMD" =, "SMC" = round(.d_to_or(x_i$random$value), digits),
+                 "Z" = round(.d_to_or(.z_to_d(x_i$random$value)), digits),
+                 "OR" = , "RR" = , "IRR" = , "HR" = value)
 
-    eG_CI = ifelse(measure != "SMD",
-                    paste0("[", round(.or_to_d(exp(x_i$random$ci_lo)), digits), ", ", round(.or_to_d(exp(x_i$random$ci_up)), digits), "]"),
-                    paste0("[", round(x_i$random$ci_lo, digits), ", ", round(x_i$random$ci_up, digits), "]"))
+    eOR_CI = switch(as.character(measure),
+                 "SMD" =, "SMC" = paste0("[", round(.d_to_or(x_i$random$ci_lo), digits), ", ", round(.d_to_or(x_i$random$ci_up), digits), "]"),
+                 "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$random$ci_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$random$ci_up)), digits), "]"),
+                 "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", ci_lo, ", ", ci_up, "]"))
+
+    eG = switch(as.character(measure),
+                 "SMD" =, "SMC" = value,
+                 "Z" = round(.z_to_d(x_i$random$value), digits),
+                 "OR" = , "RR" = , "IRR" = , "HR" = round(.or_to_d(exp(x_i$random$value)), digits))
+
+    eG_CI = switch(as.character(measure),
+                   "SMD" =, "SMC" = paste0("[", ci_lo, ", ", ci_up, "]"),
+                   "Z" = paste0("[", round(.z_to_d(ci_lo), digits), ", ", round(.z_to_d(x_i$random$ci_up), digits), "]"),
+                   "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$random$ci_lo)), digits), ", ", round(.or_to_d(exp(x_i$random$ci_up)), digits), "]"))
 
     p_value = ifelse(!is.na(as.numeric(as.character(x_i$random$p.value))),
-                     # signif(as.numeric(as.character(x_i$random$p.value)), digits - 0),
                      sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$random$p.value)),
                      as.character(x_i$random$p.value))
     # sample sizes
-    total_n = x_i$n$cases_and_controls
     n_studies = x_i$n$studies
     n_cases = x_i$n$cases
     n_controls = x_i$n$controls
+    total_n = x_i$n$total_n
 
     # I2
     I2 = ifelse(nrow(x_i$x) == 1, "only 1 study", round(.as_numeric(x_i$heterogeneity$i2), digits))
@@ -172,13 +199,24 @@ summary.umbrella = function(object, digits = 3, ...) {
       PI_eG = "< 3 studies"
 
     } else {
-      PI_eOR = ifelse(measure == "SMD",
-                      paste0("[", round(.d_to_or(x_i$random$pi_lo), digits), ", ", round(.d_to_or(x_i$random$pi_up), digits), "]"),
-                      paste0("[", round(exp(x_i$random$pi_lo), digits), ", ", round(exp(x_i$random$pi_up), digits), "]"))
+      PI_eG = switch(as.character(measure),
+                      "SMD" =, "SMC" = paste0("[", pi_lo, ", ", pi_up, "]"),
+                      "Z" = paste0("[", round(.z_to_d(x_i$random$pi_lo), digits), ", ", round(.z_to_d(x_i$random$pi_up), digits), "]"),
+                      "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$random$pi_lo)), digits), ", ", round(.or_to_d(exp(x_i$random$pi_up)), digits), "]"))
 
-      PI_eG = ifelse(measure != "SMD",
-                     paste0("[", round(.or_to_d(exp(x_i$random$pi_lo)), digits), ", ", round(.or_to_d(exp(x_i$random$pi_up)), digits), "]"),
-                     paste0("[", round(x_i$random$pi_lo, digits), ", ", round(x_i$random$pi_up, digits), "]"))
+      PI_eOR = switch(as.character(measure),
+                     "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$random$pi_lo), digits), ", ", round(.d_to_or(x_i$random$pi_up), digits), "]"),
+                     "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$random$pi_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$random$pi_up)), digits), "]"),
+                     "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", pi_lo, ", ", pi_up, "]"))
+
+
+      # PI_eOR = ifelse(measure == "SMD",
+      #                 paste0("[", round(.d_to_or(x_i$random$pi_lo), digits), ", ", round(.d_to_or(x_i$random$pi_up), digits), "]"),
+      #                 paste0("[", round(exp(x_i$random$pi_lo), digits), ", ", round(exp(x_i$random$pi_up), digits), "]"))
+#
+#       PI_eG = ifelse(measure != "SMD",
+#                      paste0("[", round(.or_to_d(exp(x_i$random$pi_lo)), digits), ", ", round(.or_to_d(exp(x_i$random$pi_up)), digits), "]"),
+#                      paste0("[", round(x_i$random$pi_lo, digits), ", ", round(x_i$random$pi_up, digits), "]"))
     }
 
     PI_sign = ifelse(is.numeric(pi_lo),
@@ -197,20 +235,30 @@ summary.umbrella = function(object, digits = 3, ...) {
     # ESB
     ESB_p = ifelse(!is.na(x_i$esb$p.value),
                    sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$esb$p.value)),
-                   as.character(x_i$esb$p.value))#signif(.as_numeric(x_i$esb$p.value), digits - 0)
+                   as.character(x_i$esb$p.value))
 
     ESB_sign = factor(x_i$esb$p.value < 0.05, levels = c(FALSE, TRUE), labels = c("ns", "sig."))
 
     # Largest
     largest_sign = factor(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), levels = c(FALSE, TRUE), labels = c("null", "notnull"))
-    largest_CI_eOR = paste0("[", ifelse(measure == "SMD", round(.d_to_or(x_i$largest$ci_lo), digits), largest_ci_lo),
-                            ", ", ifelse(measure == "SMD", round(.d_to_or(x_i$largest$ci_up), digits), largest_ci_up), "]")
-    largest_CI_eG = paste0("[", ifelse(measure != "SMD", round(.or_to_d(exp(x_i$largest$ci_lo)), digits), largest_ci_lo),
-                            ", ", ifelse(measure != "SMD", round(.or_to_d(exp(x_i$largest$ci_up)), digits), largest_ci_up), "]")
+
+    largest_CI_eOR = switch(as.character(measure),
+                            "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$largest$ci_lo), digits), ", ", round(.d_to_or(x_i$largest$ci_up), digits), "]"),
+                            "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$largest$ci_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$largest$ci_up)), digits), "]"),
+                            "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", largest_ci_lo, ", ", largest_ci_up, "]"))
+
+    largest_CI_eG = switch(as.character(measure),
+                   "SMD" =, "SMC" = paste0("[", largest_ci_lo, ", ", largest_ci_up, "]"),
+                   "Z" = paste0("[", round(.z_to_d(x_i$largest$ci_lo), digits), ", ", round(.z_to_d(x_i$largest$ci_up), digits), "]"),
+                   "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$largest$ci_lo)), digits), ", ", round(.or_to_d(exp(x_i$largest$ci_up)), digits), "]"))
+#
+#     largest_CI_eOR = paste0("[", ifelse(measure == "SMD", round(.d_to_or(x_i$largest$ci_lo), digits), largest_ci_lo),
+#                             ", ", ifelse(measure == "SMD", round(.d_to_or(x_i$largest$ci_up), digits), largest_ci_up), "]")
+#     largest_CI_eG = paste0("[", ifelse(measure != "SMD", round(.or_to_d(exp(x_i$largest$ci_lo)), digits), largest_ci_lo),
+#                             ", ", ifelse(measure != "SMD", round(.or_to_d(exp(x_i$largest$ci_up)), digits), largest_ci_up), "]")
 
     # JK
     JK_p = ifelse(x_i$n$studies == 1, "only 1 study",
-                  # signif(.as_numeric(max(x_i$jk)), digits - 0)
                   sprintf(paste0("%.", digits - 1, "e"), .as_numeric(max(x_i$jk)))
                   )
     JK_sign = factor(JK_p < .05, levels = c(FALSE, TRUE), labels = c("n.s.", "sig."))
@@ -227,6 +275,11 @@ summary.umbrella = function(object, digits = 3, ...) {
         "Low es = ", round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.2), digits)*100, "; Med. es = ",
         round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.5), digits)*100, "; Large es = ",
         round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.8), digits)*100)
+    } else if (measure == "Z") {
+      paste0(
+        "Low es = ", round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.2), digits)*100, "; Med. es = ",
+        round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100, "; Large es = ",
+        round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.8), digits)*100)
     } else {
       paste0(
         "Low es = ", round(.power_d(x_i$n$cases, x_i$n$controls, 0.2), digits)*100, "; Med. es = ",
@@ -234,9 +287,10 @@ summary.umbrella = function(object, digits = 3, ...) {
         round(.power_d(x_i$n$cases, x_i$n$controls, 0.8), digits)*100)
     }
 
-    power_med = ifelse(measure == "IRR",
-                 round(.power_d(x_i$n$cases/2, x_i$n$controls/2, 0.5), digits)*100,
-                 round(.power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100)
+    power_med = switch(as.character(measure),
+                       "IRR" = round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.5), digits)*100,
+                       "Z" = round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100,
+                       "SMD"=, "SMC" =, "OR"=, "RR"=, "HR" = round(.power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100)
 
 
 ######################################################################################
@@ -244,7 +298,7 @@ summary.umbrella = function(object, digits = 3, ...) {
 
       out_i = data.frame(
         Factor = name, n_studies, total_n, n_cases, n_controls,
-        measure = ifelse(measure == "SMD", "G", measure),
+        measure = ifelse(measure == "SMD", "G", ifelse(measure == "Z", "R", measure)),
         value, value_CI, eG, eG_CI, eOR, eOR_CI, p_value,
         I2, PI_eG, PI_eOR,
         egger_p, ESB_p,
@@ -261,7 +315,7 @@ summary.umbrella = function(object, digits = 3, ...) {
                   Factor = name,
                   Criteria = "Ioannidis",
                   Class = x_i$evidence,
-                  measure = ifelse(measure == "SMD", "G", measure),
+                  measure = ifelse(measure == "SMD", "G", ifelse(measure == "Z", "R", measure)),
                   value,
                   value_CI,
                   eG,
@@ -287,7 +341,7 @@ summary.umbrella = function(object, digits = 3, ...) {
                 out_i = data.frame(Factor = name,
                                    Criteria = "Personalized",
                                    Class = x_i$evidence,
-                                   measure = ifelse(measure == "SMD", "G", measure),
+                                   measure = ifelse(measure == "SMD", "G", ifelse(measure == "Z", "R", measure)),
                                    value,
                                    value_CI,
                                    eG,
@@ -328,7 +382,7 @@ summary.umbrella = function(object, digits = 3, ...) {
                   Factor = name,
                   Criteria = "GRADE",
                   Class = x_i$evidence,
-                  measure = ifelse(measure == "SMD", "G", measure),
+                  measure = ifelse(measure == "SMD", "G", ifelse(measure == "Z", "R", measure)),
                   value,
                   value_CI,
                   eG,

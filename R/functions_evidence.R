@@ -22,10 +22,17 @@
     }
 
     # criteria 3 - power
-    if(x_i$measure == "IRR") {
+    if (x_i$measure == "IRR") {
       if (.power_d(x_i$n$cases / 2, x_i$n$cases / 2, 0.2) < 0.8) { # serious imprecision: ois for d = 0.2
         y_i = y_i - 1
         if (.power_d(x_i$n$cases / 2, x_i$n$cases / 2, 0.5) < 0.8) { # very serious imprecision: not even ois for d = 0.5
+          y_i = y_i - 1
+        }
+      }
+    } else if (x_i$measure == "R") {
+      if (.power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, 0.2) < 0.8) { # serious imprecision: ois for d = 0.2
+        y_i = y_i - 1
+        if (.power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, 0.5) < 0.8) { # very serious imprecision: not even ois for d = 0.5
           y_i = y_i - 1
         }
       }
@@ -113,7 +120,7 @@
       # extraction information from the umbrella object
       x_i = x[[name]]
       measure <- x_i$measure
-      total_n <- x_i$n$cases_and_controls
+      total_n <- x_i$n$total_n
       n_studies <- x_i$n$studies
       n_cases <- x_i$n$cases
       p_value <- x_i$random$p.value
@@ -301,12 +308,27 @@
       # subsetting the vector containing all criteria to those chosen by the user
       list.criteria.nom.user <- col_names[used_criteria]
 
+      if (is.na(n_cases)) {
+        n_cases <- total_n / 2
+        if ("n_cases" %in% list.criteria.nom.user) {
+          factors_limited = append(factors_limited, name)
+          criteria_limited = append(criteria_limited, "n_cases")
+        }
+      }
       if (is.na(egger_p)) {
         egger_p <- -1
         if ("egger_p" %in% list.criteria.nom.user) {
           factors_limited = append(factors_limited, name)
           criteria_limited = append(criteria_limited, "egger_p")
           }
+      }
+
+      if (is.na(esb_p)) {
+        esb_p <- -1
+        if ("esb_p" %in% list.criteria.nom.user) {
+          factors_limited = append(factors_limited, name)
+          criteria_limited = append(criteria_limited, "esb_p")
+        }
       }
 
       if (is.na(pi)) {
@@ -363,9 +385,14 @@
 
       imprecision <- rep(NA, 4)
       for (i in which(!is.na(data_class$imprecision))) {
-        imprecision[i] <- ifelse(measure == "IRR",
-                                 .power_d(x_i$n$n_cases / 2, x_i$n$n_cases / 2, data_class$imprecision[i]),
-                                 .power_d(x_i$n$n_cases, x_i$n$controls, data_class$imprecision[i]))
+        imprecision[i] <- switch(measure,
+                                 "IRR" = .power_d(x_i$n$cases / 2, x_i$n$cases / 2, data_class$imprecision[i]),
+                                 "Z" = .power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, data_class$imprecision[i]),
+                                 "SMD"=,
+                                 "SMC"=,
+                                 "OR"=,
+                                 "RR"=,
+                                 "HR"= .power_d(x_i$n$cases, x_i$n$controls, data_class$imprecision[i]))
       }
       # we create an imprecision vector based on user's input to have a more personalised output
       x[[name]]$imprecision <- c(rep(NA_real_, 4))
@@ -413,9 +440,17 @@
     }
     # print some warning messages
     if (verbose) {
+      if (any("n_cases" == criteria_limited)) {
+        message("- For ", length(factors_limited[which("n_cases" == criteria_limited)]), " factors the 'n_cases' criteria is used but the number of cases is not indicated in the dataset. In this situation, we assumed the number of cases to be half the total number of participants ('n_sample').")
+        attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("n_cases" == criteria_limited)]), " factors the 'n_cases' criteria is used but the number of cases is not indicated in the dataset. In this situation, we assumed the number of cases to be half the total number of participants ('n_sample').")
+      }
       if (any("egger_p" == criteria_limited)) {
         message("- For ", length(factors_limited[which("egger_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculated due to the small number of studies (n < 3). In this situation, the p-value of the Egger test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
         attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("egger_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculated due to the small number of studies (n < 3). In this situation, the p-value of the Egger test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+      }
+      if (any("esb_p" == criteria_limited)) {
+        message("- For ", length(factors_limited[which("esb_p" == criteria_limited)]), " factors the 'esb_p' criteria is used but cannot be estimated due to calculations issues. In this situation, the p-value of the ESB test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+        attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("esb_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculatedestimated due to calculations issues. In this situation, the p-value of the ESB test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
       }
 
       if (any("pi" == criteria_limited)) {

@@ -189,12 +189,13 @@ DT::datatable(d[d$column_errors != "", ], options = list(
                                      targets = "_all"))))
 ```
 
-It is indicated that the 95% CI of the HR is missing. Again, even if the information is present in the dataset, the function is missing it because the column names regarding the value of the effect size and its 95% confidence interval (CI) are not appropriate.
+It is indicated that the value and 95% CI of the HR and the time of the IRR are missing. Again, even if the information is present in the dataset, the function is missing it because the column names are not appropriate.
 
 ```{r}
 names(df.train)[names(df.train) == "effect_size_value"] <- "value"
 names(df.train)[names(df.train) == "low_bound_ci"] <- "ci_lo" 
 names(df.train)[names(df.train) == "up_bound_ci"] <- "ci_up" 
+names(df.train)[names(df.train) == "time_disease_free"] <- "time" 
 ```
 
 ```{r}

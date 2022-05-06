@@ -29,17 +29,17 @@ test_that("esb.test produced same results for different inputs: SMD", {
     df$se = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se
 
     df$measure <- "G"
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method = "chisq.test", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method = "binom.test", seed = 4321))
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method = "IT.chisq", seed = 4321)))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method = "IT.binom", seed = 4321))
 
-    meta.df.chisq1 <- suppressWarnings(.quiet(esb.test(metasmd, input = "meta", method = "chisq.test", seed = 4321)))
-    meta.df.binom1 <- .quiet(esb.test(metasmd, input = "meta", method = "binom.test", seed = 4321))
+    meta.df.chisq1 <- suppressWarnings(.quiet(esb.test(metasmd, input = "meta", method = "IT.chisq", seed = 4321)))
+    meta.df.binom1 <- .quiet(esb.test(metasmd, input = "meta", method = "IT.binom", seed = 4321))
 
-    meta.df.chisq2 <- suppressWarnings(.quiet(esb.test(metasmd2, input = "meta", method = "chisq.test", seed = 4321)))
-    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method = "binom.test", seed = 4321))
+    meta.df.chisq2 <- suppressWarnings(.quiet(esb.test(metasmd2, input = "meta", method = "IT.chisq", seed = 4321)))
+    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method = "IT.binom", seed = 4321))
 
-    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "chisq.test", seed = 4321)))
-    rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
+    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.chisq", seed = 4321)))
+    rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.binom", seed = 4321))
 
     umb <- .quiet(umbrella(df, seed = 4321))
     umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up)), seed = 4321))
@@ -89,18 +89,18 @@ test_that("esb.test produced same results for generic inputs: SMD", {
     rmasmd <- metafor::rma.uni(yi = value, sei = se, ni = n_cases + n_controls,
                                data = df, method = "REML", measure = "SMD")
 
-    esb.df.chisq <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "chisq.test", seed = 4321))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "binom.test", seed = 4321))
+    esb.df.chisq <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "IT.chisq", seed = 4321))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "IT.binom", seed = 4321))
 
-    meta.df.chisq1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "chisq.test", seed = 4321))
-    meta.df.binom1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "binom.test", seed = 4321))
-    meta.df.chisq2 <- .quiet(esb.test(metasmd2, input = "meta", method = "chisq.test", seed = 4321))
-    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method = "binom.test", seed = 4321))
+    meta.df.chisq1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.chisq", seed = 4321))
+    meta.df.binom1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.binom", seed = 4321))
+    meta.df.chisq2 <- .quiet(esb.test(metasmd2, input = "meta", method = "IT.chisq", seed = 4321))
+    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method = "IT.binom", seed = 4321))
 
-    rma.df.chisq1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "chisq.test", seed = 4321))
-    rma.df.chisq2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "chisq.test", seed = 4321))
-    rma.df.binom1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
-    rma.df.binom2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "binom.test", seed = 4321))
+    rma.df.chisq1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.chisq", seed = 4321))
+    rma.df.chisq2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "IT.chisq", seed = 4321))
+    rma.df.binom1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.binom", seed = 4321))
+    rma.df.binom2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "IT.binom", seed = 4321))
 
     umb <- .quiet(umbrella(df, seed = 4321))
 
@@ -143,14 +143,14 @@ test_that("esb.test produced same results for different inputs: OR", {
                                n1i = n_cases, n2i = n_controls,
                                data = df, method = "REML", measure = "OR")
 
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method = "chisq.test", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method = "binom.test", seed = 4321))
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.chisq", seed = 4321)))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.binom", seed = 4321))
 
-    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, input = "meta", method = "chisq.test", seed = 4321)))
-    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", method = "binom.test", seed = 4321))
+    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, input = "meta", method = "IT.chisq", seed = 4321)))
+    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", method = "IT.binom", seed = 4321))
 
-    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "chisq.test", seed = 4321)))
-    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "binom.test", seed = 4321))
+    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "IT.chisq", seed = 4321)))
+    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "IT.binom", seed = 4321))
 
     umb <- .quiet(umbrella(df, seed = 4321))
 
@@ -186,14 +186,14 @@ test_that("esb.test produced same results for generic inputs: OR", {
     rmaor <- metafor::rma.uni(yi = log(df$value), sei = df$se,
                               data = df, method = "REML", measure = "OR")
 
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method = "chisq.test", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method = "binom.test", seed = 4321))
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.chisq", seed = 4321)))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.binom", seed = 4321))
 
-    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, n_cases = df$n_cases, n_controls = df$n_controls, input = "meta", method = "chisq.test", seed = 4321)))
-    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "binom.test", seed = 4321))
+    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, n_cases = df$n_cases, n_controls = df$n_controls, input = "meta", method = "IT.chisq", seed = 4321)))
+    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.binom", seed = 4321))
 
-    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method = "chisq.test", seed = 4321)))
-    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method = "binom.test", seed = 4321))
+    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.chisq", seed = 4321)))
+    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.binom", seed = 4321))
 
     umb <- .quiet(umbrella(df, seed = 4321))
     umb2 <- .quiet(umbrella(subset(df, select = -c(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp)), seed = 4321))
@@ -271,25 +271,25 @@ test_that("esb.test produced correct results compared to metafor: SMD", {
     esb.chi <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "SMD", input = "dataframe",
-                        method = "chisq.test",
+                        method = "IT.chisq",
                         true_effect = theta, seed = 4321)))
 
     esb.bin <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "SMD", input = "dataframe",
-                        method = "binom.test",
+                        method = "IT.binom",
                         true_effect = theta, seed = 4321)))
 
     expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 0.005)
     expect_equal(.as_numeric(esb.bin$mean_power), mean(tes.binom$power), tolerance = 0.005)
-    expect_equal(.as_numeric(esb.bin$O), tes.binom$O)
-    expect_equal(.as_numeric(esb.bin$E), tes.binom$E, tolerance = 0.005)
+    expect_equal(.as_numeric(esb.bin$SS), tes.binom$O)
+    expect_equal(.as_numeric(esb.bin$Esig), tes.binom$E, tolerance = 0.005)
     expect_equal(.as_numeric(esb.bin$k), tes.binom$k)
 
     expect_equal(.as_numeric(esb.chi$power), tes.chi$power, tolerance = 0.005)
     expect_equal(.as_numeric(esb.chi$mean_power), mean(tes.chi$power), tolerance = 0.005)
-    expect_equal(.as_numeric(esb.chi$O), tes.chi$O)
-    expect_equal(.as_numeric(esb.chi$E), tes.chi$E, tolerance = 0.005)
+    expect_equal(.as_numeric(esb.chi$SS), tes.chi$O)
+    expect_equal(.as_numeric(esb.chi$Esig), tes.chi$E, tolerance = 0.005)
     expect_equal(.as_numeric(esb.chi$k), tes.chi$k)
 
     expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),
@@ -299,7 +299,7 @@ test_that("esb.test produced correct results compared to metafor: SMD", {
                  .as_numeric(tes.chi$pval), tolerance = tol_large)
 
     expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.05)
-    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.5)
+    expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.05)
 })
 
 test_that("esb.test produced correct results compared to metafor: OR", {
@@ -319,25 +319,25 @@ test_that("esb.test produced correct results compared to metafor: OR", {
     esb.chi <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "OR", input = "dataframe",
-                        method = "chisq.test",
+                        method = "IT.chisq",
                         true_effect = exp(theta), seed = 4321)))
 
     esb.bin <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "OR", input = "dataframe",
-                        method = "binom.test",
+                        method = "IT.binom",
                         true_effect = exp(theta), seed = 4321)))
 
     expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 0.05)
     expect_equal(.as_numeric(esb.bin$mean_power), mean(tes.binom$power), tolerance = 0.05)
-    expect_equal(.as_numeric(esb.bin$O), tes.binom$O)
-    expect_equal(.as_numeric(esb.bin$E), tes.binom$E, tolerance = 0.05)
+    expect_equal(.as_numeric(esb.bin$SS), tes.binom$O)
+    expect_equal(.as_numeric(esb.bin$Esig), tes.binom$E, tolerance = 0.05)
     expect_equal(.as_numeric(esb.bin$k), tes.binom$k)
 
     expect_equal(.as_numeric(esb.chi$power), tes.chi$power, tolerance = 0.05)
     expect_equal(.as_numeric(esb.chi$mean_power), mean(tes.chi$power), tolerance = 0.05)
-    expect_equal(.as_numeric(esb.chi$O), tes.chi$O)
-    expect_equal(.as_numeric(esb.chi$E), tes.chi$E, tolerance = 0.05)
+    expect_equal(.as_numeric(esb.chi$SS), tes.chi$O)
+    expect_equal(.as_numeric(esb.chi$Esig), tes.chi$E, tolerance = 0.05)
     expect_equal(.as_numeric(esb.chi$k), tes.chi$k)
 
     expect_equal(.as_numeric(binom.test(tes.binom$O, tes.binom$k, mean(tes.binom$power), alternative = "greater")$p.value),

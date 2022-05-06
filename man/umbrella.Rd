@@ -9,6 +9,7 @@ umbrella(
   method.var = "REML",
   mult.level = FALSE,
   r = 0.5,
+  method.esb = "IT.binom",
   true_effect = "largest",
   seed = NA,
   verbose = TRUE
@@ -23,7 +24,9 @@ umbrella(
 
 \item{r}{a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.}
 
-\item{true_effect}{the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is "largest".}
+\item{method.esb}{the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"} or \code{"IT.chisq"} (see details). Default is \code{"IT.binom"}.}
+
+\item{true_effect}{the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is \code{"largest"}.}
 
 \item{seed}{an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.}
 

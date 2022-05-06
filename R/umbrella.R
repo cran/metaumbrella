@@ -6,7 +6,8 @@
 #' @param method.var the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.
 #' @param mult.level a logical variable indicating the presence of multiple effect sizes per study in at least one factor of the umbrella review. Default is \code{FALSE} (i.e., each study of all factors include only one effect size). If \code{mult.level = TRUE} is specified, the Borenstein's methods are used to generate only one effect size per study. See \code{\link{metaumbrella-package}} for more information.
 #' @param r a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.
-#' @param true_effect the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is "largest".
+#' @param method.esb the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"} or \code{"IT.chisq"} (see details). Default is \code{"IT.binom"}.
+#' @param true_effect the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is \code{"largest"}.
 #' @param seed an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.
 #' @param verbose a logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.
 #'
@@ -114,7 +115,7 @@
 #' ### obtain a stratification of the evidence according to the Ioannidis classification
 #' add.evidence(umb.multi, criteria = "Ioannidis")
 #' }
-umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_effect = "largest", seed = NA, verbose = TRUE) {
+umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method.esb = "IT.binom", true_effect = "largest", seed = NA, verbose = TRUE) {
 
   # initial checkings ------
   checkings <- .check_data(x)
@@ -139,7 +140,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
     x_i = x[which(x$factor == factor), ]
 
 
-      x_i_ok <- .format_dataset(x_i, method.var = method.var, mult.level = mult.level, r = r, verbose = verbose)
+      x_i_ok <- .format_dataset(x_i, method.var = method.var, mult.level = mult.level, r = r, verbose = verbose, pre_post_cor = NULL)
 
       measure <- attr(x_i_ok, "measure")
       measure_length <- rep(measure, nrow(x_i_ok))
@@ -148,31 +149,44 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
 
       # create an object storing information on sample sizes
       n <- data.frame(studies = n_studies,
-                      cases = sum(x_i_ok$n_cases),
-                      controls = sum(x_i_ok$n_controls, na.rm = TRUE),
-                      cases_and_controls = sum(sum(x_i_ok$n_cases), sum(x_i_ok$n_controls), na.rm = TRUE))
+                      cases = ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_cases, na.rm = TRUE)),
+                      controls = ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_controls, na.rm = TRUE)),
+                      total_n = ifelse(measure == "Z",
+                                       sum(x_i_ok$n_sample),
+                                       sum(sum(x_i_ok$n_cases), sum(x_i_ok$n_controls), na.rm = TRUE)))
+
       rownames(n) = "n"
 
       # select the function performing the meta-analysis
-      .meta <- switch(as.character(attr(x_i_ok, "meta")),
-                      "OR_standard_raw_information" = .meta_or,
-                      "RR_standard_raw_information" = .meta_rr,
-                      "IRR_standard_raw_information" = .meta_irr,
-                      "SMD_standard_raw_information" =,
-                      "SMD_multilevel_raw_information" =,
-                      "SMD_multilevel_generic" =,
-                      "SMD_standard_generic" = .meta_gen_g,
-                      "OR_multilevel_raw_information" =,
-                      "OR_multilevel_generic" =,
-                      "OR_standard_generic" = ,
-                      "RR_multilevel_raw_information" =,
-                      "RR_multilevel_generic" =,
-                      "RR_standard_generic" = ,
-                      "IRR_multilevel_raw_information" =,
-                      "IRR_multilevel_generic" =,
-                      "IRR_standard_generic" = ,
-                      "HR_multilevel_generic" =,
-                      "HR_standard_generic" = .meta_gen_log)
+      # .meta <- switch(as.character(attr(x_i_ok, "meta")),
+      #                 "SMD_standard_raw_information" =,
+      #                 "SMD_multilevel_raw_information" =,
+      #                 "SMD_multilevel_generic" =,
+      #                 "SMD_standard_generic" =,
+      #                 "R_standard_generic" =,
+      #                 "R_multilevel_generic" = .meta_gen,
+      #                 "OR_standard_raw_information" = ,
+      #                 "RR_standard_raw_information" = ,
+      #                 "IRR_standard_raw_information" = ,
+      #                 "OR_multilevel_raw_information" =,
+      #                 "OR_multilevel_generic" =,
+      #                 "OR_standard_generic" = ,
+      #                 "RR_multilevel_raw_information" =,
+      #                 "RR_multilevel_generic" =,
+      #                 "RR_standard_generic" = ,
+      #                 "IRR_multilevel_raw_information" =,
+      #                 "IRR_multilevel_generic" =,
+      #                 "IRR_standard_generic" = ,
+      #                 "HR_multilevel_generic" =,
+      #                 "HR_standard_generic" = .meta_gen_log)
+      .meta <- switch(as.character(measure),
+                      "SMD" =,
+                      "Z" =,
+                      "SMC" = .meta_gen,
+                      "OR" = ,
+                      "RR" = ,
+                      "IRR" = ,
+                      "HR" = .meta_gen_log)
 
       # perform the meta-analysis
       if (nrow(x_i_ok) > 1) {
@@ -187,15 +201,15 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
       # if the dataset contains only one study, the results of this study are used
       if (nrow(x_i_ok) == 1) {
         k = 1
-        coef = ifelse(measure == "SMD", x_i_ok$value, log(x_i_ok$value))
+        coef = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$value, log(x_i_ok$value))
         se = x_i_ok$se
-        z = ifelse(measure == "SMD", x_i_ok$value / x_i_ok$se, log(x_i_ok$value) / x_i_ok$se)
-        p.value = ifelse(x_i_ok$value == 0, 1,
-                         .two_tail(ifelse(measure == "SMD",
+        z = coef / se
+        p.value = ifelse(coef == 0, 1,
+                         .two_tail(ifelse(measure %in% c("SMD", "SMC", "Z"),
                                           pt(z, x$n_cases + x$n_controls - 2),
                                           pnorm(z))))
-        ci_lo = ifelse(measure == "SMD", x_i_ok$ci_lo, log(x_i_ok$ci_lo))
-        ci_up = ifelse(measure == "SMD", x_i_ok$ci_up, log(x_i_ok$ci_up))
+        ci_lo = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$ci_lo, log(x_i_ok$ci_lo))
+        ci_up = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$ci_up, log(x_i_ok$ci_up))
         tau2 = NA
         i2 = NA
         qe = NA
@@ -234,6 +248,10 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
       if (n_studies < 3) {
         pi_lo = NA
         pi_up = NA
+      } else if (measure == "Z") {
+        # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5028066/
+        pi_lo = coef - sqrt((coef - ci_lo)^2 + (ci_up - coef)^2)
+        pi_up = coef + sqrt((coef - ci_lo)^2 + (ci_up - coef)^2)
       } else {
         half_pi = qt(0.975, n_studies - 2) * sqrt(tau2 + se^2)
         pi_lo = coef - half_pi
@@ -242,20 +260,29 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
 
       # Create summary datasets of the random-effects model
       random = data.frame(value = coef, z, p.value, ci_lo, ci_up, pi_lo, pi_up)
-      rownames(random) =
-        ifelse(as.character(measure) %in% c("HR", "IRR", "OR", "RR"),
-               paste0("log(", measure, ")", collapse = ""),
-               "bias-corrected SMD")
+      rownames(random) = switch(as.character(measure),
+                                "SMD" = "Bias-corrected SMD",
+                                "Z" = "Fisher's Z",
+                                "SMC" = "Standardized mean change",
+                                "OR" = "log (OR)",
+                                "RR" = "log (RR)",
+                                "IRR" = "log (IRR)",
+                                "HR" = "log (HR)")
 
       # Create summary datasets of the fixed-effects model
       if (nrow(x_i_ok) > 1) {
         fixed = data.frame(value = m$TE.fixed, p.value = m$pval.fixed)
-        rownames(fixed) = ifelse(as.character(measure) %in% c("HR", "IRR", "OR", "RR"),
-                                paste0("log(", measure, ")", collapse = ""),
-                                "bias-corrected SMD")
+        rownames(fixed) = switch(as.character(measure),
+                                 "SMD" = "Bias-corrected SMD",
+                                 "Z" = "Fisher's Z",
+                                 "SMC" = "Standardized mean change",
+                                 "OR" = "log (OR)",
+                                 "RR" = "log (RR)",
+                                 "IRR" = "log (IRR)",
+                                 "HR" = "log (HR)")
       } else {
         fixed = data.frame("only one study" = 1)
-        }
+      }
 
       # Create summary datasets of the heterogeneity
       heterogeneity = data.frame(tau2, i2, qe, p.value = qe_p.value)
@@ -265,14 +292,20 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
         largest = log(.largest_irr(x_i_ok))
       } else if (measure %in% c("OR", "HR", "RR")) {
         largest = log(.largest_or_rr_hr(x_i_ok))
-      } else if (measure == "SMD") {
+      } else if (measure %in% c("SMD", "SMC")) {
         largest = .largest_smd(x_i_ok)
+      } else if (measure %in% c("Z")) {
+        largest = .largest_z(x_i_ok)
       }
 
-      rownames(largest) =
-        ifelse(as.character(measure) %in% c("HR", "IRR", "OR", "RR"),
-               paste0("log(", measure, ")", collapse = ""),
-               "SMD")
+      rownames(largest) = switch(as.character(measure),
+                                 "SMD" = "Bias-corrected SMD",
+                                 "Z" = "Fisher's Z",
+                                 "SMC" = "Standardized mean change",
+                                 "OR" = "log (OR)",
+                                 "RR" = "log (RR)",
+                                 "IRR" = "log (IRR)",
+                                 "HR" = "log (HR)")
 
       # publication bias
       # only for meta-analyses with at least 3 studies
@@ -285,9 +318,9 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
 
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
-        } else if (measure == "SMD") {
+        } else if (measure %in% c("SMD", "SMC", "Z")) {
 
-          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD")
+          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "non_ratio")
 
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
@@ -300,12 +333,17 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, true_e
       }
 
       # excess significance bias
-      true_value = ifelse(true_effect == "largest", "largest",
-                          ifelse(true_effect == "pooled", ifelse(measure == "SMD", .as_numeric(random$coef), exp(.as_numeric(random$coef))),
-                                 ifelse(is.numeric(true_effect), true_effect, stop("The input in the 'true_effect' argument should be 'pooled', 'largest' or a numeric value. Please see the manual for more information.")
-                          )))
+      if (true_effect == "largest") {
+        true_value = "largest"
+      } else if (true_effect == "pooled") {
+        true_value = ifelse(measure %in% c("SMD", "SMC", "Z"), .as_numeric(random$coef), exp(.as_numeric(random$coef)))
+      } else if (is.numeric(true_effect)) {
+        true_value = true_effect
+      } else {
+        stop("The input in the 'true_effect' argument should be 'pooled', 'largest' or a numeric value. Please see the manual for more information.")
+      }
 
-      esb = esb.test(x_i_ok, measure = measure, input = "other", true_effect = true_value, seed = seed)
+      esb = esb.test(x_i_ok, method = method.esb, measure = measure, input = "other", true_effect = true_value, seed = seed)
 
       # risk of bias
       riskofbias = weighted.mean(x_i_ok$rob.recoded, x_i_ok$sum_N) * 100

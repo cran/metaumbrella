@@ -15,9 +15,9 @@
   }
 
   if (length(colnames(x)) == 0) {
-    stop("Dataframe passed to the umbrella umbrella function has no column. Check format of the dataset.")
+    stop("Dataframe passed to the umbrella() function has no column. Check format of the dataset.")
   } else if (nrow(x) == 0) {
-    stop("Dataframe passed to the umbrella umbrella function has no row. Check format of the dataset.")
+    stop("Dataframe passed to the umbrella() function has no row. Check format of the dataset.")
   }
 
 
@@ -55,12 +55,12 @@
   #### Overall columns check ----------------
 
   #### Mandatory and optional columns
-  if (any(c("OR", "RR", "IRR", "logOR", "logRR", "logIRR") %in% x$measure | all(is.na(x$measure)))) {
+  if (any(c("OR", "RR", "IRR", "logOR", "logRR", "logIRR", "R", "Z") %in% x$measure | all(is.na(x$measure)))) {
     # column names
     mandatory_cols <- c("meta_review", "factor", "author", "year", "measure")
     other_expected_cols <- c("analysis", "discard",
                              "value", "var", "se", "ci_lo", "ci_up",
-                             "n_exp", "n_nexp",
+                             "n_sample", "n_exp", "n_nexp",
                              "n_cases", "n_controls",
                              "n_cases_exp", "n_cases_nexp", "n_controls_exp", "n_controls_nexp",
                              "mean_cases", "sd_cases", "mean_controls", "sd_controls",
@@ -71,7 +71,7 @@
     mandatory_cols_types <- c("factor","factor", "factor","factor", "factor")
     other_expected_cols_types <- c("numeric", "factor",
                                    "numeric", "numeric", "numeric", "numeric","numeric",
-                                   "numeric","numeric",
+                                   "numeric", "numeric", "numeric",
                                    "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
@@ -83,7 +83,7 @@
     mandatory_cols <- c("meta_review", "factor", "author", "year", "measure", "n_cases", "n_controls")
     other_expected_cols <- c("analysis", "discard",
                              "value", "var", "se", "ci_lo", "ci_up",
-                             "n_exp", "n_nexp",
+                             "n_sample", "n_exp", "n_nexp",
                              "n_cases_exp", "n_cases_nexp", "n_controls_exp", "n_controls_nexp",
                              "mean_cases", "sd_cases", "mean_controls", "sd_controls",
                              "time", "time_exp", "time_nexp",
@@ -95,7 +95,7 @@
                               "numeric", "numeric")
     other_expected_cols_types <- c("numeric", "factor",
                                    "numeric","numeric","numeric","numeric", "numeric",
-                                   "numeric","numeric",
+                                   "numeric", "numeric", "numeric",
                                    "numeric","numeric","numeric","numeric",
                                    "numeric","numeric","numeric","numeric",
                                    "numeric","numeric","numeric",
@@ -249,7 +249,7 @@
 
   #### Overall inputs check ----------------
   # check which columns contain input errors
-  measure_vals = c("SMD", "OR", "HR", "IRR", "RR", "MD", "G", "logOR", "logRR", "logHR", "logIRR")
+  measure_vals = c("SMD","OR", "HR", "IRR", "RR", "MD", "G", "logOR", "logRR", "logHR", "logIRR")
   measure_warning_vals = c('log2 fold change')
   cols_no_na = c('measure')
 
@@ -273,15 +273,15 @@
                  if (!(cell_value %in% measure_vals)) { # if unknown measure
                    if (!(cell_value %in% measure_warning_vals)) {
                      status <- "ERROR"
-                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'"))
-                     column_errors[i] = paste(column_errors[i], "Measure '", cell_value, "' not supported. Should be either 'SMD', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
+                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'"))
+                     column_errors[i] = paste(column_errors[i], "Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
                      column_type_errors[i] = "ERROR"
                      i = i + 1
                    } else {
                      status <- "ERROR"
-                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'."))
-                     column_errors[i] = paste(column_errors[i], " Measure '", cell_value, "' not supported. Should be either 'SMD', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
-                     column_type_errors[i] = "ERROR"#"WARNING"
+                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'."))
+                     column_errors[i] = paste(column_errors[i], " Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
+                     column_type_errors[i] = "ERROR"
                      i = i + 1
                    }
                  }
@@ -289,7 +289,7 @@
 
                'value' = {
                  # check whether the value for ratios is not < 0
-                if (!(x[i, "measure"] %in% c("SMD","G","MD")) && cell_value <= 0 && !x[i, "measure"] %in% measure_warning_vals) {
+                if (!(x[i, "measure"] %in% c("SMD", "SMC", "R", "Z", "G", "MD")) && cell_value <= 0 && !x[i, "measure"] %in% measure_warning_vals) {
                    status <- "ERROR"
                    error_msgs <- append(error_msgs, paste0("Wrong value. Values should be positive for 'OR', 'RR', 'HR' and 'IRR'."))
                    column_errors[i] = paste(column_errors[i], "Wrong value. Should be a positive number for 'OR', 'RR', 'HR' and 'IRR'. //")
@@ -308,7 +308,7 @@
                },
 
                'ci_lo' = {
-                 if ( ((cell_value <= 0) & !(x[i,"measure"] %in% c("SMD", "G", "MD"))) | (sum(- x[i, "value"], cell_value, na.rm = TRUE) > 0 & !is.na(x[i, "value"])) ) {
+                 if ( ((cell_value <= 0) & !(x[i,"measure"] %in% c("SMD", "SMC", "R", "Z", "G", "MD"))) | (sum(- x[i, "value"], cell_value, na.rm = TRUE) > 0 & !is.na(x[i, "value"])) ) {
                      status <- "ERROR"
                      error_msgs <- append(error_msgs, paste("Lower bound of the 95% CI should be lower than 'value' and should not be negative or null with 'OR', 'RR', 'IRR' and 'HR' measures."))
                      column_errors[i] = paste(column_errors[i], "Wrong 'ci_lo', should be lower than 'value' and should be > 0 with OR RR HR IRR. //")
@@ -317,7 +317,7 @@
                  },
 
                'ci_up' = {
-                   if ( ((cell_value <= 0) & !(x[i,"measure"] %in% c("SMD", "G", "MD"))) | (sum(- cell_value, x[i, "value"], na.rm = TRUE) > 0 & !is.na(x[i, "value"])) ) {
+                   if ( ((cell_value <= 0) & !(x[i,"measure"] %in% c("SMD", "SMC", "R", "Z", "G", "MD"))) | (sum(- cell_value, x[i, "value"], na.rm = TRUE) > 0 & !is.na(x[i, "value"])) ) {
                      status <- "ERROR"
                      error_msgs <- append(error_msgs, paste("Upper bound of the 95% CI should be higher than 'value' and should not be negative or null with 'OR', 'RR', 'IRR' and 'HR' measures."))
                      column_errors[i] = paste(column_errors[i], "Wrong 'ci_up', should be higher than 'value' and should be > 0 with OR RR HR IRR. // ")
@@ -452,11 +452,19 @@
     ## check inputs regarding sample size ##
     ########################################
 
-    if ( (x[row, "measure"] %in% c("SMD", "G", "MD")) && (is.na(x[row, "n_cases"]) || is.na(x[row, "n_controls"])) ) {
+    if ( (x[row, "measure"] %in% c("SMD", "G", "MD", "SMC")) && (is.na(x[row, "n_cases"]) || is.na(x[row, "n_controls"])) ) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("For SMD, MD and G the number of cases and controls is mandatory"))
+                           paste("For SMD,MD and G the number of cases and controls is mandatory"))
       column_errors[row] = paste(column_errors[row], " For SMD, MD, G the number of cases/controls is mandatory. // ")
+      column_type_errors[row] = status
+    }
+
+    if ( (x[row, "measure"] %in% c("R", "Z")) && (is.na(x[row, "n_sample"]))) {
+      status <- "ERROR"
+      error_msgs <- append(error_msgs,
+                           paste("For R and Z, the total number of participants in the sample is mandatory"))
+      column_errors[row] = paste(column_errors[row], " For R and Z the total number of participants in the sample is mandatory. // ")
       column_type_errors[row] = status
     }
 
@@ -503,6 +511,32 @@
       column_type_errors[row] = status
     }
 
+    ######################################
+    ## check inputs confidence interval ##
+    ######################################
+    if (!is.na(x[row, "value"]) & !is.na(x[row, "ci_lo"]) & !is.na(x[row, "ci_up"])) {
+      if (x[row, "measure"] %in% c("SMD", "G", "MD", "logOR", "logRR", "logIRR", "logHR")) {
+        if ( (x[row, "ci_up"] - x[row, "value"] == 0) |
+             (x[row, "value"] - x[row, "ci_lo"] == 0) |
+             (x[row, "ci_up"] - x[row, "ci_lo"] == 0)) {
+
+          status <- "ERROR"
+          error_msgs <- append(error_msgs, paste("Wrong input in the confidence interval"))
+          column_errors[row] = paste(column_errors[row], " Wrong confidence interval. //")
+          column_type_errors[row] =  "ERROR"
+        }
+      } else if (x[row, "measure"] %in% c("OR", "RR", "HR", "IRR")) {
+        if ( (log(x[row, "ci_up"]) - log(x[row, "value"]) == 0) |
+             (log(x[row, "value"]) - log(x[row, "ci_lo"]) == 0) |
+             (log(x[row, "ci_up"]) - log(x[row, "ci_lo"]) == 0)) {
+
+          status <- "ERROR"
+          error_msgs <- append(error_msgs, paste("Wrong input in the confidence interval"))
+          column_errors[row] = paste(column_errors[row], " Wrong confidence interval. //")
+          column_type_errors[row] =  "ERROR"
+        }
+      }
+    }
     ################################################
     ## check inputs symmetric confidence interval ##
     ################################################
@@ -532,6 +566,7 @@
         }
       }
     }
+
     ################################################
     ## check inputs shared_controls / shared_nexp ##
     ################################################
@@ -564,32 +599,32 @@
       column_type_errors[row] = status
     }
 
-    # prevent users to use the 'shared_exp' / 'shared_controls' columns when HR is the ES
-    if ((!is.na(x[row, "shared_nexp"]) & x[row, "measure"] %in% c("logHR", "HR")) | (!is.na(x[row, "shared_controls"]) & x[row, "measure"] %in% c("logHR", "HR"))) {
+    # prevent users to use the 'shared_exp' / 'shared_controls' columns when HR/R/Z are the ES
+    if ((!is.na(x[row, "shared_nexp"]) & x[row, "measure"] %in% c("logHR", "HR", "R", "Z")) | (!is.na(x[row, "shared_controls"]) & x[row, "measure"] %in% c("logHR", "HR", "R", "Z"))) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("The 'shared_nexp' and 'shared_controls' columns are currently not supported in combination with the HR statistics."))
-      column_errors[row] = paste(column_errors[row], " The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' effect size. // ")
+                           paste("The 'shared_nexp' and 'shared_controls' columns are not supported in combination with the HR measure."))
+      column_errors[row] = paste(column_errors[row], " The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' measure. // ")
       column_type_errors[row] = status
     }
 
-    # prevent users to use the shared_controls column when IRR or RR are the effect size
+    # prevent users to use the shared_controls column when IRR, RR are the effect size
     if (!is.na(x[row, "shared_controls"]) & x[row, "measure"] %in% c("logIRR", "IRR", "RR", "logRR")) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
                            paste("\nThe 'shared_controls' column is only supported for the SMD, MD, G or OR measure.")
       )
-      column_errors[row] = paste(column_errors[row], " The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' effect size. // ")
+      column_errors[row] = paste(column_errors[row], " The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' measure. // ")
       column_type_errors[row] = status
     }
 
     # prevent users to use the shared_nexp column when SMD, MD or G are the effect size
-    if (!is.na(x[row, "shared_nexp"]) & x[row, "measure"] %in% c("SMD", "MD", "G")) {
+    if (!is.na(x[row, "shared_nexp"]) & x[row, "measure"] %in% c("SMD", "SMC", "MD", "G")) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size")
+                           paste("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', or 'G' measure.")
       )
-      column_errors[row] = paste(column_errors[row], " The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', 'G' effect size. // ")
+      column_errors[row] = paste(column_errors[row], " The 'shared_nexp' column cannot be indicated with a 'SMD', 'SMC', 'MD', or 'G' measure. // ")
       column_type_errors[row] = status
     }
   }
@@ -630,9 +665,12 @@
     # if the dataset has multiple ES inputs per study, an error is returned
     if (any(df_agg_i$multiple_es > 1)) {
 
-      i = which(x$factor == factor &
-                  x$author == df_agg_i[df_agg_i$multiple_es > 1, "Group.2"] &
-                  x$year == df_agg_i[df_agg_i$multiple_es > 1, "Group.3"])
+      i = which(paste(x$factor,
+                      x$author,
+                      x$year) %in%
+                  paste(factor,
+                        df_agg_i[df_agg_i$multiple_es > 1, "Group.2"],
+                        df_agg_i[df_agg_i$multiple_es > 1, "Group.3"]))
 
       status <- "ERROR"
       error_msgs <- append(error_msgs, paste("Study with several multiple_es values. Please, specify only one of either 'groups' or 'outcomes'."))
@@ -643,9 +681,12 @@
     # if the dataset has multiple r inputs per study, an error is returned
     if (any(df_agg_i$r > 1)) {
 
-      i = which(x$factor == factor &
-                  x$author == df_agg_i[df_agg_i$r > 1, "Group.2"] &
-                  x$year == df_agg_i[df_agg_i$r > 1, "Group.3"])
+      i = which(paste(x$factor,
+                      x$author,
+                      x$year) %in%
+                  paste(factor,
+                        df_agg_i[df_agg_i$r > 1, "Group.2"],
+                        df_agg_i[df_agg_i$r > 1, "Group.3"]))
 
       status <- "ERROR"
       error_msgs <- append(error_msgs, paste("Study with several r values. Please, specify only one unique value per study."))
@@ -656,9 +697,12 @@
     # if the dataset has multiple shared_nexp or shared_controls per study, an error is returned
     if (any(df_agg_i$shared_nexp > 1) | any(df_agg_i$shared_controls > 1)) {
 
-      i = which(x$factor == factor &
-                  x$author == df_agg_i[(df_agg_i$shared_nexp > 1) | (df_agg_i$shared_controls > 1), "Group.2"] &
-                  x$year == df_agg_i[(df_agg_i$shared_nexp > 1) | (df_agg_i$shared_controls > 1), "Group.3"])
+      i = which(paste(x$factor,
+                      x$author,
+                      x$year) %in%
+                  paste(factor,
+                        df_agg_i[(df_agg_i$shared_nexp > 1) | (df_agg_i$shared_controls > 1), "Group.2"],
+                        df_agg_i[(df_agg_i$shared_nexp > 1) | (df_agg_i$shared_controls > 1), "Group.3"]))
 
       status <- "ERROR"
       error_msgs <- append(error_msgs, paste("A study is associated with multiple 'shared_controls' or 'shared_nexp' values. There should be an unique value per study."))
@@ -756,18 +800,18 @@
 
   # Effect size and CI
   indexs = which(is.na(x$ci_lo))
-  x$ci_lo[indexs] = suppressWarnings(ifelse(measure[indexs] %in% c("SMD", "MD", "G", "logIRR", "logOR", "logRR", "logHR"),
+  x$ci_lo[indexs] = suppressWarnings(ifelse(measure[indexs] %in% c("SMD", "MD", "G", "R", "Z", "SMC", "logIRR", "logOR", "logRR", "logHR"),
                            x$value[indexs] - (x$ci_up[indexs] - x$value[indexs]),
                            exp(log(x$value[indexs]) - (log(x$ci_up[indexs]) - log(x$value[indexs])))))
 
   indexs = which(is.na(x$ci_up))
-  x$ci_up[indexs] = suppressWarnings(ifelse(measure[indexs] %in% c("SMD", "MD", "G", "logIRR", "logOR", "logRR", "logHR"),
+  x$ci_up[indexs] = suppressWarnings(ifelse(measure[indexs] %in% c("SMD", "MD", "G", "R", "Z", "SMC", "logIRR", "logOR", "logRR", "logHR"),
                            x$value[indexs] + (x$value[indexs] - x$ci_lo[indexs]),
                            exp(log(x$value[indexs]) + (log(x$value[indexs]) - log(x$ci_lo[indexs])))))
 
 
   indexs = which(is.na(x$value))
-  x$value[indexs] = suppressWarnings(ifelse(measure[indexs] %in% c("SMD", "MD", "G", "logIRR", "logOR", "logRR", "logHR"),
+  x$value[indexs] = suppressWarnings(ifelse(measure[indexs] %in% c("SMD", "MD", "G", "R", "Z", "SMC", "logIRR", "logOR", "logRR", "logHR"),
                            (x$ci_lo[indexs] + x$ci_up[indexs]) / 2,
                            exp((log(x$ci_lo[indexs]) + log(x$ci_up[indexs])) / 2)))
 
@@ -872,169 +916,124 @@
   x$n_controls[irr] = x$n_controls_exp[irr] = x$n_controls_nexp[irr] = NA
 
   ###########################################################################################################
-  #################### CHECK 6: check information for effect size conversions ###################################################
+  #################### CHECK 6: check information for effect size conversions ###############################
   ###########################################################################################################
-  missing_ci = (is.na(x$value) & (is.na(x$ci_lo) | is.na(x$ci_up))) |
-    (is.na(x$ci_lo) & is.na(x$ci_up))
-  missing_ci_se = missing_ci & is.na(x$se)
+  missing_value = is.na(x$value)
+  missing_ci = is.na(x$ci_lo) | is.na(x$ci_up)
+  missing_se = is.na(x$se)
+  missing_value_ci = missing_value | missing_ci
+  missing_value_se = missing_value | missing_se
+  missing_means_post = is.na(x$mean_cases) | is.na(x$sd_cases) | is.na(x$mean_controls) | is.na(x$sd_controls)
+  missing_means_pre_post = is.na(x$mean_pre_cases) | is.na(x$sd_pre_cases) | is.na(x$mean_pre_controls) | is.na(x$sd_pre_controls) |
+                           is.na(x$mean_cases) | is.na(x$sd_cases) | is.na(x$mean_controls) | is.na(x$sd_controls)
+  missing_means_change = is.na(x$mean_change_cases) | is.na(x$sd_change_cases) | is.na(x$mean_change_controls) | is.na(x$sd_change_controls)
+  missing_n_sample = is.na(x$n_sample)
+  missing_cases_controls = is.na(x$n_cases) | is.na(x$n_controls)
+  missing_exp_nexp = is.na(x$n_exp) | is.na(x$n_nexp)
+  missing_2x2 = is.na(x$n_cases_exp) | is.na(x$n_cases_nexp) | is.na(x$n_controls_exp) | is.na(x$n_controls_nexp)
+  missing_time_cases_exp_nexp = is.na(x$n_cases_exp) | is.na(x$n_cases_nexp) | is.na(x$time_exp) | is.na(x$time_nexp)
+  missing_time = is.na(x$time)
 
-  # Compulsory arguments for d : value || meancases/sdcases/meancontrols/sdcontrols
-  d_missing = is.na(x$value) & measure %in% c("SMD", "MD", "G")
-  mean_cases_missing = d_missing & is.na(x$mean_cases)
-  if (any(mean_cases_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("SMD/MD/G measures are not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(mean_cases_missing)] <- paste(column_errors[which(mean_cases_missing)], " Unknown confidence interval / se / var / means and SD. // ")
-    column_type_errors[which(mean_cases_missing)] <- ifelse(column_type_errors[which(mean_cases_missing)] == "ERROR", "ERROR", "ERROR")
-  }
-  sd_cases_missing = d_missing & is.na(x$sd_cases)
-  if (any(sd_cases_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("SMD/MD/G measures are not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(sd_cases_missing)] <- paste(column_errors[which(sd_cases_missing)], " Unknown confidence interval / se / var / means and SD. // ")
-    column_type_errors[which(sd_cases_missing)] <- ifelse(column_type_errors[which(sd_cases_missing)] == "ERROR", "ERROR", "ERROR")
-  }
-  mean_controls_missing = d_missing & is.na(x$mean_controls)
-  if (any(mean_controls_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("SMD/MD/G measures are not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(mean_controls_missing)] <- paste(column_errors[which(mean_controls_missing)], " Unknown confidence interval / se / var / means and SD. // ")
-    column_type_errors[which(mean_controls_missing)] <- ifelse(column_type_errors[which(mean_controls_missing)] == "ERROR", "ERROR", "ERROR")
-  }
-  sd_controls_missing = d_missing & is.na(x$sd_controls)
-  if (any(sd_controls_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("SMD/MD/G measures are not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(sd_controls_missing)] <- paste(column_errors[which(sd_controls_missing)], " Unknown confidence interval / se / var / means and SD. // ")
-    column_type_errors[which(sd_controls_missing)] <- ifelse(column_type_errors[which(sd_controls_missing)] == "ERROR", "ERROR", "ERROR")
+  # SMD/G/MD
+  ## users indicate MD/G and means => convert measure to SMD
+  md_g_means = measure %in% c("MD", "G") & missing_value & missing_ci & missing_se & !missing_means_post
+  if (any(md_g_means, na.rm = TRUE)) {
+    x[which(md_g_means), ]$measure <- "SMD"
+    measure[which(md_g_means)] <- "SMD"
   }
 
-  md_g_missing_means = measure %in% c("MD", "G") & missing_ci_se & (!is.na(x$mean_cases) & !is.na(x$sd_cases) & !is.na(x$mean_controls) & !is.na(x$sd_controls))
-  if (any(md_g_missing_means, na.rm = TRUE)) {
-    x[which(md_g_missing_means), ]$measure <- "SMD"
-    measure[which(md_g_missing_means)] <- "SMD"
+  ## SMD : at least 'value' OR 'means' should be indicated
+  d_missing = missing_value & missing_means_post & measure == "SMD"
+  if (any(d_missing, na.rm = TRUE)) {
+    status = "ERROR"
+    error_msgs <- append(error_msgs, paste("SMD measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(d_missing)] <- paste(column_errors[which(d_missing)], "Unknown value of the SMD / means and SD. // ")
+    column_type_errors[which(d_missing)] <- ifelse(column_type_errors[which(d_missing)] == "ERROR", "ERROR", "ERROR")
   }
 
-  # Compulsory arguments for MD: ci / SE
-  md_missing = measure == "MD" & missing_ci_se
+  ## G : at least 'value' should be indicated
+  g_missing = missing_value & measure == "G"
+  if (any(g_missing, na.rm = TRUE)) {
+    status = "ERROR"
+    error_msgs <- append(error_msgs, paste("G measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(g_missing)] <- paste(column_errors[which(g_missing)], "Unknown value of G. // ")
+    column_type_errors[which(g_missing)] <- ifelse(column_type_errors[which(g_missing)] == "ERROR", "ERROR", "ERROR")
+  }
+
+
+  ## MD: at least 'value' + ('ci' | 'se') should be indicated
+  md_missing = missing_value_ci & missing_value_se & measure == "MD"
   if (any(md_missing, na.rm = TRUE)) {
     status = "ERROR"
-    error_msgs <- append(error_msgs, paste("95% CI or standard error or variance is a mandatory information when working with 'MD' measure. "))
-    column_errors[which(md_missing)] <- paste(column_errors[which(md_missing)], " Unknown confidence interval / se / var of the MD. // ")
+    error_msgs <- append(error_msgs, paste("MD measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(md_missing)] <- paste(column_errors[which(md_missing)], " Unknown value + (confidence interval / se / var) of the MD. // ")
     column_type_errors[which(md_missing)] <- "ERROR"
   }
 
-  # Compulsory arguments for HR: ci / SE
-  hr_missing = missing_ci_se & measure == "HR"
+  # SMC : at least 'value' + ('ci'|'se') OR 'mean_pre_post' OR 'mean_change' should be indicated
+  smc_missing_ci = missing_value_ci & measure == "SMC"
+  smc_missing_se = missing_value_se & measure == "SMC"
+  smc_missing_pre_post = missing_means_pre_post & measure == "SMC"
+  smc_missing_change = missing_means_change & measure == "SMC"
+
+  smc_missing = smc_missing_ci & smc_missing_se & smc_missing_pre_post & smc_missing_change
+  if (any(smc_missing, na.rm = TRUE)) {
+    status = "ERROR"
+    error_msgs <- append(error_msgs, paste("SMC measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(smc_missing)] <- paste(column_errors[which(smc_missing)], " Unknown value + (confidence interval / se / var) OR pre+post means/SD OR means/SD change. // ")
+    column_type_errors[which(smc_missing)] <- "ERROR"
+  }
+
+  # Z/R : value
+  r_missing = (missing_value | missing_n_sample) & measure %in% c("R", "Z")
+
+  if (any(r_missing, na.rm = TRUE)) {
+    status = "ERROR"
+    error_msgs <- append(error_msgs, paste("R or Z measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(md_missing)] <- paste(column_errors[which(md_missing)], " Unknown R/Z values + 'n_sample'. // ")
+    column_type_errors[which(md_missing)] <- "ERROR"
+  }
+
+
+  # HR: at least 'value' + ('ci' | 'se') should be indicated
+  hr_missing = missing_value_ci & missing_value_se & measure %in% c("HR", "logHR")
 
   if (any(hr_missing, na.rm = TRUE)) {
     status = "ERROR"
-    error_msgs <- append(error_msgs, paste("95% CI or standard error or variance is a mandatory information when working with 'HR' measure. "))
-    column_errors[which(hr_missing)] <- paste(column_errors[which(hr_missing)], " Unknown confidence interval / se / var of the hazard ratio. // ")
+    error_msgs <- append(error_msgs, paste("HR measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(hr_missing)] <- paste(column_errors[which(hr_missing)], " Unknown value + (confidence interval / se / var) of the HR. // ")
     column_type_errors[which(hr_missing)] <- "ERROR"
   }
 
-  # Compulsory arguments for IRR / RR / OR
-  missing_irr_or_rr = missing_ci_se & (measure %in% c("logIRR", "IRR", "logRR", "RR"))
-
-  n_cases_exp_missing = missing_irr_or_rr & is.na(x$n_cases_exp)
-  if (any(n_cases_exp_missing, na.rm = TRUE)) {
+  # OR
+  or_missing_2x2 = (missing_value | missing_cases_controls) & missing_2x2 & measure %in% c("OR", "logOR")
+  or_missing_ci_se = missing_value_ci & missing_value_se & measure %in% c("OR", "logOR")
+  or_missing = or_missing_2x2 & or_missing_ci_se
+  if (any(or_missing, na.rm = TRUE)) {
     status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR/RR/IRR measures are not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_cases_exp_missing)] <- paste(column_errors[which(n_cases_exp_missing)], " Unknown confidence interval / se / var / n_cases_exp. // ")
-    column_type_errors[which(n_cases_exp_missing)] <- "ERROR"
-  }
-  n_cases_nexp_missing = missing_irr_or_rr & is.na(x$n_cases_nexp)
-  if (any(n_cases_nexp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR/RR/IRR measures are not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_cases_nexp_missing)] <- paste(column_errors[which(n_cases_nexp_missing)], " Unknown confidence interval / se / var / n_cases_nexp. // ")
-    column_type_errors[which(n_cases_nexp_missing)] <- "ERROR"
+    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(or_missing)] <- paste(column_errors[which(or_missing)], " Unknown value of the OR and n_cases/n_controls or unknown 2x2 table. // ")
+    column_type_errors[which(or_missing)] <- "ERROR"
   }
 
+  # RR
+  rr_missing = missing_2x2 & missing_value_ci & missing_value_se & measure %in% c("RR", "logRR")
+  if (any(rr_missing, na.rm = TRUE)) {
+    status = "ERROR"
+    error_msgs <- append(error_msgs, paste("RR measure is not associated with sufficient information to run the umbrella review. "))
+    column_errors[which(rr_missing)] <- paste(column_errors[which(rr_missing)], " Unknown value + (confidence interval / se / var) of the RR or unknown 2x2 table. // ")
+    column_type_errors[which(rr_missing)] <- "ERROR"
+  }
 
   # Compulsory arguments for IRR
-  missing_irr = missing_ci_se & measure %in% c("logIRR", "IRR")
-
-  time_exp_missing = missing_irr & is.na(x$time_exp)
-  if (any(time_exp_missing, na.rm = TRUE)) {
+  irr_missing_ci_time = (missing_value_ci | missing_time) & measure %in% c("logIRR", "IRR")
+  irr_missing_se_time = (missing_value_se | missing_time) & measure %in% c("logIRR", "IRR")
+  missing_irr = missing_time_cases_exp_nexp & irr_missing_ci_time & irr_missing_se_time & measure %in% c("logIRR", "IRR")
+  if (any(missing_irr, na.rm = TRUE)) {
     status = "ERROR"
     error_msgs <- append(error_msgs, paste("IRR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(time_exp_missing)] <- paste(column_errors[which(time_exp_missing)], " Unknown confidence interval / se / var / time_exp. // ")
-    column_type_errors[which(time_exp_missing)] <- "ERROR"
-  }
-  time_nexp_missing = missing_irr & is.na(x$time_nexp)
-  if (any(time_nexp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("IRR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(time_nexp_missing)] <- paste(column_errors[which(time_nexp_missing)], " Unknown confidence interval / se / var / time_nexp. // ")
-    column_type_errors[which(time_nexp_missing)] <- "ERROR"
-  }
-
-  # Compulsory arguments for RR
-  missing_rr = missing_ci_se & measure %in% c("logRR", "RR")
-  n_exp_missing = missing_rr & is.na(x$n_exp)
-  if (any(n_exp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("RR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_exp_missing)] <- paste(column_errors[which(n_exp_missing)], " Unknown confidence interval / se / var / n_exp. // ")
-    column_type_errors[which(n_exp_missing)] <- "ERROR"
-  }
-  n_nexp_missing = missing_rr & is.na(x$n_nexp)
-  if (any(n_nexp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("RR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_nexp_missing)] <- paste(column_errors[which(n_nexp_missing)], " Unknown confidence interval / se / var / n_nexp. // ")
-    column_type_errors[which(n_nexp_missing)] <- "ERROR"
-  }
-
-  # Compulsory arguments for OR
-  missing_or = missing_ci_se & measure %in% c("logOR", "OR")
-
-  n_cases_exp_missing = missing_or & is.na(x$n_cases_exp) & is.na(x$n_cases) & is.na(x$n_controls)
-  if (any(n_cases_exp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_cases_exp_missing)] <- paste(column_errors[which(n_cases_exp_missing)], " Unknown confidence interval / se / var / n_cases_exp. // ")
-    column_type_errors[which(n_cases_exp_missing)] <- "ERROR"
-  }
-
-  n_cases_nexp_missing = missing_or & is.na(x$n_cases_nexp) & is.na(x$n_cases) & is.na(x$n_controls)
-  if (any(n_cases_nexp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_cases_nexp_missing)] <- paste(column_errors[which(n_cases_nexp_missing)], " Unknown confidence interval / se / var / n_cases_nexp. ")
-    column_type_errors[which(n_cases_nexp_missing)] <- "ERROR"
-  }
-
-  n_controls_exp_missing = missing_or & is.na(x$n_controls_exp) & is.na(x$n_cases) & is.na(x$n_controls)
-  if (any(n_controls_exp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_controls_exp_missing)] <- paste(column_errors[which(n_controls_exp_missing)], " Unknown confidence interval / se / var / n_controls_exp. // ")
-    column_type_errors[which(n_controls_exp_missing)] <- "ERROR"
-  }
-  n_controls_nexp_missing = missing_or & is.na(x$n_controls_nexp) & is.na(x$n_cases) & is.na(x$n_controls)
-  if (any(n_controls_nexp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_controls_nexp_missing)] <- paste(column_errors[which(n_controls_nexp_missing)], " Unknown confidence interval / se / var / n_controls_nexp. // ")
-    column_type_errors[which(n_controls_nexp_missing)] <- "ERROR"
-  }
-
-  n_exp_missing = missing_or & is.na(x$n_exp) & is.na(x$n_cases) & is.na(x$n_controls)
-  if (any(n_exp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_exp_missing)] <- paste(column_errors[which(n_exp_missing)], " Unknown confidence interval / se / var / n_exp. // ")
-    column_type_errors[which(n_exp_missing)] <- "ERROR"
-  }
-  n_nexp_missing = missing_or & is.na(x$n_nexp) & is.na(x$n_cases) & is.na(x$n_controls)
-  if (any(n_nexp_missing, na.rm = TRUE)) {
-    status = "ERROR"
-    error_msgs <- append(error_msgs, paste("OR measure is not associated with sufficient information to run the umbrella review. "))
-    column_errors[which(n_nexp_missing)] <- paste(column_errors[which(n_nexp_missing)], " Unknown confidence interval / se / var / n_nexp. // ")
-    column_type_errors[which(n_exp_missing)] <- "ERROR"
+    column_errors[which(missing_irr)] <- paste(column_errors[which(missing_irr)], " Unknown (value + (ci/se/var) + n_cases + time) OR number of cases and time for both exp and non-exp groups. // ")
+    column_type_errors[which(missing_irr)] <- "ERROR"
   }
 
   ##### determine the input to guide the umbrella function ----------
@@ -1058,6 +1057,13 @@
     if (x$measure[i] %in% c("SMD", "G", "MD")) {
       if (!is.na(x$mean_cases[i]) & !is.na(x$mean_controls[i]) & !is.na(x$sd_cases[i]) & !is.na(x$sd_controls[i])) {
         situation[i] <- paste0(situation[i], "_", "mean/SD")
+      }
+    } else if (x$measure[i] %in% c("SMC")) {
+      if (!is.na(x$mean_cases[i]) & !is.na(x$mean_controls[i]) & !is.na(x$sd_cases[i]) & !is.na(x$sd_controls[i]) &
+          !is.na(x$mean_pre_cases[i]) & !is.na(x$mean_pre_controls[i]) & !is.na(x$sd_pre_cases[i]) & !is.na(x$sd_pre_controls[i])) {
+        situation[i] <- paste0(situation[i], "_", "mean/SD_pre/post")
+      } else if (!is.na(x$mean_change_cases[i]) & !is.na(x$mean_change_controls[i]) & !is.na(x$sd_change_cases[i]) & !is.na(x$sd_change_controls[i])) {
+        situation[i] <- paste0(situation[i], "_", "mean/SD_change")
       }
     } else if (x$measure[i] %in% c("OR", "RR", "HR", "logOR", "logRR", "logHR")) {
       if (!is.na(x$n_cases_exp[i]) & !is.na(x$n_cases_nexp[i]) & !is.na(x$n_controls_exp[i]) & !is.na(x$n_controls_nexp[i])) {

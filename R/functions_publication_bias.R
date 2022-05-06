@@ -7,7 +7,7 @@
 #' @noRd
 .egger_pb <- function(value, se, measure) {
 
-  if (measure == "SMD") {
+  if (measure == "non_ratio") {
     value_ok = value
     se_ok = se
   } else if (measure == "ratio") {

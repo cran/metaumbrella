@@ -1,5 +1,5 @@
 test_that("publication bias correclty performs egger's test", {
-  df.OR$se <- with(df.OR, (log(ci_up) - log(ci_lo)) / 3.92)
+  df.OR$se <- with(df.OR, (log(ci_up) - log(ci_lo)) / qnorm(0.975))
 
   df.or <- subset(df.OR, factor == "ADHD")
   df.smd <- subset(df.SMD, factor == "Pharmacological")
@@ -28,12 +28,8 @@ test_that("publication bias correclty performs egger's test", {
 
   expect_equal(umb2[[1]]$egger$p.value, res_rma2$pval)
 
-  res1 <- .egger_pb(.as_numeric(rma1$yi), sqrt(rma1$vi), measure = "SMD")
-  res2 <- .egger_pb(.as_numeric(rma2$yi), sqrt(rma2$vi), measure = "SMD")
-
   df.smd2 <- subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls))
   df.or2 <- subset(df.OR, factor == "ADHD", select = -c(n_cases_exp, n_cases_nexp, n_controls_exp))
-
 
   umb <- umbrella(df.smd2, method.var = "REML")
   expect_equal(umb[[1]]$egger$p.value, res_rma1$pval)

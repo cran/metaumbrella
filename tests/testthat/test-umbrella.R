@@ -208,6 +208,7 @@ test_that("different measures lead to similar results: G with / without CI", {
   expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_med)
 })
 
+
 ##### OR -----------------
 
 test_that("different measures lead to similar results: OR n_cases/controls vs. n_exp/n_nexp", {

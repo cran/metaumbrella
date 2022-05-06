@@ -71,7 +71,7 @@ GNU General Public License. <br>You can use metaumbrella for free… but
 please cite our work ;-) <br> <b>Citation:</b> <em>Corentin J Gosling,
 Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella:
 An R Package for Conducting Umbrella Reviews. R package version
-1.0.2.</em><br> To obtain a bibtex version of this citation in R, type
+1.0.3.</em><br> To obtain a bibtex version of this citation in R, type
 
 ``` r
 citation(package = "metaumbrella")

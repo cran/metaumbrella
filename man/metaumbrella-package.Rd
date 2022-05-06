@@ -69,10 +69,10 @@ We detail the information that can provided in the dataset to replicate the meta
 \item \bold{n_controls_exp}: Number of controls in the exposed group in each individual study.
 \item \bold{n_cases_nexp}: Number of cases in the non-exposed group in each individual study.
 \item \bold{n_controls_nexp}: Number of controls in the non-exposed group in each individual study.
-\item \bold{mean_cases}: Mean of the cases for each individual study.
-\item \bold{mean_controls}: Mean of the controls for each individual study.
-\item \bold{sd_cases}: Standard deviation of the cases for each individual study.
-\item \bold{sd_controls}: Standard deviation of the controls for each individual study.
+\item \bold{mean_cases}: Mean of the cases (at follow up) for each individual study.
+\item \bold{mean_controls}: Mean of the controls (at follow up)  for each individual study.
+\item \bold{sd_cases}: Standard deviation of the cases (at follow up) for each individual study.
+\item \bold{sd_controls}: Standard deviation of the controls (at follow up) for each individual study.
 \item \bold{time}: Sum of the person-time of disease-free observation in the exposed and non-exposed groups for each individual study.
 \item \bold{time_exp}: Person-time of disease-free observation in the exposed group for each individual study.
 \item \bold{time_nexp}: Person-time of disease-free observation in the non-exposed group for each individual study.

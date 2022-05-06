@@ -11,6 +11,7 @@
   main_value = NA,
   main_x_axis = NA,
   max.value = NULL,
+  pch = "square",
   print.classes = NULL,
   col_sig = c("#252525", "#252525"),
   log_cex_dots = FALSE,
@@ -28,7 +29,7 @@
   cex_value = 0.9,
   cex_x_axis = 1.1,
   cex_x_axis_value = 0.8,
-  cex_dots = 1.2,
+  cex_dots = 1,
   col_title = "#1D1D1D",
   col_text_header = "#252525",
   col_text = "#252525",
@@ -62,6 +63,8 @@
 \item{max.value}{the maximum value that will be plotted on the x-axis.
 Must be strictly superior to 1 when equivalent odds ratio (eOR) measure is used, and strictly superior to 0 when SMD measure is used.
 Note that minimum value will be automatically set to the inverse of \code{max.value} for eOR measure and to \code{- max.value} for SMD measure.}
+
+\item{pch}{the shape used to depict the pooled effect size (must be either "square", "circle", "rhombus" or "triangle")}
 
 \item{print.classes}{a vector of classes. Only factors reaching these classes will be displayed on the plot.
 These classes must be:

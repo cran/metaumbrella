@@ -71,6 +71,11 @@
   sum_N = sum(n_cases, n_controls, na.rm = TRUE) # NA for IRR
 
   return(data.frame(
+    row_index = unique(x$row_index)[1],
+    author = unique(x$author),
+    year = unique(x$year),
+    multiple_es = "aggregated_group",
+    duplicate = FALSE,
     value = .unique_es_subgroups(x, measure)$value,
     se = .unique_es_subgroups(x, measure)$se,
     ci_lo = .unique_es_subgroups(x, measure)$ci_lo,
@@ -91,11 +96,6 @@
     time = sum(x$time),
     time_exp = sum(x$time_exp),
     time_nexp = sum(x$time_nexp),
-    author = unique(x$author),
-    year = unique(x$year),
-    row_index = unique(x$row_index)[1],
-    multiple_es = "aggregated_group",
-    duplicate = FALSE,
     rob.recoded = weighted.mean(x$rob, apply(cbind(x$n_cases, x$n_controls), 1, sum, na.rm = TRUE)),
     shared_nexp = unique(x$shared_nexp),
     shared_controls = unique(x$shared_controls),
@@ -159,6 +159,11 @@
   }
 
   return(data.frame(
+    row_index = unique(x$row_index)[1],
+    author = unique(x$author),
+    year = unique(x$year),
+    multiple_es = "aggregated_outcome",
+    duplicate = FALSE,
     value = value,
     se = se,
     ci_lo = ci_lo,
@@ -179,11 +184,6 @@
     time = time,
     time_exp = time_exp,
     time_nexp = time_nexp,
-    author = unique(x$author),
-    year = unique(x$year),
-    row_index = unique(x$row_index)[1],
-    multiple_es = "aggregated_outcome",
-    duplicate = FALSE,
     rob.recoded = weighted.mean(x$rob, apply(cbind(x$n_cases, x$n_controls), 1, sum, na.rm = TRUE)),
     shared_nexp = unique(x$shared_nexp),
     shared_controls = unique(x$shared_controls),
@@ -220,12 +220,12 @@
   ##### 4) we create the corresponding datasets for each situation
   df_group <- do.call(rbind, lapply(x_mult_group_split, .agg_subgroups, measure))
   df_outcome <- do.call(rbind, lapply(x_mult_outcome_split, .agg_outcomes, measure))
-  df_unique <- x_unique[,c('value', 'se', 'ci_lo', 'ci_up', 'n_cases', 'n_controls', 'mean_cases',
+  df_unique <- x_unique[,c('row_index', 'author', 'year', 'multiple_es', 'duplicate',
+                           'value', 'se', 'ci_lo', 'ci_up', 'n_cases', 'n_controls', 'mean_cases',
                            'sd_cases', 'mean_controls', 'sd_controls',
                            'sum_N', 'n_cases_exp', 'n_controls_exp', 'n_cases_nexp', 'n_controls_nexp',
                            'n_exp', 'n_nexp', 'time', 'time_exp', 'time_nexp',
-                           'author', 'year', 'row_index',
-                           'multiple_es', 'duplicate', 'rob.recoded', 'shared_nexp',
+                           'rob.recoded', 'shared_nexp',
                            'shared_controls', 'thr', 'reverse_es', 'r')]
 
   # 4) we return the merged datasets

@@ -398,9 +398,43 @@
                          se = x[largest_index, ]$se)
   }
   if (return == "ci") {
-    # ci_lo_G = with(largest, .estimate_g_from_d(d = ci_lo, n_cases = n_cases, n_controls = n_controls, se = se))$value
-    # ci_up_G = with(largest, .estimate_g_from_d(d = ci_up, n_cases = n_cases, n_controls = n_controls, se = se))$value
-    # dat = data.frame(ci_lo = ci_lo_G, ci_up = ci_up_G)
+    dat = largest[, c("ci_lo", "ci_up")]
+  } else if (return == "value") {
+    dat = .as_numeric(largest$value)
+  } else if (return == "nrow") {
+    dat = largest_index
+  }
+  return(dat)
+}
+
+#' function selecting the largest study with Z measure
+#'
+#' @param x a well formatted dataset
+#'
+#' @noRd
+.largest_z <- function(x, return = "ci") {
+
+  largest_index_transit = which(x$sum_N == max(x$sum_N))
+
+  if (length(largest_index_transit) > 1) {
+    largest_index = which.min(abs(x[largest_index_transit,]$value))
+
+    # if there is equality in the sum_N we take the study with the lowest ES
+    largest = data.frame(ci_lo = x[largest_index_transit, ]$ci_lo[largest_index],
+                         ci_up = x[largest_index_transit, ]$ci_up[largest_index],
+                         value = x[largest_index_transit, ]$value[largest_index],
+                         n_sample = x[largest_index_transit, ]$n_sample[largest_index],
+                         se = x[largest_index_transit, ]$se[largest_index])
+  } else {
+    # there is only one maximum value for sum_N
+    largest_index = largest_index_transit
+    largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
+                         ci_up = x[largest_index, ]$ci_up,
+                         value = x[largest_index, ]$value,
+                         n_sample = x[largest_index, ]$n_sample,
+                         se = x[largest_index, ]$se)
+  }
+  if (return == "ci") {
     dat = largest[, c("ci_lo", "ci_up")]
   } else if (return == "value") {
     dat = .as_numeric(largest$value)
@@ -427,8 +461,6 @@
 .convert_RR_to_OR <- function(x){
 
   for (i in which(x[, "measure"] == "RR")) {
-    x[i, "measure"] = "OR"
-
     x_raw_i = x[i, ]
 
     # We convert RR into an OR
@@ -443,8 +475,6 @@
       } else {
         value_i = x_raw_i$value
         se_i = x_raw_i$se
-        x[i, "ci_lo"] = x_raw_i$value / exp(qnorm(0.975) * se_i)
-        x[i, "ci_up"] = x_raw_i$value * exp(qnorm(0.975) * se_i)
       }
 
       tmp2 = .estimate_n_from_rr(value_i, se_i^2, x_raw_i$n_cases, x_raw_i$n_controls)
@@ -453,8 +483,7 @@
       x[i, "n_cases_nexp"] = tmp2$n_cases_nexp
       x[i, "n_controls_exp"] = tmp2$n_exp - tmp2$n_cases_exp
       x[i, "n_controls_nexp"] = tmp2$n_nexp - tmp2$n_cases_nexp
-      x[i, "situation"] = paste0(x_raw_i$situation, "_2x2")
-      x[i, "situation"] = gsub("RR", "OR", as.character(x[i, "situation"]))
+      x[i, "situation"] = paste0(x_raw_i$situation, "RR_2x2")
 
       # USERS REPORT: 2x2 table
     } else {
@@ -464,8 +493,8 @@
       x[i, "ci_lo"] = NA
       x[i, "ci_up"] = NA
     }
+    x[i, "measure"] = "OR"
   }
-
   return(x)
 }
 
@@ -479,7 +508,6 @@
   for (i in which(x[, "measure"] == "HR")) {
     x[i, "measure"] = "OR"
     x[i, "situation"] = gsub("HR", "OR", as.character(x[i, "situation"]))
-
   }
 
   return(x)
@@ -490,15 +518,25 @@
 #' @param x a well formatted dataframe
 #'
 #' @noRd
-.convert_OR_to_SMD <- function(x){
+.convert_OR_to_SMD <- function(x) {
 
   for (i in which(x[, "measure"] == "OR")) {
+
     x_raw_i = x[i, ]
 
     if (is.na(x_raw_i$n_cases_exp) | is.na(x_raw_i$n_cases_nexp) |
         is.na(x_raw_i$n_controls_exp) | is.na(x_raw_i$n_controls_nexp)) {
-      # users report OR + CI/SE/VAR
-      tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, TRUE)
+
+      # users report OR + SE/VAR
+      if (!is.na(x_raw_i$se)) {
+        tmp = data.frame(value = x_raw_i$value,
+                         ci_lo = x_raw_i$value / exp(qnorm(0.975) * x_raw_i$se),
+                         ci_up = x_raw_i$value * exp(qnorm(0.975) * x_raw_i$se))
+
+        # users report OR + CI
+      } else if (is.na(x_raw_i$se)) {
+        tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, TRUE)
+      }
 
       # users report OR + n_cases/controls
       if (is.na(tmp$value)) {
@@ -512,22 +550,20 @@
         x[i, "value"] = .or_to_d(tmp2$value)
         x[i, "ci_lo"] = NA
         x[i, "ci_up"] = NA
-        x[i, "situation"] = gsub("_CI", "", as.character(x[i, "situation"]))
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES")
       } else {
         x[i, "value"] = .or_to_d(tmp$value)
         x[i, "ci_lo"] = .or_to_d(tmp$ci_lo)
         x[i, "ci_up"] = .or_to_d(tmp$ci_up)
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI")
       }
       # users report 2x2 table
     } else {
-      tmp = .estimate_or_from_n(x[i,"n_cases_exp"], x[i,"n_cases_nexp"], x[i,"n_controls_exp"], x[i,"n_controls_nexp"])
+      tmp = .estimate_or_from_n(x[i, "n_cases_exp"], x[i, "n_cases_nexp"], x[i, "n_controls_exp"], x[i, "n_controls_nexp"])
       x[i, "value"] = .or_to_d(tmp$value)
       x[i, "ci_lo"] = .or_to_d(tmp$value / exp(qnorm(0.975) * tmp$se))
       x[i, "ci_up"] = .or_to_d(tmp$value * exp(qnorm(0.975) * tmp$se))
-      x[i, "situation"] = gsub("2x2", "", as.character(x[i, "situation"]))
-      x[i, "situation"] = gsub("OR", "SMD", as.character(x[i, "situation"]))
-      x[i, "situation"] = paste0(as.character(x[i, "situation"]), "_ES_CI")
-
+      x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI")
     }
 
     x[i, "measure"] = "SMD"
@@ -541,29 +577,36 @@
 #' @param x a well formatted dataframe
 #'
 #' @noRd
-.convert_SMD_to_OR <- function(x){
+.convert_SMD_to_OR <- function(x) {
 
   for (i in which(x[, "measure"] == "SMD")) {
+
     x_raw_i = x[i, ]
 
     if (is.na(x_raw_i$mean_cases) | is.na(x_raw_i$mean_controls) |
         is.na(x_raw_i$sd_cases) | is.na(x_raw_i$sd_controls)) {
-      # users report SMD + CI/SE/VAR
-      tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
+
+      # users report SMD + SE/VAR
+      if (!is.na(x_raw_i$se)) {
+        tmp = data.frame(value = x_raw_i$value,
+                         ci_lo = x_raw_i$value - x_raw_i$se * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2),
+                         ci_up = x_raw_i$value + x_raw_i$se * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2))
+        # users report SMD + CI
+      } else if (is.na(x_raw_i$se)) {
+        tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
+      }
 
       # users report SMD + n_cases/controls
       if (is.na(tmp$value)) {
-
         x[i, "value"] = .d_to_or(x_raw_i$value)
         x[i, "ci_lo"] = NA
         x[i, "ci_up"] = NA
-        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "OR_ES_cases_controls")
-        # users report SMD + CI + n_cases/controls
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_cases_controls")
       } else {
         x[i, "value"] = .d_to_or(tmp$value)
         x[i, "ci_lo"] = .d_to_or(tmp$ci_lo)
         x[i, "ci_up"] = .d_to_or(tmp$ci_up)
-        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "OR_ES_CI_cases_controls")
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI_cases_controls")
       }
       # users report means/SD
     } else {
@@ -573,15 +616,137 @@
       x[i, "value"] = .d_to_or(tmp$value)
       x[i, "ci_lo"] = .d_to_or(tmp$ci_lo)
       x[i, "ci_up"] = .d_to_or(tmp$ci_up)
-
-      x[i, "situation"] = gsub("mean/SD", "", as.character(x[i, "situation"]))
-
-      x[i, "situation"] = paste0(as.character(x[i, "situation"]), "OR_ES_CI_cases_controls")
+      x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI_cases_controls")
     }
 
     x[i, "measure"] = "OR"
   }
 
+  return(x)
+}
+
+#' convert a Z to a SMD
+#'
+#' @param x a well formatted dataframe
+#'
+#' @noRd
+.convert_Z_to_SMD <- function(x){
+
+  for (i in which(x[, "measure"] == "Z")) {
+
+    x_raw_i = x[i, ]
+
+    # users report z + se
+    if (!is.na(x_raw_i$se)) {
+      x_raw_i$ci_lo = (x_raw_i$value - qnorm(0.975) * x_raw_i$se)
+      x_raw_i$ci_up = (x_raw_i$value + qnorm(0.975) * x_raw_i$se)
+      ci_lo = .z_to_r(x_raw_i$ci_lo)
+      ci_up = .z_to_r(x_raw_i$ci_up)
+      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+      r = .z_to_r(x_raw_i$value)
+      # users report z + 95% CI
+    } else if (!is.na(x_raw_i$ci_lo) & x_raw_i$ci_up) {
+      tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
+      ci_lo = .z_to_r(tmp$ci_lo)
+      ci_up = .z_to_r(tmp$ci_up)
+      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+      r = .z_to_r(tmp$value)
+    # users report z
+    } else {
+      x_raw_i$se = sqrt(1 / (x_raw_i$n_sample - 3))
+      x_raw_i$ci_lo = (x_raw_i$value - qnorm(0.975) * x_raw_i$se)
+      x_raw_i$ci_up = (x_raw_i$value + qnorm(0.975) * x_raw_i$se)
+
+      ci_lo = .z_to_r(x_raw_i$ci_lo)
+      ci_up = .z_to_r(x_raw_i$ci_up)
+      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+      r = .z_to_r(x_raw_i$value)
+    }
+
+    x[i, "value"] = .r_to_d(r)
+    # x[i, "se"] = sqrt(4 * (se_r^2) / ((1 - r^2)^3))
+    # x[i, "ci_lo"] = (x[i, "value"] - qnorm(0.975) * x[i, "se"])
+    # x[i, "ci_up"] = (x[i, "value"] + qnorm(0.975) * x[i, "se"])
+    # x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_SE_CI")
+    x[i, "ci_lo"] = .z_to_r(ci_lo)
+    x[i, "ci_up"] = .z_to_r(ci_up)
+    x[i, "n_cases"] = round(x[i, "n_sample"] / 2)
+    x[i, "n_controls"] = round(x[i, "n_controls"] / 2)
+    x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI")
+    x[i, "measure"] = "SMD"
+  }
+  return(x)
+}
+
+#' convert a SMC to an SMD
+#'
+#' @param x a well formatted dataframe
+#'
+#' @noRd
+.convert_SMC_to_SMD <- function(x, pre_post_cor){
+
+  for (i in which(x[, "measure"] == "SMC")) {
+
+    x_raw_i = x[i, ]
+
+    if (!is.na(x_raw_i$mean_change_cases) & !is.na(x_raw_i$mean_change_controls) &
+        !is.na(x_raw_i$sd_change_cases) & !is.na(x_raw_i$sd_change_controls)) {
+        tmp = .estimate_smc_change(n_cases = x_raw_i$n_cases, n_controls = x_raw_i$n_controls,
+                                   mean_change_cases = x_raw_i$mean_change_cases, sd_change_cases = x_raw_i$sd_change_cases,
+                                   mean_change_controls = x_raw_i$mean_change_controls, sd_change_controls = x_raw_i$sd_change_controls)
+        value_i = tmp$value
+        se_i = tmp$se
+        ci_lo_i = value_i - se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+        ci_up_i = value_i + se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+    } else if (!is.na(x_raw_i$value) & !is.na(x_raw_i$se)) {
+        value_i = x_raw_i$value
+        se_i = x_raw_i$se
+        ci_lo_i = value_i - se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+        ci_up_i = value_i + se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+    } else if (!is.na(x_raw_i$value) & !is.na(x_raw_i$ci_lo) & !is.na(x_raw_i$ci_up)) {
+        tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
+        value_i = tmp$value
+        ci_lo_i = value_i - se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+        ci_up_i = value_i + se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+        se_i = (ci_up_i - ci_lo_i) / (2 * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2))
+     } else {
+        if (is.na(x_raw_i$pre_post_cor) & is.na(pre_post_cor) & is.na(x_raw_i$value) & is.na(x_raw_i$se) & is.na(x_raw_i$ci_lo) & is.na(x_raw_i$ci_up)) {
+          pre_post_cor_est_cases = (x$sd_pre_cases^2 * x$sd_cases^2 - x$sd_change_cases) / (2 * x$sd_pre_cases^2 * x$sd_cases^2)
+          pre_post_cor_est_controls = (x$sd_pre_controls^2 * x$sd_controls^2 - x$sd_change_controls) / (2 * x$sd_pre_controls^2 * x$sd_controls^2)
+
+          if (any(!is.na(pre_post_cor_est_cases) | !is.na(pre_post_cor_est_controls))) {
+            row = which(!is.na(pre_post_cor_est_cases) | !is.na(pre_post_cor_est_controls))
+            pre_post_cor_est = apply(cbind(pre_post_cor_est_cases, pre_post_cor_est_controls), 1, mean, na.rm = TRUE)
+            weights = 1 / ((x$n_cases + x$n_controls)^2)
+            pre_post_cor = sum(weights[row] * pre_post_cor_est[row]) / sum(weights[row])
+            warning(paste0("The pre/post correlation was calculated using values indicated in studies: ", paste(paste0(x$author[row], " (", x$year[row], ")"), collapse = " / ")))
+          }
+
+          cor_i = ifelse(!is.na(x_raw_i$pre_post_cor), x_raw_i$pre_post_cor,
+                         ifelse(!is.na(pre_post_cor), pre_post_cor,
+                                stop("The pre/post correlation should be indicated when using the 'SMC' measure.")))
+
+          tmp = .estimate_smc_raw(n_cases = x_raw_i$n_cases, n_controls = x_raw_i$n_controls,
+                                  mean_pre_cases = x_raw_i$mean_pre_cases, mean_cases = x_raw_i$mean_cases,
+                                  sd_pre_cases = x_raw_i$sd_pre_cases, sd_cases = x_raw_i$sd_cases,
+                                  mean_pre_controls = x_raw_i$mean_pre_controls, mean_controls = x_raw_i$mean_controls,
+                                  sd_pre_controls = x_raw_i$sd_pre_controls, sd_controls = x_raw_i$sd_controls,
+                                  cor = cor_i)
+          value_i = tmp$value
+          se_i = tmp$se
+          ci_lo_i = value_i - se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+          ci_up_i = value_i + se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+        }
+     }
+
+    x[i, "measure"] = "SMD"
+    x[i, "value"] = value_i
+    x[i, "se"] = se_i
+    x[i, "ci_lo"] = ci_lo_i
+    x[i, "ci_up"] = ci_up_i
+    x[i, "situation"] = gsub("SMC", "SMD", as.character(x[i, "situation"]))
+    x[i, "situation"] = gsub("mean/SD_", "", as.character(x[i, "situation"]))
+  }
   return(x)
 }
 
@@ -597,7 +762,7 @@
 }
 
 #' @importFrom grDevices dev.off pdf
-#' @importFrom graphics lines plot.new plot.window strwidth text
+#' @importFrom graphics lines plot.new plot.window strwidth text points
 #' @importFrom stats prop.test aggregate.data.frame binom.test lm na.omit optim optimize pnorm pt qnorm qt quantile rbinom rpois weighted.mean
 #' @importFrom utils browseURL write.csv
 NULL

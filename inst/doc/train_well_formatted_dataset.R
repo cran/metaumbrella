@@ -104,6 +104,7 @@ DT::datatable(d[d$column_errors != "", ], options = list(
 names(df.train)[names(df.train) == "effect_size_value"] <- "value"
 names(df.train)[names(df.train) == "low_bound_ci"] <- "ci_lo" 
 names(df.train)[names(df.train) == "up_bound_ci"] <- "ci_up" 
+names(df.train)[names(df.train) == "time_disease_free"] <- "time" 
 
 ## -----------------------------------------------------------------------------
 errors <- view.errors.umbrella(df.train)

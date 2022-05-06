@@ -44,6 +44,7 @@ forest <- function (x, ...) {
 #' @param max.value the maximum value that will be plotted on the x-axis.
 #' Must be strictly superior to 1 when equivalent odds ratio (eOR) measure is used, and strictly superior to 0 when SMD measure is used.
 #' Note that minimum value will be automatically set to the inverse of \code{max.value} for eOR measure and to \code{- max.value} for SMD measure.
+#' @param pch the shape used to depict the pooled effect size (must be either "square", "circle", "rhombus" or "triangle")
 #' @param print.classes a vector of classes. Only factors reaching these classes will be displayed on the plot.
 #' These classes must be:
 #' - "I", "II", "III", "IV" and/or "ns" for the "Ioannidis" classification
@@ -133,6 +134,7 @@ forest.umbrella <- function (x,
                              main_value = NA,
                              main_x_axis = NA,
                              max.value = NULL,
+                             pch = "square",
                              print.classes = NULL,
                              col_sig = c("#252525", "#252525"),
                              log_cex_dots = FALSE,
@@ -150,7 +152,7 @@ forest.umbrella <- function (x,
                              cex_value = 0.9,
                              cex_x_axis = 1.1,
                              cex_x_axis_value = 0.8,
-                             cex_dots = 1.2,
+                             cex_dots = 1,
                              col_title = "#1D1D1D",
                              col_text_header = "#252525",
                              col_text = "#252525",
@@ -177,6 +179,18 @@ forest.umbrella <- function (x,
     measure <- "eG"
   } else if (measure == "OR") {
     measure <- "eOR"
+  }
+
+  if (pch %in% c("circle", "circles", "Circle", "Circles")) {
+    pch = 21
+  } else if (pch %in% c("square", "squares", "Square", "Squares")) {
+    pch = 22
+  } else if (pch %in% c("rhombus", "Rhombus")) {
+    pch = 23
+  } else if (pch %in% c("triangle", "triangles", "Triangle", "Triangles")) {
+    pch = 24
+  } else {
+    stop("The pch argument must be either 'circle', 'square', 'rhombus', or 'triangle'.")
   }
 
   if (pos_value == "right-align") {
@@ -296,22 +310,50 @@ forest.umbrella <- function (x,
     pos.y.value <- n.stud + 1 - 1:n.stud + ylim_correction_value + pos_value_ylim_cor
     pos.y.text <- n.stud + 1 - 1:n.stud + ylim_correction_text + pos_text_ylim_cor
   }
+
   #name of the factors to plot
   labels <- rownames(y)
+
   # size of points
   if (is.na(fix_size_dots)) {
-    lwd <- 1 / (y$ci_up - y$ci_lo);
-    if(length(lwd) > 1) {
-      lwd <- sqrt(30 + 150 * (lwd - min(lwd)) / (max(lwd) - min(lwd))) * cex_dots
+
+    lwd <- 1 / (y$ci_up - y$ci_lo)
+
+    if (!log_cex_dots) {
+
+      if (length(lwd) > 1) {
+        if (min(lwd) < 0.65 | max(lwd) > 2) {
+            lwd = ((lwd - min(lwd)) / (max(lwd) - min(lwd)) * 1.35 + 0.65) * cex_dots
+          } else {
+            lwd = lwd * cex_dots
+          }
+      } else {
+        if (lwd < 0.7 | lwd > 2) {
+          lwd = 1.3 * cex_dots
+        }
+      }
+
     } else {
-      if (lwd < 10) {
-        lwd <- 10
+
+      if (length(lwd) > 1) {
+        if (min(lwd) < 1 | max(lwd) > 2) {
+            lwd = ((lwd - min(lwd)) / (max(lwd) - min(lwd)) + 1) * cex_dots
+          } else {
+            lwd = lwd * cex_dots
+          }
+      } else {
+        if (lwd < 0.7 | lwd > 2) {
+          lwd = 1.3 * cex_dots
+        }
       }
     }
-    if (log_cex_dots) { lwd <- log(lwd) * 4 }
+
   } else {
+
     lwd <- rep(fix_size_dots, nrow(y))
+
   }
+
   if (measure == "eG") {
     value.text <- paste0(gsub(" ", "", format(round(y$y, 2), nsmall = 2)), " [",
                          gsub(" ", "", format(round(y$ci_lo, 2), nsmall = 2)), ", ",
@@ -447,8 +489,10 @@ forest.umbrella <- function (x,
 
     # plot value
     if (y_i < max.value) {
-      lines(x = rep(y_i / max.value * 2, 2), y = rep(pos.y.value_i, 2) - pos_value_ylim_cor - ylim_correction_value,
-            lwd = lwd[i], col = col2_i);
+      points(x = y_i / max.value * 2,
+             y = pos.y.value_i - pos_value_ylim_cor - ylim_correction_value,
+             cex = lwd[i], col = col_lines, bg = col2_i, pch = pch)
+
     }
 
     if (ci_lo_i < max.value) {

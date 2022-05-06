@@ -112,10 +112,10 @@ summary(evid_ioannidis)
 ### stratify evidence according to the Personalized classification with
 ### the number of studies and cases, the inconsistency as criteria.
 ### - a class I can be reached if the number of studies is > 10, the number of cases is > 500 and
-###   the I² is < 25\%.
+###   the I2 is < 25\%.
 ### - a class II can be reached if the number of studies is > 5, the number of cases is > 400 and
-###   the I² is < 50\%.
-### - a class III can be reached if the number of cases is > 300 and the I² is < 75\%.
+###   the I2 is < 50\%.
+### - a class III can be reached if the number of cases is > 300 and the I2 is < 75\%.
 ### - a class IV can be reached if the number of cases is > 100.
 ### - else, if the number of cases is <= 100, a class V is assigned.
 evid_perso1 <- add.evidence(umb.full, criteria = "Personalized",
@@ -124,28 +124,6 @@ evid_perso1 <- add.evidence(umb.full, criteria = "Personalized",
    class_III = c(n_cases = 300, I2 = 75),
    class_IV = c(n_cases = 100))
 summary(evid_perso1)
-
-### stratify evidence according to the Personalized classification with
-### the risk of bias, the excess of significance the 95\% prediction interval as criteria.
-### - a class I can be reached if the \% of participants in studies at low risk of bias is > 80\%,
-### the p-value at the Ioannidis' test is > .10 and the 95\% prediction interval excludes
-### the null value.
-### - a class II can be reached if the \% of participants in studies at low risk of bias is > 60\%,
-###   the p-value at the Ioannidis' test is > .0.05 and the 95\% prediction interval excludes
-###   the null value.
-### - a class III can be reached if the \% of participants in studies at low risk of bias
-###   is > 40\% and the p-value at the Ioannidis' test is > .0.05
-### - a class IV can be reached if the \% of participants in studies at low risk of bias
-###   is > 20\% and the p-value at the Ioannidis' test is > .0.05
-### - else, if the \% of participants in studies at low risk of bias is < 20\% or
-###   if there is evidence of excess significance bias (p <= .05), a class V is assigned.
-evid_perso2 <- add.evidence(umb.full,
-   criteria = "Personalized",
-   class_I = c(rob = 80, esb_p = 0.10, pi = "notnull"),
-   class_II = c(rob = 60, esb_p = 0.05, pi = "notnull"),
-   class_III = c(rob = 40, esb_p = 0.05),
-   class_IV = c(rob = 20, esb_p = 0.05))
-summary(evid_perso2)
 }
 \references{
 Fusar-Poli, P., & Radua, J. (2018). Ten simple rules for conducting umbrella reviews. \emph{Evidence-Based Mental Health}, \bold{21}, 95-100.

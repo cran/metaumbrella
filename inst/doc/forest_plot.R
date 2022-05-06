@@ -77,7 +77,7 @@ metaumbrella:::.quiet(forest(umb,
 #                  main_x_axis = "Odds Ratio (OR)",
 #                  main_title = "Umbrella review of risk factors for\n neurodevelopmental disorders",
 #                  cex_title = 1.1,
-#                  fix_size_dots = 10 # fix the size of the dots
+#                  fix_size_dots = 1.5 # fix the size of the dots
 #  )
 #  
 
@@ -88,7 +88,7 @@ metaumbrella:::.quiet(forest(umb,
                 main_x_axis = "Odds Ratio (OR)", 
                 main_title = "Umbrella review of risk factors for\n neurodevelopmental disorders",
                 cex_title = 1.1, 
-                fix_size_dots = 10
+                fix_size_dots = 1.5
 ))
 
 ## ---- eval=FALSE--------------------------------------------------------------

@@ -1,4 +1,4 @@
-#' Estimates SMD from means and standard deviations.
+#' Estimate SMD from means and standard deviations.
 #'
 #' @param n_cases number of cases
 #' @param n_controls number of controls
@@ -9,7 +9,6 @@
 #'
 #' @noRd
 .estimate_d_from_means = function (n_cases, n_controls, mean_cases, sd_cases, mean_controls, sd_controls) {
-  df = n_cases + n_controls - 2
   pooled_sd = sqrt(((n_cases - 1) * sd_cases^2 + (n_controls - 1) * sd_controls^2) / (n_cases + n_controls - 2))
   d = (mean_cases - mean_controls) / pooled_sd
   returned_df <- data.frame(
@@ -19,7 +18,7 @@
   return(returned_df)
 }
 
-#' Estimates standard error of SMD from sample size in each group
+#' Estimate standard error of SMD from sample size in each group
 #'
 #' @param n_cases number of cases
 #' @param n_controls number of control
@@ -27,7 +26,6 @@
 #'
 #' @noRd
 .estimate_se_from_d = function (n_cases, n_controls, d) {
-  df = n_cases + n_controls - 2
   returned_df = (data.frame(
     value = d,
     se = sqrt(1 / n_cases + 1 / n_controls)
@@ -35,19 +33,20 @@
   return(returned_df)
 }
 
-#' Estimates the Hedges' g correction factor
+#' Estimate the Hedges' g correction factor
 #'
 #' @param x applied on df
 #'
 #' @noRd
 .d_j <- function (x) {
+
   j <- ifelse(x < 1, -1, 1) * exp(lgamma(x / 2) - 0.5 * log(x / 2) - lgamma((x - 1) / 2))
   na.j <- which(is.na(j))
   j[na.j] <- 1 - 3 / (4 * x[na.j] - 1)
   return(j)
 }
 
-#' Estimates the Hedges' g from SMD
+#' Estimate the Hedges' g from SMD
 #'
 #' @param d d
 #' @param n_cases number of cases
@@ -67,7 +66,7 @@
   return(data.frame(value = g, se = se_ok))
 }
 
-#' Estimates the SMD from Hedges' g
+#' Estimate the SMD from Hedges' g
 #'
 #' @param g g
 #' @param n_cases number of cases
@@ -112,7 +111,7 @@
 #'
 #' @noRd
 .or_to_d = function (or) {
-  return(log(or) * sqrt(3) / pi) # formula (7.1) page 47 Borenstein et al. (2009)
+  return(log(or) * (sqrt(3) / pi)) # formula (7.1) page 47 Borenstein et al. (2009)
 }
 
 #' Convert a Pearson's r to a SMD
@@ -122,6 +121,15 @@
 #' @noRd
 .r_to_d = function (r) {
   return(2 * r / sqrt(1 - r^2)) # formula (7.5) page 48 Borenstein et al. (2009)
+}
+
+#' Convert a Fisher's Z to a SMD
+#'
+#' @param z Fisher's Z
+#'
+#' @noRd
+.z_to_d = function (z) {
+  return(2 * .z_to_r(z) / sqrt(1 - .z_to_r(z)^2))
 }
 
 #' Estimate d (and standard error) from a t value
@@ -135,7 +143,46 @@
   df = n_cases + n_controls - 2
   inv_n = 1 / n_cases + 1 / n_controls
   d = sqrt(inv_n) * t
-  data.frame(value = d,
-             se = sqrt(1 / n_cases + 1 / n_controls)
-             )
+  returned_df = data.frame(value = d,
+                           se = sqrt(1 / n_cases + 1 / n_controls))
+
+  return(returned_df)
+}
+
+# Taken from Wan et al. 2014: https://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-135#Equ9
+meanSD_from_med_quart <- function(q1_cases = NA, med_cases = NA, q3_cases = NA, n_cases = NA,
+                                  q1_controls = NA, med_controls = NA, q3_controls = NA, n_controls = NA) {
+
+  mean_cases = (q1_cases + med_cases + q3_cases) / 3
+  sd_cases = (q3_cases - q1_cases)/(2*qnorm((0.75*n_cases - 0.125) / (n_cases + 0.25), 0, 1))
+
+  mean_controls = (q1_controls + med_controls + q3_controls) / 3
+  sd_controls = (q3_controls - q1_controls)/(2*qnorm((0.75*n_controls - 0.125) / (n_controls + 0.25), 0, 1))
+
+  d_se = .estimate_d_from_means(n_cases, n_controls,
+                                mean_cases, sd_cases,
+                                mean_controls, sd_controls)
+
+  returned_df = data.frame(value = d_se$value,
+                           se = d_se$se)
+
+  return(returned_df)
+}
+meanSD_from_min_max <- function(min_cases = NA, med_cases = NA, max_cases = NA, n_cases = NA,
+                                min_controls = NA, med_controls = NA, max_controls = NA, n_controls = NA) {
+
+  mean_cases = (min_cases + 2*med_cases + max_cases) / 4
+  sd_cases = (max_cases - min_cases) / (2*qnorm((n_cases - 0.375) / (n_cases + 0.25), 0, 1))
+
+  mean_controls = (min_controls + 2*med_controls + max_controls) / 4
+  sd_controls = (max_controls - min_controls) / (2*qnorm((n_controls - 0.375) / (n_controls + 0.25), 0, 1))
+
+  d_se = .estimate_d_from_means(n_cases, n_controls,
+                                mean_cases, sd_cases,
+                                mean_controls, sd_controls)
+
+  returned_df = data.frame(value = d_se$value,
+                           se = d_se$se)
+
+  return(returned_df)
 }

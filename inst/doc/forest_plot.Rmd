@@ -74,7 +74,7 @@ forest(umb)
 umb <- metaumbrella:::.quiet(umbrella(df.OR))
 metaumbrella:::.quiet(forest(umb))
 ```
-
+0
 The effect sizes are displayed as `eG`, the default in this function. Since all factors have used `OR`, we can convert the effect sizes in `eOR` using the measure argument. Moreover, because all effect sizes are `OR` and not `eOR`, we indicate it in the plot (we can do this using the `main_value` argument to modify the title of the value column and using the `main_x_axis` argument to modify the title of the x-axis). <br> 
 In the meantime, we also add a title to the plot using the `main_title` argument. 
 
@@ -160,7 +160,7 @@ forest(umb,
                 main_x_axis = "Odds Ratio (OR)", 
                 main_title = "Umbrella review of risk factors for\n neurodevelopmental disorders", 
                 cex_title = 1.1, 
-                fix_size_dots = 10 # fix the size of the dots
+                fix_size_dots = 1.5 # fix the size of the dots
 )
 
 ```
@@ -173,7 +173,7 @@ metaumbrella:::.quiet(forest(umb,
                 main_x_axis = "Odds Ratio (OR)", 
                 main_title = "Umbrella review of risk factors for\n neurodevelopmental disorders",
                 cex_title = 1.1, 
-                fix_size_dots = 10
+                fix_size_dots = 1.5
 ))
 ```
 <br>

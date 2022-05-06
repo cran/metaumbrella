@@ -10,7 +10,7 @@ esb.test(
   n_cases = NULL,
   n_controls = NULL,
   measure = NULL,
-  method = "binom.test",
+  method = "IT.binom",
   true_effect = "largest",
   seed = NA
 )
@@ -30,7 +30,7 @@ This information  can be indicated via the \code{n_controls} argument of the \co
 If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either "SMD" or "OR". However, note that for \dQuote{rma} objects, a SMD is systematically assumed to be a G (to respect the naming used in the \pkg{metafor} package). For \dQuote{meta} objects, a SMD is assumed to be a G unless it is explicitly stated that this is not the case (i.e., using the \code{method.smd = "Cohen"} argument).
 The effect size measure used can be indicated via the measure argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{method}{the method used to conduct the test. It must be \code{binom.test} or \code{chisq.test} (see details). The \code{umbrella()} function uses a \code{binom.test} method.}
+\item{method}{the method used to conduct the test. It must be \code{IT.binom} or \code{IT.chisq}  (see details).}
 
 \item{true_effect}{the best approximation of the true effect. It must be \code{"largest"} or a numeric value (see details).}
 
@@ -61,7 +61,6 @@ The dataset contains the following columns: \tabular{ll}{
 \description{
 The \code{esb.test()} function performs the 'Ioannidis' test to examine the presence of an excess of significance in a given set of studies.
 This test aims to determine whether there is an excess in the observed number of studies with statistically significant results given the mean statistical power.
-An exact binomial test or a Chi-squared test is used.
 }
 \details{
 The function starts by calculating whether each individual study has significant results (p < .05). Then, it estimates the statistical power of each individual study to detect an effect size equal to the best approximation of the true effect.
@@ -73,8 +72,8 @@ The \code{true_effect} argument can be used to select the method that will be ap
 
 Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method} argument can be used to select the test.
 \itemize{
-\item If \code{"binom.test"} is entered, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the best approximation of the true effect is considered as the probability of success. The exact test is significant if the number of statistically significant studies is higher than what could be have been expected given the mean observed power.
-\item If \code{"chisq.test"} is entered, the function performs a chi-square test based on the number of studies with significant results, the number of studies with non-significant results and their associated probability of occurrence (i.e., the statistical power to detect the best approximation of the true effect). The chi-square test is significant if the number of statistically significant studies is higher than what could be have been expected given the observed power.
+\item If \code{"IT.binom"} is entered, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the best approximation of the true effect is considered as the probability of success. The exact test is significant if the number of statistically significant studies is higher than what could be have been expected given the mean observed power.
+\item If \code{"IT.chisq"} is entered, the function performs a chi-square test based on the number of studies with significant results, the number of studies with non-significant results and their associated probability of occurrence (i.e., the statistical power to detect the best approximation of the true effect). The chi-square test is significant if the number of statistically significant studies is higher than what could be have been expected given the observed power.
 }
 }
 \examples{
