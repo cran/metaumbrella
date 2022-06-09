@@ -13,7 +13,7 @@
   max.value = NULL,
   pch = "square",
   print.classes = NULL,
-  col_sig = c("#252525", "#252525"),
+  col_sig = c(NA, NA),
   log_cex_dots = FALSE,
   fix_size_dots = NA,
   xlim = NULL,
@@ -37,6 +37,7 @@
   col_value = "#252525",
   col_x_axis = "#252525",
   col_dots = "#252525",
+  col_border = "#000000",
   col_lines = "#252525",
   pos_value = "left-align",
   pos_text = "right-align",
@@ -126,6 +127,8 @@ These classes must be:
 \item{col_x_axis}{color of the font of the x-axis.}
 
 \item{col_dots}{color of the dots.}
+
+\item{col_border}{color of the border of the dots.}
 
 \item{col_lines}{color of the lines.}
 

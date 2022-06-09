@@ -9,8 +9,9 @@ umbrella(
   method.var = "REML",
   mult.level = FALSE,
   r = 0.5,
-  method.esb = "IT.binom",
-  true_effect = "largest",
+  method.esb = "TESSPSST",
+  true_effect = "UWLS",
+  pre_post_cor = NA,
   seed = NA,
   verbose = TRUE
 )
@@ -18,17 +19,19 @@ umbrella(
 \arguments{
 \item{x}{a well-formatted dataset.}
 
-\item{method.var}{the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.}
+\item{method.var}{the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used. A fixed-effect meta-analysis can be obtained by indicated the \code{method.var = "FE"} argument.}
 
 \item{mult.level}{a logical variable indicating the presence of multiple effect sizes per study in at least one factor of the umbrella review. Default is \code{FALSE} (i.e., each study of all factors include only one effect size). If \code{mult.level = TRUE} is specified, the Borenstein's methods are used to generate only one effect size per study. See \code{\link{metaumbrella-package}} for more information.}
 
 \item{r}{a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.}
 
-\item{method.esb}{the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"} or \code{"IT.chisq"} (see details). Default is \code{"IT.binom"}.}
+\item{method.esb}{the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"}, \code{"IT.chisq"}, \code{"PSST"}, \code{"TESS"} or \code{"TESSPSST"}  (see details). Default is \code{TESSPSST}.}
 
-\item{true_effect}{the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is \code{"largest"}.}
+\item{true_effect}{the method to estimate the true effect in the test for excess significance. It must be \code{"largest"}, \code{"UWLS"}, \code{"pooled"} or a numeric value (see details). Default is \code{"UWLS"}.}
 
-\item{seed}{an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.}
+\item{pre_post_cor}{The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. If your umbrella review includes pre-post controlled studies, you should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.}
+
+\item{seed}{an integer value used as an argument by the set.seed() function. Only used for the \code{"IT.binom"} and \code{"IT.chisq"} tests for excess significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.}
 
 \item{verbose}{a logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.}
 }
@@ -36,6 +39,8 @@ umbrella(
 The \code{umbrella()} function returns an object of class \dQuote{umbrella}, which is a list containing information required for stratifying the evidence.
 This list contains, for each factor included in the umbrella review:
 \tabular{ll}{
+\code{factor} \tab the name of the factor analyzed.\cr
+\tab \cr
 \code{measure} \tab the measure of the effect used to perform the calculations.\cr
 \tab \cr
 \code{x} \tab the data used to conduct the meta-analysis. Note that these data may be\cr
@@ -52,19 +57,16 @@ This list contains, for each factor included in the umbrella review:
 \tab \cr
 \code{method.var} \tab the estimator used for fitting the random effects meta-analyses\cr
 \tab \cr
-\code{random} \tab pooled effect size, p-value and 95\% confidence interval and prediction\cr
-\tab  interval of the random-effects meta-analysis.\cr
-\tab \cr
-\code{fixed} \tab pooled effect size, p-value and 95\% confidence interval and prediction\cr
-\tab  interval of the fixed-effect meta-analysis.\cr
+\code{ma_results} \tab pooled effect size, p-value and 95\% confidence interval and prediction\cr
+\tab  interval of the meta-analysis.\cr
 \tab \cr
 \code{largest} \tab 95\% confidence interval of the largest study.\cr
 \tab \cr
-\code{heterogeneity} \tab \eqn{tau^2}, \eqn{I^2} and Q test.\cr
+\code{heterogeneity} \tab \eqn{tau^2}, \eqn{I^2} and results of the Q-test.\cr
 \tab \cr
 \code{egger} \tab estimate and p-value of the Egger's test for publication bias.\cr
 \tab \cr
-\code{esb} \tab results of the Ioannidis' test for excess of significance bias. See\cr
+\code{esb} \tab results of the test for excess significance bias. See\cr
 \tab \code{\link{esb.test}()} for more information.\cr
 \tab \cr
 \code{riskofbias} \tab percentage of participants in studies at low risk of bias.\cr
@@ -82,28 +84,31 @@ This function performs various calculations needed for an umbrella review.
 This function automatically performs calculations allowing to stratify evidence according to various criteria.
 For each factor included in a well-formatted dataset, this function automatically:
 \itemize{
-\item performs fixed- and random-effects meta-analyses.
+\item performs fixed- or random-effects meta-analyses.
 \item provides an estimation of the between-study variance and heterogeneity using three indicators (\eqn{tau^2}, Q-statistic and \eqn{I^2} statistic).
 \item estimates the 95\% prediction interval (if the number of studies is equal or larger to 3).
 \item provides an identification of the statistical significance of the largest study included in the meta-analysis.
 \item provides an assessment of publication bias using the Egger's test (if the number of studies is equal or larger to 3).
-\item provides an assessment of excess significance bias using the Ioannidis' test.
+\item provides an assessment of excess significance using various methods.
 \item performs a jackknife leave-one-out meta-analysis (if the number of studies is equal or larger to 2).
 \item calculates the proportion of participants included in studies at low risk of bias (if study quality is indicated in the dataset).
 }
 
-A specificity of this function is that it does not include arguments to specify the name of the columns of the dataset used as input.
-Instead, the function requires users to build a dataset that meets fixed rules.
-Details on how building this \code{well-formatted dataset} are given in the \code{\link{metaumbrella-package}} section of this manual and a vignette is specifically dedicated to this topic.
-Moreover, examples of \code{well-formatted datasets} are available as data distributed along with the package (see \link{df.OR}, \link{df.OR.multi}, \link{df.SMD}, \link{df.RR}, \link{df.HR}, \link{df.IRR}).
+A specificity of the \code{\link{umbrella}()} function is that it does not include arguments to specify the name of the columns of the dataset used as input.
+Instead, the function requires users to prepare a dataset that meets fixed rules.
+Details on how building this \code{well-formatted dataset} are given in the \code{\link{metaumbrella-package}} section of this manual. A vignette also provides a step-by-step tutorial.
+Moreover, examples of \code{well-formatted datasets} are available as data distributed along with the package (see \link{df.OR}, \link{df.OR.multi}, \link{df.R}, \link{df.SMC},\link{df.SMD}, \link{df.RR}, \link{df.HR}, \link{df.IRR}).
 
-When estimating the test for excess of significance, the \code{\link{umbrella}()} function must assume a best approximation of the true effect.
-The \code{true_effect} argument can be used to select the method that will be applied to estimate this approximation of the true effect.
+When estimating the test for excess significance, the \code{\link{umbrella}()} function must assume a best approximation of the true effect.
+The \code{true_effect} argument can be used to select the method that will be applied to estimate the true effect.
 \itemize{
-\item If \code{"largest"} is selected, the best approximation of the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
-\item If \code{"pooled"} is selected, the best approximation of the true effect size is assumed to be equal to the pooled effect size of the meta-analysis.
-\item If a \code{numeric} value is entered, the best approximation of the true effect size is assumed to be equal to this numeric value. Note that when entering a numeric value for a ratio, the value should be given in its natural scale (and not in its logarithm).
+\item If \code{"largest"} is entered, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
+\item If \code{"pooled"} is entered, the true effect size is assumed to be equal to the meta-analytic pooled effect size.
+\item If \code{"UWLS"} is entered, the true effect size is assumed to be equal to unrestricted weighted least squares weighted average.
+\item If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of ratios must be in their natural scale).
 }
+
+Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method.esb} argument can be used to select the test. Details on each method can be found in the \code{\link{esb.test}} section.
 }
 \examples{
 \donttest{

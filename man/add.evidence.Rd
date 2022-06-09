@@ -99,11 +99,8 @@ A description of the criteria and their corresponding inputs is provided below:
 }
 \examples{
 ### perform calculations required for an umbrella review
-umb.full <- umbrella(df.SMD)
-
-### stratify evidence according to the algorithmic GRADE classification
-evid_grade <- add.evidence(umb.full, criteria = "GRADE")
-summary(evid_grade)
+df <- subset(df.SMD, factor == "Surgical")
+umb.full <- umbrella(df)
 
 ### stratify evidence according to the Ioannidis classification
 evid_ioannidis <- add.evidence(umb.full, criteria = "Ioannidis")

@@ -20,7 +20,7 @@
 
 #' Estimate Pearson's correlation coefficient from Fisher's z
 #'
-#' @param z
+#' @param z value of Fisher's z
 #'
 #' @noRd
 .z_to_r <- function(z) {
@@ -32,7 +32,9 @@
 
 #' Estimate SMD from Pearson's correlation coefficient.
 #'
-#' @param r
+#' @param r value of Pearson correlation coefficient
+#' @param n_cases number of cases
+#' @param n_controls number of controls
 #'
 #' @noRd
 .d_to_r <- function(d, n_cases, n_controls) {

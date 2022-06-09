@@ -47,7 +47,7 @@ test_that("'Personalized' criteria produced correct ranking: 3", {
 })
 
 test_that("'Personalized' criteria produced correct ranking: 4", {
-  umb <- .quiet(umbrella(df.RR))
+  umb <- .quiet(umbrella(df.RR, method.esb = "IT.binom", true_effect = "largest"))
   pers <- .quiet(summary.umbrella(
     add.evidence(umb, criteria = "Personalized",
                  class_I = c(egger_p = 0.05),
@@ -56,7 +56,7 @@ test_that("'Personalized' criteria produced correct ranking: 4", {
 })
 
 test_that("'Personalized' criteria produced correct ranking: 5", {
-  umb <- .quiet(umbrella(df.RR))
+  umb <- .quiet(umbrella(df.RR, method.esb = "IT.binom", true_effect = "largest"))
   pers <- .quiet(summary.umbrella(
     add.evidence(umb, criteria = "Personalized",
                  class_II = c(esb_p = 0.05))))

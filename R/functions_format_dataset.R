@@ -12,14 +12,15 @@
       tmp = .improve_ci(x_i[i, "value"], x_i[i, "ci_lo"], x_i[i, "ci_up"], FALSE)
       tmp = .estimate_d_from_md(tmp$value, tmp$ci_lo, tmp$ci_up, x_i[i, "n_cases"], x_i[i, "n_controls"])
       x_i[i, "value"] = tmp$value
+      x_i[i, "situation"] = gsub("_CI", "", as.character(x_i[i, "situation"]))
     } else {
       x_i[i, "value"] = x_i[i, "value"] / (x_i[i, "se"] / sqrt(1 / x_i[i, "n_cases"] + 1 / x_i[i, "n_controls"]))
       x_i[i, "situation"] = gsub("_SE", "", as.character(x_i[i, "situation"]))
+      x_i[i, "situation"] = gsub("_CI", "", as.character(x_i[i, "situation"]))
     }
     x_i[i, "ci_lo"] = NA
     x_i[i, "ci_up"] = NA
     x_i[i, "measure"] = "SMD"
-    x_i[i, "situation"] = gsub("_CI", "", as.character(x_i[i, "situation"]))
   }
 
   # Convert g to SMD
@@ -46,43 +47,6 @@
 
     x_i[i, "measure"] = "SMD"
   }
-
-  # Convert SMC to SMD
-  # for (i in which(x_i[, "measure"] == "SMC")) {
-  #   if (grepl("mean/SD_pre/post", x_i[i, "situation"], fixed = TRUE)) {
-  #     x_i[i, "value"] = .estimate_smc_raw(n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"],
-  #                                         mean_pre_cases = x_i[i, "mean_pre_cases"], mean_cases = x_i[i, "mean_cases"],
-  #                                         sd_pre_cases = x_i[i, "sd_pre_cases"], sd_cases = x_i[i, "sd_cases"],
-  #                                         mean_pre_controls = x_i[i, "mean_pre_controls"], mean_controls = x_i[i, "mean_controls"],
-  #                                         sd_pre_controls = x_i[i, "sd_pre_controls"], sd_controls = x_i[i, "sd_controls"],
-  #                                         cor = x_i[i, "pre_post_cor"])$value
-  #     x_i[i, "se"] = .estimate_smc_raw(n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"],
-  #                                      mean_pre_cases = x_i[i, "mean_pre_cases"], mean_cases = x_i[i, "mean_cases"],
-  #                                      sd_pre_cases = x_i[i, "sd_pre_cases"], sd_cases = x_i[i, "sd_cases"],
-  #                                      mean_pre_controls = x_i[i, "mean_pre_controls"], mean_controls = x_i[i, "mean_controls"],
-  #                                      sd_pre_controls = x_i[i, "sd_pre_controls"], sd_controls = x_i[i, "sd_controls"],
-  #                                      cor = x_i[i, "pre_post_cor"])$se
-  #
-  #   } else if (grepl("mean/SD_change", x_i[i, "situation"], fixed = TRUE)) {
-  #     x_i[i, "value"] = .estimate_smc_change(n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"],
-  #                                            mean_change_cases = x_i[i, "mean_change_cases"],
-  #                                            sd_change_cases = x_i[i, "sd_change_cases"],
-  #                                            mean_change_controls = x_i[i, "mean_change_controls"],
-  #                                            sd_change_controls = x_i[i, "sd_change_controls"])$value
-  #     x_i[i, "se"] =.estimate_smc_change(n_cases = x_i[i, "n_cases"], n_controls = x_i[i, "n_controls"],
-  #                                        mean_change_cases = x_i[i, "mean_change_cases"],
-  #                                        sd_change_cases = x_i[i, "sd_change_cases"],
-  #                                        mean_change_controls = x_i[i, "mean_change_controls"],
-  #                                        sd_change_controls = x_i[i, "sd_change_controls"])$se
-  #
-  #   } else if (is.na(x_i[i, "se"])) {
-  #     x_i[i, "se"] = (x_i[i, "ci_up"] - x_i[i, "ci_lo"]) / (2 * qt(0.975, x_i[i, "n_cases"] + x_i[i, "n_controls"] - 2))
-  #   } else if (is.na(x_i[i, "ci_lo"]) & is.na(x_i[i, "ci_up"])) {
-  #     x_i[i, "ci_lo"] = x_i[i, "value"] - x_i[i, "se"] * qt(0.975, x_i[i, "n_cases"] + x_i[i, "n_controls"] - 2)
-  #     x_i[i, "ci_up"] = x_i[i, "value"] + x_i[i, "se"] * qt(0.975, x_i[i, "n_cases"] + x_i[i, "n_controls"] - 2)
-  #
-  #   }
-  # }
 
   # Convert R to Z
   for (i in which(x_i[, "measure"] == "R")) {
@@ -162,6 +126,7 @@
         if (verbose) message(paste0("I converted Risk Ratio to Odds Ratio for factor: ", unique(x_i$factor)))
       }
 
+      # we convert all Z to SMD and then to OR
       if (any(measure == "Z")) {
         x_i = .convert_Z_to_SMD(x_i)
         x_i = .convert_SMD_to_OR(x_i)
@@ -237,9 +202,8 @@
     }
     # if the input dataset has multiple outcomes but with no r associated, we create a message to warn users about the r value used
     if (any(x_i$multiple_es %in% c("outcome", "Outcome", "outcomes", "Outcomes") & is.na(x_i$r))) {
-      if (verbose) message(paste("\nIn factor '", unique(x_i$factor), "' some studies have multiple outcomes but they are not associated with any within-study correlation (which can be indicated in the 'r' column of the dataset). A value of r = ", r, " is assumed.", sep = ""))
+      if (verbose) message(paste("In factor '", unique(x_i$factor), "' some studies have multiple outcomes but they are not associated with any within-study correlation (which can be indicated in the 'r' column of the dataset). A value of r = ", r, " is assumed.", sep = ""))
     }
-
     REPEATED_STUDIES = TRUE
   } else {
     REPEATED_STUDIES = FALSE
@@ -247,12 +211,10 @@
 
 
   ### data formatting and conversion ----------------------------------------
-
   n_outcomes = nrow(x_i)
   n_studies = ifelse(REPEATED_STUDIES, length(unique(x_i$all_vals_study)), n_outcomes)
   x_i_ok = NULL
   print_shared = 0
-  # metagenG <- metagenOR <- metagenRR <- metagenIRR <- rep(TRUE, n_outcomes)
 
   for (i in 1:n_outcomes) {
 
@@ -376,13 +338,13 @@
         ci_up_i = value_i + se_i * qt(0.975, n_cases_i + n_controls_i - 2)
       }
       #====================================== SMC ======================================#
+      # for future updates
     } else if (x_raw_i$measure == "SMC") {
 
         ####################################################
         # SMC situation 1: pre post mean/SD + sample sizes #
         ####################################################
         if (grepl("mean/SD_pre/post", x_raw_i$situation, fixed = TRUE)) {
-#https://handbook-5-1.cochrane.org/chapter_16/16_1_3_2_imputing_standard_deviations_for_changes_from_baseline.htm
           if (is.na(x_raw_i$pre_post_cor) & is.na(pre_post_cor)) {
               pre_post_cor_est_cases = (x_i$sd_pre_cases^2 + x_i$sd_cases^2 - x_i$sd_change_cases^2) / (2 * x_i$sd_pre_cases * x_i$sd_cases)
               pre_post_cor_est_controls = (x_i$sd_pre_controls^2 + x_i$sd_controls^2 - x_i$sd_change_controls^2) / (2 * x_i$sd_pre_controls * x_i$sd_controls)
@@ -392,7 +354,7 @@
                 pre_post_cor_est = apply(cbind(pre_post_cor_est_cases, pre_post_cor_est_controls), 1, mean, na.rm = TRUE)
                 weights = 1 / ((x_i$n_cases + x_i$n_controls)^2)
                 pre_post_cor = sum(weights[row] * pre_post_cor_est[row]) / sum(weights[row])
-                warning(paste0("The pre/post correlation was calculated using values indicated in studies: ", paste(paste0(x_i$author[row], " (", x_i$year[row], ")"), collapse = " / ")))
+                if (verbose) message(paste0("The pre/post correlation was calculated using values indicated in studies: ", paste(paste0(x_i$author[row], " (", x_i$year[row], ")"), collapse = " / ")))
               }
             }
 
@@ -457,11 +419,9 @@
             print_shared = 1
           }
         }
-      # x_raw_i$measure = "SMD"
-      # measure = "SMD"
 
       #====================================== Z ======================================#
-
+      # for future updates
     } else if (x_raw_i$measure == "Z") {
 
       ##################################
@@ -515,7 +475,6 @@
         ci_lo_i = value_i / exp(qnorm(0.975) * se_i)
         ci_up_i = value_i * exp(qnorm(0.975) * se_i)
 
-        # metagenOR[i] <- FALSE
         ############################################
         # OR situation 2: ES + SE + Cases/controls #
         ############################################
@@ -673,7 +632,6 @@
           tmp2 = .estimate_n_from_or_and_n_cases(value_i, se_i^2, n_cases_i, n_controls_i)
           n_cases_exp_i = tmp2$n_cases_exp; n_cases_nexp_i = tmp2$n_cases_nexp
           n_controls_exp_i = tmp2$n_controls_exp; n_controls_nexp_i = tmp2$n_controls_nexp
-
         } else {
           tmp2 = .estimate_n_from_or_and_n_cases(value_i, se_i^2, n_cases_i, x_raw_i$n_controls)
           n_cases_exp_i = tmp2$n_cases_exp
@@ -820,7 +778,7 @@
     }
 
     # we update the number of total participants
-    sum_N_i <- ifelse(measure == "Z", sum(n_sample_i), sum(n_cases_i, n_controls_i, na.rm = TRUE))
+    sum_N_i <- ifelse(measure == "Z", n_sample_i, sum(n_cases_i, n_controls_i, na.rm = TRUE)) # na.rm = TRUE for IRR
 
     # we score the risk of bias variable
     rob.recoded_i <- ifelse(x_raw_i$rob %in% c("Low", "low"), 1,
@@ -835,9 +793,15 @@
                               duplicate = x_raw_i$duplicate,
                               value = value_i, se = se_i,
                               ci_lo = ci_lo_i, ci_up = ci_up_i,
+                              n_sample = x_raw_i$n_sample,
                               n_cases = n_cases_i, n_controls = n_controls_i,
                               mean_cases = mean_cases_i, sd_cases = sd_cases_i,
                               mean_controls = mean_controls_i, sd_controls = sd_controls_i,
+                              mean_pre_cases = x_raw_i$mean_pre_cases, sd_pre_cases = x_raw_i$sd_pre_cases,
+                              mean_pre_controls = x_raw_i$mean_pre_controls, sd_pre_controls = x_raw_i$sd_pre_controls,
+                              mean_change_cases = x_raw_i$mean_change_cases, sd_change_cases = x_raw_i$sd_change_cases,
+                              mean_change_controls = x_raw_i$mean_change_controls, sd_change_controls = x_raw_i$sd_change_controls,
+                              pre_post_cor = x_raw_i$pre_post_cor,
                               n_cases_exp = n_cases_exp_i, n_controls_exp = n_controls_exp_i,
                               n_nexp = n_nexp_i, n_exp = n_exp_i,
                               n_cases_nexp = n_cases_nexp_i, n_controls_nexp = n_controls_nexp_i,
@@ -854,7 +818,6 @@
   }
 
   # convert SMD to G
-
   if (measure == "SMD") {
     value_G = .estimate_g_from_d(d = x_i_ok$value, n_cases = x_i_ok$n_cases, n_controls = x_i_ok$n_controls, se = x_i_ok$se)$value
     se_G = .estimate_g_from_d(d = x_i_ok$value, n_cases = x_i_ok$n_cases, n_controls = x_i_ok$n_controls, se = x_i_ok$se)$se
@@ -901,15 +864,12 @@
       value_inv_i = 1 / x_i_ok$value[i]
       cilo_inv_i = 1 / x_i_ok$ci_up[i]
       ciup_inv_i = 1 / x_i_ok$ci_lo[i]
-
       n_exp_inv_i = x_i_ok$n_nexp[i]
       n_nexp_inv_i = x_i_ok$n_exp[i]
-
       n_cases_exp_inv_i = x_i_ok$n_cases_nexp[i]
       n_cases_nexp_inv_i = x_i_ok$n_cases_exp[i]
       n_controls_exp_inv_i = x_i_ok$n_controls_nexp[i]
       n_controls_nexp_inv_i = x_i_ok$n_controls_exp[i]
-
       time_exp_inv_i = x_i_ok$time_nexp[i]
       time_nexp_inv_i = x_i_ok$time_exp[i]
 
@@ -918,15 +878,12 @@
       x_i_ok$value[i] = value_inv_i
       x_i_ok$ci_lo[i] = cilo_inv_i
       x_i_ok$ci_up[i] = ciup_inv_i
-
       x_i_ok$n_exp[i] = n_exp_inv_i
       x_i_ok$n_nexp[i] = n_nexp_inv_i
-
       x_i_ok$n_cases_exp[i] = n_cases_exp_inv_i
       x_i_ok$n_cases_nexp[i] = n_cases_nexp_inv_i
       x_i_ok$n_controls_exp[i] = n_controls_exp_inv_i
       x_i_ok$n_controls_nexp[i] = n_controls_nexp_inv_i
-
       x_i_ok$time_exp[i] = time_exp_inv_i
       x_i_ok$time_nexp[i] = time_nexp_inv_i
     }
@@ -963,14 +920,6 @@
     x_i_ok_full = paste0("The dataset does not have a multivariate structure.")
     rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
   }
-
-  # create a path for the meta-analysis
-  # reap <- ifelse(REPEATED_STUDIES, "multilevel", "standard")
-  # gen <- ifelse(
-  #   any(all(!metagenG), all(!metagenOR), all(!metagenRR), all(!metagenIRR)),
-  #   "raw_information", "generic")
-
-  # path_meta <- paste0(measure, "_", reap, "_", gen)
 
   attr(x_i_ok, "amstar") <- unique(x_i$amstar)
   attr(x_i_ok, "measure") <- measure

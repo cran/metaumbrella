@@ -77,6 +77,7 @@ forest <- function (x, ...) {
 #' @param col_value color of the font of the 'value' column.
 #' @param col_x_axis color of the font of the x-axis.
 #' @param col_dots color of the dots.
+#' @param col_border color of the border of the dots.
 #' @param col_lines color of the lines.
 #' @param pos_value type of centering of the column displaying the values. Must be either "left-align", "center", or "right-align".
 #' @param pos_text type of centering of the 'factor' column. Must be either "left-align", "center", or "right-align".
@@ -136,7 +137,7 @@ forest.umbrella <- function (x,
                              max.value = NULL,
                              pch = "square",
                              print.classes = NULL,
-                             col_sig = c("#252525", "#252525"),
+                             col_sig = c(NA, NA),
                              log_cex_dots = FALSE,
                              fix_size_dots = NA,
                              xlim = NULL,
@@ -160,6 +161,7 @@ forest.umbrella <- function (x,
                              col_value = "#252525",
                              col_x_axis = "#252525",
                              col_dots = "#252525",
+                             col_border = "#000000",
                              col_lines = "#252525",
                              pos_value = "left-align",
                              pos_text = "right-align",
@@ -171,6 +173,7 @@ forest.umbrella <- function (x,
                              x_axis_adj = 0,
                              ...) {
 
+  # idea for a synthesis table https://www.metafor-project.org/doku.php/plots:forest_plot_revman
   if (!inherits(x, "umbrella")) { stop("The 'x' argument must be an 'umbrella' object") }
 
   if (!measure %in% c("SMD", "eG", "OR", "eOR")) {
@@ -224,9 +227,9 @@ forest.umbrella <- function (x,
     x_i <- x[[name]]
 
     if (is.null(criteria) || is.null(print.classes) || x_i$evidence %in% print.classes) {
-      y_i <- x_i$random$value
-      ci_lo_i <- x_i$random$ci_lo
-      ci_up_i <- x_i$random$ci_up
+      y_i <- x_i$ma_results$value
+      ci_lo_i <- x_i$ma_results$ci_lo
+      ci_up_i <- x_i$ma_results$ci_up
       if (x_i$measure == "eOR" && measure == "eG") {
         y_i <- .or_to_d(exp(y_i));
         ci_lo_i <- .or_to_d(exp(ci_lo_i));
@@ -320,38 +323,33 @@ forest.umbrella <- function (x,
     lwd <- 1 / (y$ci_up - y$ci_lo)
 
     if (!log_cex_dots) {
-
       if (length(lwd) > 1) {
-        if (min(lwd) < 0.65 | max(lwd) > 2) {
-            lwd = ((lwd - min(lwd)) / (max(lwd) - min(lwd)) * 1.35 + 0.65) * cex_dots
+        if (min(lwd) < 1 | max(lwd) > 2.5) {
+            lwd = ((lwd - min(lwd)) / (max(lwd) - min(lwd)) * 1.25 + 1.25) * cex_dots
           } else {
             lwd = lwd * cex_dots
           }
       } else {
-        if (lwd < 0.7 | lwd > 2) {
-          lwd = 1.3 * cex_dots
+        if (lwd < 1 | lwd > 2.5) {
+          lwd = 1.25 * cex_dots
         }
       }
-
     } else {
-
       if (length(lwd) > 1) {
-        if (min(lwd) < 1 | max(lwd) > 2) {
-            lwd = ((lwd - min(lwd)) / (max(lwd) - min(lwd)) + 1) * cex_dots
+        if (min(lwd) < 1 | max(lwd) > 2.5) {
+            lwd = ((lwd - min(lwd)) / (max(lwd) - min(lwd))) * cex_dots + 1.25
           } else {
             lwd = lwd * cex_dots
           }
       } else {
-        if (lwd < 0.7 | lwd > 2) {
-          lwd = 1.3 * cex_dots
+        if (lwd < 1 | lwd > 2.5) {
+          lwd = 1.25 * cex_dots
         }
       }
     }
 
   } else {
-
     lwd <- rep(fix_size_dots, nrow(y))
-
   }
 
   if (measure == "eG") {
@@ -484,30 +482,33 @@ forest.umbrella <- function (x,
     ci_lo_i <- y$ci_lo[i]
     ci_up_i <- y$ci_up[i]
 
-    if (any(is.na(col_sig))) { col_sig <- col_dots}
+    if (any(is.na(col_sig))) { col_sig[which(is.na(col_sig))] <- col_dots }
     col2_i <- ifelse(ci_lo_i > 0, col_sig[2], ifelse(ci_up_i < 0, col_sig[1], col_dots));
 
     # plot value
     if (y_i < max.value) {
       points(x = y_i / max.value * 2,
              y = pos.y.value_i - pos_value_ylim_cor - ylim_correction_value,
-             cex = lwd[i], col = col_lines, bg = col2_i, pch = pch)
+             cex = lwd[i],
+             col = col_border,
+             bg = col2_i,
+             pch = pch)
 
     }
 
     if (ci_lo_i < max.value) {
       lines(x = c(max(ci_lo_i / max.value * 2, -2),
                   min(ci_up_i / max.value * 2, 2)),
-            y = rep(pos.y.value_i, 2) - pos_value_ylim_cor - ylim_correction_value, lend = 2, col = col2_i);
+            y = rep(pos.y.value_i, 2) - pos_value_ylim_cor - ylim_correction_value, lend = 2, col = col_lines);
       if (ci_lo_i > -max.value) {
         lines(x = rep(ci_lo_i / max.value * 2, 2),
               y = pos.y.value_i + c(0.0, 0.0) - pos_value_ylim_cor - ylim_correction_value,
-              lend = 2, col = col2_i);
+              lend = 2, col = col_lines);
       }
       if (ci_up_i < max.value) {
         lines(x = rep(ci_up_i / max.value * 2, 2),
               y = pos.y.value_i + c(0.0, 0.0) - pos_value_ylim_cor - ylim_correction_value,
-              lend = 2, col = col2_i);
+              lend = 2, col = col_lines);
       }
     }
     text(x = xlim_factor, y = pos.y.text_i, labels[i], pos = pos_text, col = col_text, family = "sans", cex = cex_text);

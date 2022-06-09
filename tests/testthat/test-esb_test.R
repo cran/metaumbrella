@@ -29,20 +29,20 @@ test_that("esb.test produced same results for different inputs: SMD", {
     df$se = .estimate_g_from_d(df$value, df$n_cases, df$n_controls)$se
 
     df$measure <- "G"
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method = "IT.chisq", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method = "IT.binom", seed = 4321))
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method.esb = "IT.chisq", seed = 4321, true_effect = "largest")))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    meta.df.chisq1 <- suppressWarnings(.quiet(esb.test(metasmd, input = "meta", method = "IT.chisq", seed = 4321)))
-    meta.df.binom1 <- .quiet(esb.test(metasmd, input = "meta", method = "IT.binom", seed = 4321))
+    meta.df.chisq1 <- suppressWarnings(.quiet(esb.test(metasmd, input = "meta", method.esb = "IT.chisq", seed = 4321, true_effect = "largest")))
+    meta.df.binom1 <- .quiet(esb.test(metasmd, input = "meta", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    meta.df.chisq2 <- suppressWarnings(.quiet(esb.test(metasmd2, input = "meta", method = "IT.chisq", seed = 4321)))
-    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method = "IT.binom", seed = 4321))
+    meta.df.chisq2 <- suppressWarnings(.quiet(esb.test(metasmd2, input = "meta", method.esb = "IT.chisq", seed = 4321, true_effect = "largest")))
+    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.chisq", seed = 4321)))
-    rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.binom", seed = 4321))
+    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method.esb = "IT.chisq", seed = 4321, true_effect = "largest")))
+    rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    umb <- .quiet(umbrella(df, seed = 4321))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up)), seed = 4321))
+    umb <- .quiet(umbrella(df, seed = 4321, method.esb = "IT.binom", true_effect = "largest"))
+    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up)), method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_med)
@@ -89,20 +89,20 @@ test_that("esb.test produced same results for generic inputs: SMD", {
     rmasmd <- metafor::rma.uni(yi = value, sei = se, ni = n_cases + n_controls,
                                data = df, method = "REML", measure = "SMD")
 
-    esb.df.chisq <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "IT.chisq", seed = 4321))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method = "IT.binom", seed = 4321))
+    esb.df.chisq <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method.esb = "IT.chisq", seed = 4321, true_effect = "largest"))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    meta.df.chisq1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.chisq", seed = 4321))
-    meta.df.binom1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.binom", seed = 4321))
-    meta.df.chisq2 <- .quiet(esb.test(metasmd2, input = "meta", method = "IT.chisq", seed = 4321))
-    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method = "IT.binom", seed = 4321))
+    meta.df.chisq1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method.esb = "IT.chisq", seed = 4321, true_effect = "largest"))
+    meta.df.binom1 <- .quiet(esb.test(metasmd1, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
+    meta.df.chisq2 <- .quiet(esb.test(metasmd2, input = "meta", method.esb = "IT.chisq", seed = 4321, true_effect = "largest"))
+    meta.df.binom2 <- .quiet(esb.test(metasmd2, input = "meta", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    rma.df.chisq1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.chisq", seed = 4321))
-    rma.df.chisq2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "IT.chisq", seed = 4321))
-    rma.df.binom1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method = "IT.binom", seed = 4321))
-    rma.df.binom2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method = "IT.binom", seed = 4321))
+    rma.df.chisq1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method.esb = "IT.chisq", seed = 4321, true_effect = "largest"))
+    rma.df.chisq2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method.esb = "IT.chisq", seed = 4321, true_effect = "largest"))
+    rma.df.binom1 <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
+    rma.df.binom2 <- .quiet(esb.test(rmasmd, input = "rma", n_controls = df$n_controls, method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
-    umb <- .quiet(umbrella(df, seed = 4321))
+    umb <- .quiet(umbrella(df, seed = 4321,  method.esb = "IT.binom", true_effect = "largest"))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_med)
@@ -143,16 +143,16 @@ test_that("esb.test produced same results for different inputs: OR", {
                                n1i = n_cases, n2i = n_controls,
                                data = df, method = "REML", measure = "OR")
 
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.chisq", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.binom", seed = 4321))
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method.esb = "IT.chisq", true_effect = "largest", seed = 4321)))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method.esb = "IT.binom", true_effect = "largest", seed = 4321))
 
-    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, input = "meta", method = "IT.chisq", seed = 4321)))
-    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", method = "IT.binom", seed = 4321))
+    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, input = "meta", method.esb = "IT.chisq", true_effect = "largest", seed = 4321)))
+    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", method.esb = "IT.binom", true_effect = "largest", seed = 4321))
 
-    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "IT.chisq", seed = 4321)))
-    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method = "IT.binom", seed = 4321))
+    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method.esb = "IT.chisq", true_effect = "largest", seed = 4321)))
+    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, method.esb = "IT.binom", true_effect = "largest", seed = 4321))
 
-    umb <- .quiet(umbrella(df, seed = 4321))
+    umb <- .quiet(umbrella(df, seed = 4321,method.esb = "IT.binom", true_effect = "largest"))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq$statistic), tolerance = tol_med)
@@ -186,17 +186,24 @@ test_that("esb.test produced same results for generic inputs: OR", {
     rmaor <- metafor::rma.uni(yi = log(df$value), sei = df$se,
                               data = df, method = "REML", measure = "OR")
 
-    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.chisq", seed = 4321)))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method = "IT.binom", seed = 4321))
+    esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "OR", method.esb = "IT.chisq",
+                                                     true_effect = "largest",seed = 4321)))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "OR", method.esb = "IT.binom",
+                                    true_effect = "largest",seed = 4321))
 
-    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, n_cases = df$n_cases, n_controls = df$n_controls, input = "meta", method = "IT.chisq", seed = 4321)))
-    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.binom", seed = 4321))
+    meta.df.chisq <- suppressWarnings(.quiet(esb.test(metaor, n_cases = df$n_cases, n_controls = df$n_controls, input = "meta", method.esb = "IT.chisq",
+                                                      true_effect = "largest", seed = 4321)))
+    meta.df.binom <- .quiet(esb.test(metaor, input = "meta", n_cases = df$n_cases, n_controls = df$n_controls, method.esb = "IT.binom",
+                                     true_effect = "largest", seed = 4321))
 
-    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.chisq", seed = 4321)))
-    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method = "IT.binom", seed = 4321))
+    rma.df.chisq <- suppressWarnings(.quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method.esb = "IT.chisq",
+                                                     true_effect = "largest", seed = 4321)))
+    rma.df.binom <- .quiet(esb.test(rmaor, input = "rma", n_cases = df$n_cases, n_controls = df$n_controls, method.esb = "IT.binom",
+                                    true_effect = "largest", seed = 4321))
 
-    umb <- .quiet(umbrella(df, seed = 4321))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp)), seed = 4321))
+    umb <- .quiet(umbrella(df, seed = 4321, method.esb = "IT.binom",true_effect = "largest"))
+    umb2 <- .quiet(umbrella(subset(df, select = -c(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp)), method.esb = "IT.binom",
+                            true_effect = "largest", seed = 4321))
 
     # meta
     expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq$statistic), tolerance = tol_med)
@@ -226,9 +233,9 @@ test_that("esb.test produced correct results with reversed inputs", {
     df <- df.SMD[df.SMD$factor == "Surgical", ]
     df$reverse_es <- NA; df$reverse_es[1:5] <- "reverse"
 
-    gen <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", seed = 4321))
+    gen <- .quiet(esb.test(df, input = "dataframe", measure = "SMD", seed = 4321, method.esb = "IT.binom", true_effect = "largest"))
 
-    umb <- .quiet(umbrella(df, seed = 4321))
+    umb <- .quiet(umbrella(df, seed = 4321, method.esb = "IT.binom", true_effect = "largest"))
 
     expect_equal(.as_numeric(gen$statistic), .as_numeric(umb[[1]]$esb$statistic), tolerance = tol_med)
     expect_equal(.as_numeric(gen$p.value), .as_numeric(umb[[1]]$esb$p.value), tolerance = tol_med)
@@ -238,9 +245,9 @@ test_that("esb.test produced correct results with multilevel data", {
     skip_on_cran()
     df <- subset(df.OR.multi, factor == "Vitamin D")
 
-    gen <- .quiet(esb.test(df, input = "dataframe", measure = "OR", seed = 4321))
+    gen <- .quiet(esb.test(df, input = "dataframe", measure = "OR", seed = 4321, method.esb = "IT.binom", true_effect = "largest"))
 
-    umb <- .quiet(umbrella(df, mult.level = TRUE, seed = 4321))
+    umb <- .quiet(umbrella(df, mult.level = TRUE, seed = 4321, method.esb = "IT.binom", true_effect = "largest"))
 
     expect_equal(.as_numeric(gen$statistic), .as_numeric(umb[[1]]$esb$statistic), tolerance = tol_large)
     expect_equal(.as_numeric(gen$p.value), .as_numeric(umb[[1]]$esb$p.value), tolerance = tol_large)
@@ -271,13 +278,13 @@ test_that("esb.test produced correct results compared to metafor: SMD", {
     esb.chi <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "SMD", input = "dataframe",
-                        method = "IT.chisq",
+                        method.esb = "IT.chisq",
                         true_effect = theta, seed = 4321)))
 
     esb.bin <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "SMD", input = "dataframe",
-                        method = "IT.binom",
+                        method.esb = "IT.binom",
                         true_effect = theta, seed = 4321)))
 
     expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 0.005)
@@ -319,13 +326,13 @@ test_that("esb.test produced correct results compared to metafor: OR", {
     esb.chi <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "OR", input = "dataframe",
-                        method = "IT.chisq",
+                        method.esb = "IT.chisq",
                         true_effect = exp(theta), seed = 4321)))
 
     esb.bin <- suppressWarnings(
         .quiet(esb.test(df,
                         measure = "OR", input = "dataframe",
-                        method = "IT.binom",
+                        method.esb = "IT.binom",
                         true_effect = exp(theta), seed = 4321)))
 
     expect_equal(.as_numeric(esb.bin$power), tes.binom$power, tolerance = 0.05)
@@ -349,3 +356,104 @@ test_that("esb.test produced correct results compared to metafor: OR", {
     expect_equal(.as_numeric(esb.bin$p.value), .as_numeric(tes.binom$pval), tolerance = 0.05)
     expect_equal(.as_numeric(esb.chi$p.value), .as_numeric(tes.chi$pval), tolerance = 0.05)
 })
+
+######################
+# test pess tess
+
+
+test_that("TESS/PSST", {
+    TESS_PESS = function(d, sed, tau2, n_cases, n_controls, measure ) {
+        HetVar = tau2
+        k = length(d)
+        t = d/sed
+        Precision=1/sed
+        Precision_sq=1/sed^2
+        reg = lm(t ~ 0 + Precision)
+        UWLS = as.numeric(reg$coefficients)
+        zz=((1.96*sed-UWLS)/(sed^2+HetVar)^.5)
+        Esigtot = sum(1-pnorm(zz))
+
+        #Get intermediate calculations for Eq. 5
+        # SS = (t>1.96)*1
+        if (measure == "SMD") {
+            SS = .two_tail(pt(d / sed, n_cases + n_controls - 2)) < .05
+        } else {
+            SS = .two_tail(pnorm(d/sed)) < .05
+        }
+        SStot = sum(SS)
+        Pss = SStot/k
+        ESS=(SStot-Esigtot)/k
+        Pe = Esigtot/k
+
+        #Eq. 5, PSST
+        PSST=(Pss-Pe)/(Pe*(1-Pe)/k)^.5
+
+        #Eq. 6, TESS
+        TESS= (ESS-.05)/(.0475/k)^.5
+
+        #Logical of whether PSST and TESS are
+        #statistically significant given one-tailed
+        #test and alpha = 0.05
+        PSST_Sig = 1 - pnorm(PSST)
+        TESS_Sig = 1 - pnorm(TESS)
+
+        return(list(SS = SStot,
+                    Pss = Pss,
+                    ESS = ESS,
+                    Esig = Esigtot,
+                    Pe = Pe,
+                    UWLS = UWLS,
+                    power = 1-pnorm(zz),
+                    PSST = PSST,
+                    TESS= TESS,
+                    PSST_Sig = PSST_Sig,
+                    TESS_Sig = TESS_Sig))
+    }
+
+
+    # R ---------------------------------------------
+    df = subset(df.R, factor == "gestational_diabetes")
+    df$measure = "Z"
+    df$se = (1/(df$n_sample - 3))
+
+    umb.PSST = umbrella(df, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
+    umb.TESS = umbrella(df, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
+    STAN = TESS_PESS(d = df$value, sed = df$se, tau2 = umb.PSST[[1]]$heterogeneity$tau, measure = "R")
+
+    expect_equal(umb.PSST[[1]]$esb$p.value, STAN$PSST_Sig, tolerance = tol_large)
+    expect_equal(umb.TESS[[1]]$esb$p.value, STAN$TESS_Sig, tolerance = tol_large)
+
+    # SMD ---------------------------------------------
+    df = subset(df.SMD, factor == "Pharmacological")
+    umb.PSST = umbrella(df, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
+    umb.TESS = umbrella(df, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
+    df$se = sqrt(1/df$n_cases + 1/df$n_controls)
+    df2=df
+    STAN = TESS_PESS(d = df2$value, sed = df2$se,
+                     n_cases = df2$n_cases, n_controls = df2$n_controls,
+                     tau2 = umb.PSST[[1]]$heterogeneity$tau, measure = "SMD")
+
+    expect_equal(umb.PSST[[1]]$esb$p.value, STAN$PSST_Sig, tolerance = tol_large)
+    expect_equal(umb.TESS[[1]]$esb$p.value, STAN$TESS_Sig, tolerance = tol_large)
+
+    # OR ---------------------------------------------
+    df = subset(df.OR, factor == "ADHD")
+    umb.PSST = umbrella(df, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
+    umb.TESS = umbrella(df, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
+    df$se = with(df, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
+    df2=df
+    STAN = TESS_PESS(d = log(df2$value), sed = df2$se,
+                     n_cases = df2$n_cases,
+                     tau2 = umb.PSST[[1]]$heterogeneity$tau, measure = "OR")
+
+    expect_equal(umb.PSST[[1]]$esb$p.value, STAN$PSST_Sig, tolerance = tol_large)
+    expect_equal(umb.TESS[[1]]$esb$p.value, STAN$TESS_Sig, tolerance = tol_large)
+
+})
+# x=df; input = "dataframe"; n_cases = NULL; n_controls = NULL; measure = "SMD";
+# method.esb = "TESSPSST"; true_effect = "UWLS"; seed = NA; tau2 = NA
+
+
+# d = df2$value; sed = df2$se;
+# n_cases = df2$n_cases; n_controls = df2$n_controls;
+# tau2 = umb.PSST[[1]]$heterogeneity$tau; measure = "SMD"

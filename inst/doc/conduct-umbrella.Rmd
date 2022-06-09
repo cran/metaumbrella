@@ -1,5 +1,5 @@
 ---
-title: "Conducting umbrella reviews with metaumbrella: an introduction"
+title: "Vignette 2: conduct an umbrella review with metaumbrella"
 author: "Corentin J. Gosling^a^, Aleix Solanes^a^, Paolo Fusar-Poli & Joaquim Radua"
 date: "`r Sys.Date()`"
 output: 
@@ -1097,9 +1097,9 @@ strat.pers2 <- metaumbrella:::.quiet(add.evidence(umb.OR.multi_1, criteria = "Pe
 
 DT::datatable(summary(strat.pers2), options = list(
     scrollX = TRUE,
+    scrollY = "600px", 
     dom = c('t'),
     ordering = FALSE,
-    pageLength = 5,
     columnDefs = list(
                   list(width = '110px',
                        targets = "_all"),

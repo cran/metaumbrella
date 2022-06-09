@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 [![License: GPL
-(>=3)](https://img.shields.io/badge/license-GPL-red)](https://www.gnu.org/licenses/gpl-3.0.html)
+(\>=3)](https://img.shields.io/badge/license-GPL-red)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![CRAN
 Version](https://www.r-pkg.org/badges/version/metaumbrella)](https://cran.r-project.org/package=metaumbrella)
 [![Monthly
@@ -70,8 +70,9 @@ Solanes, Paolo Fusar-Poli and Joaquim Radua. It is licensed under the
 GNU General Public License. <br>You can use metaumbrella for free… but
 please cite our work ;-) <br> <b>Citation:</b> <em>Corentin J Gosling,
 Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella:
-An R Package for Conducting Umbrella Reviews. R package version
-1.0.3.</em><br> To obtain a bibtex version of this citation in R, type
+An R Package for Conducting Umbrella Reviews. R package version 1.0.4.
+<https://CRAN.R-project.org/package=metaumbrella/></em><br> To obtain a
+bibtex version of this citation in R, type
 
 ``` r
 citation(package = "metaumbrella")

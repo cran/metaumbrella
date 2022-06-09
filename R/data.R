@@ -336,3 +336,80 @@
 #' @source Tortella-Feliu, M. and Fullana, M.A., Perez-Vigil, A., Torres, X., Chamorro, J., and Littarelli, S.A., ..., & Radua, J. (2019). Risk Factors for Posttraumatic Stress Disorder: An Umbrella Review of Systematic Reviews and Meta-Analyses.
 #' \emph{Neuroscience & Biobehavioral Reviews}, \bold{107}, 154--165.
 "df.radua2019"
+
+#' Meta-analyses exploring the efficacy of an intervention on a continuous outcome measured before and after the intervention.
+#'
+#' Fictitious dataset of three meta-analyses of RCTs assessing the efficacy of an intervention on a continuous outcome in 3 populations.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the population studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (SMC).\cr
+#'   \tab \cr
+#'   \strong{value} \tab SMC value.\cr
+#'   \tab \cr
+#'   \strong{se} \tab standard error of the SMC.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases.\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of controls.\cr
+#'   \tab \cr
+#'   \strong{mean_cases} \tab means at post-test of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{mean_controls} \tab means at post-test of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{sd_cases} \tab standard deviations at post-test of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{sd_controls} \tab standard deviations at post-test of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{mean_pre_cases} \tab means at baseline of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{mean_pre_controls} \tab means at baseline of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{sd_pre_cases} \tab standard deviations at baseline of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{sd_pre_controls} \tab standard deviations at baseline of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{mean_change_cases} \tab mean change score of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{mean_change_controls} \tab mean change score of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{sd_change_cases} \tab standard deviations of the change score of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{sd_change_controls} \tab standard deviations of the change score of patients in the control arm.\cr
+#'}
+#' @source No source, the data are entirely fictitious
+"df.SMC"
+
+#' Meta-analyses of correlational data
+#'
+#' Fictitious dataset of four meta-analyses of cross-sectional studies exploring the association between
+#' pre- or peri-pregnancy indicators and a numeric variable.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the factors.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (R).\cr
+#'   \tab \cr
+#'   \strong{value} \tab R value.\cr
+#'   \tab \cr
+#'   \strong{n_sample} \tab total number of individuals in the sample.\cr
+#'}
+#' @source No source, the data are entirely fictitious
+"df.R"

@@ -62,6 +62,31 @@
 #' @seealso \code{\link{umbrella}()} for conducting an umbrella review.
 #'
 #' @md
+#'
+#' @examples
+#' ### perform calculations required for an umbrella review
+#' df <- subset(df.SMD, factor == "Surgical")
+#' umb.full <- umbrella(df)
+#'
+#' ### stratify evidence according to the Ioannidis classification
+#' evid_ioannidis <- add.evidence(umb.full, criteria = "Ioannidis")
+#' summary(evid_ioannidis)
+#'
+#' ### stratify evidence according to the Personalized classification with
+#' ### the number of studies and cases, the inconsistency as criteria.
+#' ### - a class I can be reached if the number of studies is > 10, the number of cases is > 500 and
+#' ###   the I2 is < 25%.
+#' ### - a class II can be reached if the number of studies is > 5, the number of cases is > 400 and
+#' ###   the I2 is < 50%.
+#' ### - a class III can be reached if the number of cases is > 300 and the I2 is < 75%.
+#' ### - a class IV can be reached if the number of cases is > 100.
+#' ### - else, if the number of cases is <= 100, a class V is assigned.
+#' evid_perso1 <- add.evidence(umb.full, criteria = "Personalized",
+#'    class_I = c(n_studies = 10, n_cases = 500, I2 = 25),
+#'    class_II = c(n_studies = 5, n_cases = 400, I2 = 50),
+#'    class_III = c(n_cases = 300, I2 = 75),
+#'    class_IV = c(n_cases = 100))
+#' summary(evid_perso1)
 add.evidence <- function (x,
             criteria = "Ioannidis",
             class_I = c(n_studies = NA, total_n = NA, n_cases = NA, p_value = NA, I2 = NA, imprecision = NA, rob = NA, amstar = NA, egger_p = NA, esb_p = NA, JK_p = NA, pi = NA, largest_CI = NA),

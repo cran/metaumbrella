@@ -1,5 +1,5 @@
 ---
-title: "Create a well-formatted dataset with metaumbrella: a step-by-step tutorial"
+title: "Vignette 1: prepare a well-formatted dataset with metaumbrella"
 author: "Corentin J. Gosling^a^, Aleix Solanes^a^, Paolo Fusar-Poli & Joaquim Radua"
 date: "`r Sys.Date()`"
 output: 

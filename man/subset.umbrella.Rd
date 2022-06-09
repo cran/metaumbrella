@@ -25,4 +25,6 @@ umb <- umbrella(df.OR)
 
 ### subset the results to factors "ADHD" & "dyslexia"
 subset.umb <- subset.umbrella(umb, unique(df.OR$factor) \%in\% c("ADHD", "dyslexia"))
+
+summary(subset.umb)
 }

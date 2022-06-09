@@ -586,7 +586,7 @@
     if (is.na(x_raw_i$mean_cases) | is.na(x_raw_i$mean_controls) |
         is.na(x_raw_i$sd_cases) | is.na(x_raw_i$sd_controls)) {
 
-      # users report SMD + SE/VAR
+      # users report SMD + SE/VAR ---- only path for now
       if (!is.na(x_raw_i$se)) {
         tmp = data.frame(value = x_raw_i$value,
                          ci_lo = x_raw_i$value - x_raw_i$se * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2),
@@ -596,17 +596,23 @@
         tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
       }
 
-      # users report SMD + n_cases/controls
-      if (is.na(tmp$value)) {
+      # users report SMD + SE + n_cases/controls  ---- only path for now
+      if (all(!is.na(x_raw_i$se))) {
+        x[i, "value"] = .d_to_or(tmp$value)
+        x[i, "se"] = sqrt(x_raw_i$se^2 * pi^2 / 3)
+        x[i, "ci_lo"] = .d_to_or(tmp$ci_lo)
+        x[i, "ci_up"] = .d_to_or(tmp$ci_up)
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "_SE_cases_controls")
+      } else if (is.na(tmp$value)) {
         x[i, "value"] = .d_to_or(x_raw_i$value)
         x[i, "ci_lo"] = NA
         x[i, "ci_up"] = NA
-        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_cases_controls")
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "_cases_controls")
       } else {
         x[i, "value"] = .d_to_or(tmp$value)
         x[i, "ci_lo"] = .d_to_or(tmp$ci_lo)
         x[i, "ci_up"] = .d_to_or(tmp$ci_up)
-        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI_cases_controls")
+        x[i, "situation"] = paste0(as.character(x[i, "situation"]), "_CI_cases_controls")
       }
       # users report means/SD
     } else {
@@ -618,7 +624,6 @@
       x[i, "ci_up"] = .d_to_or(tmp$ci_up)
       x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI_cases_controls")
     }
-
     x[i, "measure"] = "OR"
   }
 
@@ -642,36 +647,31 @@
       x_raw_i$ci_up = (x_raw_i$value + qnorm(0.975) * x_raw_i$se)
       ci_lo = .z_to_r(x_raw_i$ci_lo)
       ci_up = .z_to_r(x_raw_i$ci_up)
-      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+
       r = .z_to_r(x_raw_i$value)
+      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+
       # users report z + 95% CI
-    } else if (!is.na(x_raw_i$ci_lo) & x_raw_i$ci_up) {
+    } else if (!is.na(x_raw_i$ci_lo) & !is.na(x_raw_i$ci_up)) {
       tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
       ci_lo = .z_to_r(tmp$ci_lo)
       ci_up = .z_to_r(tmp$ci_up)
-      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+
       r = .z_to_r(tmp$value)
+      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
+
     # users report z
     } else {
-      x_raw_i$se = sqrt(1 / (x_raw_i$n_sample - 3))
-      x_raw_i$ci_lo = (x_raw_i$value - qnorm(0.975) * x_raw_i$se)
-      x_raw_i$ci_up = (x_raw_i$value + qnorm(0.975) * x_raw_i$se)
-
-      ci_lo = .z_to_r(x_raw_i$ci_lo)
-      ci_up = .z_to_r(x_raw_i$ci_up)
-      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
       r = .z_to_r(x_raw_i$value)
+      se_r = sqrt((1 - r^2)^2 / (x_raw_i$n_sample - 1))
     }
 
     x[i, "value"] = .r_to_d(r)
-    # x[i, "se"] = sqrt(4 * (se_r^2) / ((1 - r^2)^3))
-    # x[i, "ci_lo"] = (x[i, "value"] - qnorm(0.975) * x[i, "se"])
-    # x[i, "ci_up"] = (x[i, "value"] + qnorm(0.975) * x[i, "se"])
-    # x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_SE_CI")
-    x[i, "ci_lo"] = .z_to_r(ci_lo)
-    x[i, "ci_up"] = .z_to_r(ci_up)
+    x[i, "se"] = sqrt(4 * (se_r^2) / ((1 - r^2)^3))
+    x[i, "ci_lo"] = .r_to_d(ci_lo)
+    x[i, "ci_up"] = .r_to_d(ci_up)
     x[i, "n_cases"] = round(x[i, "n_sample"] / 2)
-    x[i, "n_controls"] = round(x[i, "n_controls"] / 2)
+    x[i, "n_controls"] = round(x[i, "n_sample"] / 2)
     x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI")
     x[i, "measure"] = "SMD"
   }
@@ -767,9 +767,8 @@
 #' @importFrom utils browseURL write.csv
 NULL
 
-utils::globalVariables(c("duplicate", "multiple_es", "shared_controls", "aggregate",
-                         "shared_nexp", ".get_file_extension", "check_sensitivity", "tk_choose.dir",
+utils::globalVariables(c("duplicate", "multiple_es", "shared_controls", "aggregate", "row_index",
+                         "ci_lo", "ci_up", "shared_nexp",
+                         ".get_file_extension", "check_sensitivity", "tk_choose.dir",
                          "tk_choose.files", "tk_select.list", "excel_sheets", ".read.excel", ".get_filename_without_extension",
-                         ".write_errors_file",
-                         ".largest_or_rr_hr", ".largest_smd", ".largest_irr",
-                         "ci_lo", "ci_up"))
+                         ".write_errors_file"))

@@ -4,7 +4,7 @@ library(DT)
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  # perform the calculations
-#  umb <- umbrella(df.OR)
+#  umb <- umbrella(df.OR, verbose = FALSE)
 #  
 #  # plot the results
 #  forest(umb)

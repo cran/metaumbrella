@@ -1,5 +1,5 @@
 ---
-title: "Visual representation of the results in umbrella reviews with metaumbrella"
+title: "Vignette 3: create a forest plot for an umbrella review with metaumbrella"
 author: "Corentin J. Gosling^a^, Aleix Solanes^a^, Paolo Fusar-Poli & Joaquim Radua"
 date: "`r Sys.Date()`"
 output: 
@@ -64,7 +64,7 @@ This example uses the dataset named `df.OR` distributed along with the metaumbre
 
 ```{r, eval=FALSE}
 # perform the calculations
-umb <- umbrella(df.OR)
+umb <- umbrella(df.OR, verbose = FALSE)
 
 # plot the results
 forest(umb)
@@ -74,7 +74,7 @@ forest(umb)
 umb <- metaumbrella:::.quiet(umbrella(df.OR))
 metaumbrella:::.quiet(forest(umb))
 ```
-0
+
 The effect sizes are displayed as `eG`, the default in this function. Since all factors have used `OR`, we can convert the effect sizes in `eOR` using the measure argument. Moreover, because all effect sizes are `OR` and not `eOR`, we indicate it in the plot (we can do this using the `main_value` argument to modify the title of the value column and using the `main_x_axis` argument to modify the title of the x-axis). <br> 
 In the meantime, we also add a title to the plot using the `main_title` argument. 
 

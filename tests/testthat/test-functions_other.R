@@ -329,6 +329,17 @@ test_that(".largest_irr selects the largest study", {
 
 ### CONVERSIONS BETWEEN MEASURES
 
+# r to d
+test_that(".r_to_d", {
+  r_umb = .r_to_d(df.R$value)
+  r_esc = esc::cohens_d(r = df.R$value)
+  expect_equal(r_umb, r_esc, tolerance = tol_large)
+})
+test_that(".z_to_d", {
+  z_umb = .z_to_d(.estimate_z_from_r(r=df.R$value, n_sample = df.R$n_sample))
+  z_esc = esc::cohens_d(r = esc::convert_z2r(.estimate_z_from_r(r=df.R$value, n_sample = df.R$n_sample)))
+  expect_equal(z_umb, z_esc, tolerance = tol_large)
+})
 test_that(".d_to_or", {
   or_umb = .d_to_or(df.SMD$value)
   or_esc = esc::odds_ratio(d = df.SMD$value)
@@ -340,6 +351,35 @@ test_that(".or_to_d", {
   expect_equal(d_umb, d_esc, tolerance = tol_large)
 })
 
+## R to SMD
+test_that("correctly converts: R to SMD", {
+  df.full.smd <- subset(df.SMD, factor == "Surgical")
+  df.SMD.R <- subset(df.SMD, factor == "Surgical")
+  df.5 <- df.full.smd[1:5,]
+
+  df.SMD.R$value[1:5] = .d_to_r(df.5$value, n_cases = df.5$n_cases, n_controls = df.5$n_controls)
+  df.SMD.R$se[1:5] = with(df.full.smd, (((n_cases[1:5]+n_controls[1:5])^2/(n_cases[1:5]*n_controls[1:5]))^2 * se[1:5]^2) / ((value[1:5]^2 + ((n_cases[1:5]+n_controls[1:5])^2/(n_cases[1:5]*n_controls[1:5])))^3))
+  df.SMD.R$n_sample = NA
+  df.SMD.R$n_sample[1:5] = with(df.full.smd, n_cases[1:5] + n_controls[1:5])
+
+  df.SMD.R$measure[1:5] <- "R"
+
+  df.5$value = .d_to_r(df.5$value, n_cases = df.5$n_cases, n_controls = df.5$n_controls)
+
+  d_exp = .estimate_g_from_d(d = .r_to_d(.z_to_r(.estimate_z_from_r(r = df.SMD.R$value[1:5], n_sample = df.SMD.R$n_sample[1:5])$value)),
+                             n_cases = round(df.5$n_cases + df.5$n_controls / 2),
+                             n_controls = round(df.5$n_cases + df.5$n_controls / 2))
+
+  df.SMD.R <- subset(df.SMD.R, select = -c(mean_cases, mean_controls, ci_lo, ci_up, sd_cases, sd_controls, se))
+
+  umb.SMD.R <- .quiet(umbrella(df.SMD.R, seed = 4321))
+  umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
+  expect_equal(umb.SMD.R[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = 1e-1)
+  expect_equal(umb.SMD.R[[1]]$x$se[1:5], umb.full.smd[[1]]$x$se[1:5], tolerance = 1e-1)
+  expect_equal(umb.SMD.R[[1]]$ma_results, umb.full.smd[[1]]$ma_results, tolerance = 5e-2)
+  expect_equal(umb.SMD.R[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = 5e-2)
+  expect_equal(umb.SMD.R[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = 1e-5)
+})
 
 ## RR to OR: full information
 test_that("RR to OR: full information", {
@@ -355,7 +395,7 @@ test_that("RR to OR: full information", {
   umb1 <- .quiet(umbrella(df, seed = 4321))
   umb2 <- .quiet(umbrella(df.save, seed = 4321))
   expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = tol_large)
-  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = tol_large)
+  expect_equal(umb1$ASD$ma_results, umb2$ASD$ma_results, tolerance = tol_large)
   expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = tol_large)
 })
 
@@ -376,7 +416,7 @@ test_that("RR to OR: ES CI N_cases", {
   umb1 <- .quiet(umbrella(df.full.OR, seed = 4321))
   umb2 <- .quiet(umbrella(df.OR.RR, seed = 4321))
   expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = 5e-2)
-  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = 2e-1)
+  expect_equal(umb1$ASD$ma_results, umb2$ASD$ma_results, tolerance = 2e-1)
   expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = 5e-1)
 })
 
@@ -390,7 +430,7 @@ test_that("HR to OR", {
   umb1 <- .quiet(umbrella(df, seed = 4321))
   umb2 <- .quiet(umbrella(df.save, seed = 4321))
   expect_equal(umb1[[1]]$x$value[1:5], umb2[[1]]$x$value[1:5], tolerance = tol_large)
-  expect_equal(umb1$ASD$random, umb2$ASD$random, tolerance = tol_large)
+  expect_equal(umb1$ASD$ma_results, umb2$ASD$ma_results, tolerance = tol_large)
   expect_equal(umb1$ASD$egger$p.value, umb2$ASD$egger$p.value, tolerance = tol_large)
   expect_equal(umb1$ASD$esb$p.value, umb2$ASD$esb$p.value, tolerance = tol_large)
 })
@@ -412,7 +452,7 @@ test_that("OR to SMD correctly converted when value + CI", {
   umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
   expect_equal(umb.mix.OR.SMD[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = 1e-6)
   expect_equal(df.mix.OR.SMD$value[1:5], .d_to_or(umb.mix.OR.SMD[[1]]$x$value[1:5]), tolerance = 5e-3)
-  expect_equal(umb.mix.OR.SMD[[1]]$random, umb.full.smd[[1]]$random, tolerance = 1e-6)
+  expect_equal(umb.mix.OR.SMD[[1]]$ma_results, umb.full.smd[[1]]$ma_results, tolerance = 1e-6)
   expect_equal(umb.mix.OR.SMD[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = 1e-6)
   expect_equal(umb.mix.OR.SMD[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = 1e-6)
 })
@@ -434,9 +474,69 @@ test_that("OR to SMD correctly converted when value + SE", {
   umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
   expect_equal(umb.mix.OR.SMD[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = tol_large)
   expect_equal(df.mix.OR.SMD$value[1:5], .d_to_or(umb.mix.OR.SMD[[1]]$x$value[1:5]), tolerance = 5e-3)
-  expect_equal(umb.mix.OR.SMD[[1]]$random, umb.full.smd[[1]]$random, tolerance = tol_large)
+  expect_equal(umb.mix.OR.SMD[[1]]$ma_results, umb.full.smd[[1]]$ma_results, tolerance = tol_large)
   expect_equal(umb.mix.OR.SMD[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = tol_large)
   expect_equal(umb.mix.OR.SMD[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = tol_large)
+})
+
+## SMD to OR
+test_that("SMD to OR  correctly converted when value + CI", {
+  df.full.OR <- subset(df.OR, factor == "ADHD")
+  df.full.OR$se <- with(df.full.OR, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
+                                                        n_controls_exp, n_controls_nexp)$se)
+
+  df.mix.OR.SMD <- subset(df.full.OR, factor == "ADHD")
+
+  df.mix.OR.SMD$measure[1:5] <- "SMD"
+  df.mix.OR.SMD$value[1:5] <- .or_to_d(df.mix.OR.SMD$value[1:5])
+  df.mix.OR.SMD$se[1:5] = sqrt(df.mix.OR.SMD$se[1:5]^2 * 3 / (pi^2))
+  df.mix.OR.SMD <- subset(df.mix.OR.SMD, select = -c(ci_lo, ci_up, n_cases_exp, n_cases_nexp))
+  df.full.OR <- subset(df.full.OR, select = -c(ci_lo, ci_up, n_cases_exp, n_cases_nexp))
+
+  x_conv = .convert_SMD_to_OR(attr(.check_data(df.mix.OR.SMD), "data"))
+
+  expect_equal(x_conv$value[1:5], df.full.OR$value[1:5], tolerance = tol_large)
+  expect_equal(x_conv$se[1:5], df.full.OR$se[1:5], tolerance = tol_large)
+})
+
+## SMD to SMC
+test_that("SMC to SMC correctly converts: smd raw", {
+  df.full.smd <- subset(df.SMD, factor == "Surgical")
+  df.mix.SMC.SMD <- subset(df.SMD, factor == "Surgical")
+
+  df.mix.SMC.SMD$measure[1:5] <- "SMC"
+
+  df.mix.SMC.SMD <- subset(df.mix.SMC.SMD, select = -c(mean_cases, mean_controls))
+
+  umb.mix.SMC.SMD <- .quiet(umbrella(df.mix.SMC.SMD, seed = 4321))
+  umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
+  expect_equal(umb.mix.SMC.SMD[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = tol_large)
+  expect_equal(umb.mix.SMC.SMD[[1]]$ma_results, umb.full.smd[[1]]$ma_results, tolerance = tol_large)
+  expect_equal(umb.mix.SMC.SMD[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb.mix.SMC.SMD[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = tol_large)
+})
+
+test_that("SMC to SMC correctly converts: smc raw", {
+  df.full.smc <- subset(df.SMC, factor == "Prediabetes")
+  df.mix.SMC.SMD <- subset(df.SMC, factor == "Prediabetes")
+
+  df.mix.SMC.SMD$measure[1:5] <- "SMD"
+
+  df.mix.SMC.SMD <- subset(df.mix.SMC.SMD, select = -c(mean_cases, mean_controls))
+
+  df.full.smc$mean_pre_cases[1:5] = NA
+
+  umb.mix.SMC.SMD <- umbrella(df.mix.SMC.SMD, seed = 4321, verbose = FALSE)
+  umb.full.smc <- umbrella(df.full.smc, verbose = FALSE, seed = 4321)
+
+  row.names(umb.mix.SMC.SMD[[1]]$ma_results) = "X"
+  row.names(umb.full.smc[[1]]$ma_results) = "X"
+
+  expect_equal(umb.mix.SMC.SMD[[1]]$x$mean_cases, umb.full.smc[[1]]$x$value, tolerance = tol_large)
+  expect_equal(umb.mix.SMC.SMD[[1]]$ma_results, umb.full.smc[[1]]$ma_results, tolerance = 1e-1)
+  expect_equal(umb.mix.SMC.SMD[[1]]$egger$p.value, umb.full.smc[[1]]$egger$p.value, tolerance = 3e-1)
+  ## ESB
+  expect_equal(umb.mix.SMC.SMD[[1]]$esb$p.value, umb.full.smc[[1]]$esb$p.value, tolerance = 1)
 })
 
 ## ERREUR IRR

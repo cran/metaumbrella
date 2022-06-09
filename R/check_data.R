@@ -64,6 +64,8 @@
                              "n_cases", "n_controls",
                              "n_cases_exp", "n_cases_nexp", "n_controls_exp", "n_controls_nexp",
                              "mean_cases", "sd_cases", "mean_controls", "sd_controls",
+                             "mean_pre_cases", "sd_pre_cases", "mean_pre_controls", "sd_pre_controls", "pre_post_cor",
+                             "mean_change_cases", "sd_change_cases", "mean_change_controls", "sd_change_controls",
                              "time", "time_exp", "time_nexp",
                              "shared_controls", "shared_nexp", "thr",
                              "rob", "amstar", "multiple_es", "r", "reverse_es")
@@ -74,6 +76,8 @@
                                    "numeric", "numeric", "numeric",
                                    "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
+                                   "numeric", "numeric", "numeric", "numeric",
+                                   "numeric", "numeric", "numeric", "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
                                    "numeric", "numeric", "numeric",
                                    "factor", "factor", "numeric",
@@ -86,6 +90,8 @@
                              "n_sample", "n_exp", "n_nexp",
                              "n_cases_exp", "n_cases_nexp", "n_controls_exp", "n_controls_nexp",
                              "mean_cases", "sd_cases", "mean_controls", "sd_controls",
+                             "mean_pre_cases", "sd_pre_cases", "mean_pre_controls", "sd_pre_controls", "pre_post_cor",
+                             "mean_change_cases", "sd_change_cases", "mean_change_controls", "sd_change_controls",
                              "time", "time_exp", "time_nexp",
                              "shared_controls", "shared_nexp", "thr",
                              "rob", "amstar", "multiple_es", "r", "reverse_es")
@@ -98,6 +104,8 @@
                                    "numeric", "numeric", "numeric",
                                    "numeric","numeric","numeric","numeric",
                                    "numeric","numeric","numeric","numeric",
+                                   "numeric","numeric","numeric","numeric", "numeric",
+                                   "numeric","numeric","numeric","numeric",
                                    "numeric","numeric","numeric",
                                    "factor","factor","numeric",
                                    "factor", "numeric", "factor", "numeric", "factor")
@@ -106,13 +114,13 @@
   colnames(x) <- tolower(colnames(x))
 
   # remove all rows that should be discarded from analyses
-    if (any(x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE"))) {
+    if (any(x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE", TRUE))) {
       removed_rows <- which(x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE"))
       status <- ifelse(status == "ERROR", "ERROR", "WARNING")
       error_msgs <- append(error_msgs, paste0("Some rows of the original dataset have been removed based on the 'discard' column inputs: rows = ", paste(removed_rows, collapse = ", "), " (only a warning, not an error)."))
       column_errors = column_errors[-removed_rows]
       column_type_errors = column_type_errors[-removed_rows]
-      x <- subset(x, !x$discard %in% c("yes", "Yes", "remove", "removed"))
+      x <- subset(x, !x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE", TRUE))
       situation <- situation[-removed_rows]
     }
 
@@ -189,11 +197,11 @@
       }
 
       # check the presence of non-numeric characters in numeric columns
-      if (any(!grepl('^[0-9]|-', na.omit(x[, idx])))) {
-        not_num <- which(!grepl('^[0-9]|-', na.omit(x[, idx])))
+      if (any(suppressWarnings(is.na(as.numeric(as.character(na.omit(x[, idx]))))))) {
+        not_num <- x[which(!is.na(x[, idx])), ][suppressWarnings(is.na(as.numeric(as.character(na.omit(x[, idx]))))),]$row_index
         status <- "ERROR"
         error_msgs <- append(error_msgs, paste0("The dataframe contains non-numeric characters while this is expected. Please check inputs."))
-        column_errors[not_num] = paste(column_errors[not_num], "Non-numeric characters in column '", paste(colnames(x)[idx], "'. //"))
+        column_errors[not_num] = paste(column_errors[not_num], "Non-numeric characters ('", paste(unique(x[not_num, idx]), collapse = " ' / ' "), "') in column '", paste(colnames(x)[idx], "'. //"))
         column_type_errors[not_num] = "ERROR"
       }
 
@@ -230,7 +238,7 @@
   ###########################
 
   if (status == "ERROR") {
-    df <- cbind(column_errors, column_type_errors, x)
+    df <- cbind(column_type_errors, column_errors, row_index = x$row_index, subset(x, select =  -c(row_index)))
     attr(returned, "message") <- paste("ERROR:\n-", paste(unique(error_msgs), collapse = "\n- "))
     attr(returned, "status") <- "ERRORS"
     attr(returned, "data") <- df
@@ -249,7 +257,7 @@
 
   #### Overall inputs check ----------------
   # check which columns contain input errors
-  measure_vals = c("SMD","OR", "HR", "IRR", "RR", "MD", "G", "logOR", "logRR", "logHR", "logIRR")
+  measure_vals = c("SMD", "SMC", "R", "Z", "OR", "HR", "IRR", "RR", "MD", "G", "logOR", "logRR", "logHR", "logIRR")
   measure_warning_vals = c('log2 fold change')
   cols_no_na = c('measure')
 
@@ -273,14 +281,14 @@
                  if (!(cell_value %in% measure_vals)) { # if unknown measure
                    if (!(cell_value %in% measure_warning_vals)) {
                      status <- "ERROR"
-                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'"))
-                     column_errors[i] = paste(column_errors[i], "Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
+                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'R', 'Z', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'"))
+                     column_errors[i] = paste(column_errors[i], "Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'R', 'Z', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
                      column_type_errors[i] = "ERROR"
                      i = i + 1
                    } else {
                      status <- "ERROR"
-                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'."))
-                     column_errors[i] = paste(column_errors[i], " Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
+                     error_msgs <- append(error_msgs, paste("Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'R', 'Z', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'."))
+                     column_errors[i] = paste(column_errors[i], " Measure '", cell_value, "' not supported. Should be either 'SMD', 'SMC', 'R', 'Z', 'OR', 'HR', 'IRR', 'RR', 'MD', 'G'. //")
                      column_type_errors[i] = "ERROR"
                      i = i + 1
                    }
@@ -433,7 +441,7 @@
   #### interim checkings ####
   ###########################
   if (status == "ERROR") {
-    df <- cbind(column_errors, column_type_errors, x)
+    df <- cbind(column_type_errors, column_errors, row_index = x$row_index, subset(x, select =  -c(row_index)))
     attr(returned, "message") <- paste("ERROR:\n-", paste(unique(error_msgs), collapse = "\n- "))
     attr(returned, "status") <- "ERRORS"
     attr(returned, "data") <- df
@@ -455,8 +463,8 @@
     if ( (x[row, "measure"] %in% c("SMD", "G", "MD", "SMC")) && (is.na(x[row, "n_cases"]) || is.na(x[row, "n_controls"])) ) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("For SMD,MD and G the number of cases and controls is mandatory"))
-      column_errors[row] = paste(column_errors[row], " For SMD, MD, G the number of cases/controls is mandatory. // ")
+                           paste("For SMD, SMC, MD and G the number of cases and controls is mandatory"))
+      column_errors[row] = paste(column_errors[row], " For SMD, SMC, MD, G the number of cases/controls is mandatory. // ")
       column_type_errors[row] = status
     }
 
@@ -603,8 +611,8 @@
     if ((!is.na(x[row, "shared_nexp"]) & x[row, "measure"] %in% c("logHR", "HR", "R", "Z")) | (!is.na(x[row, "shared_controls"]) & x[row, "measure"] %in% c("logHR", "HR", "R", "Z"))) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("The 'shared_nexp' and 'shared_controls' columns are not supported in combination with the HR measure."))
-      column_errors[row] = paste(column_errors[row], " The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR' measure. // ")
+                           paste("The 'shared_nexp' and 'shared_controls' columns are not supported in combination with the HR, R and Z measures."))
+      column_errors[row] = paste(column_errors[row], " The 'shared_nexp' / 'shared_controls' columns cannot be indicated with a 'HR', 'R' or 'Z' measures. // ")
       column_type_errors[row] = status
     }
 
@@ -612,7 +620,7 @@
     if (!is.na(x[row, "shared_controls"]) & x[row, "measure"] %in% c("logIRR", "IRR", "RR", "logRR")) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("\nThe 'shared_controls' column is only supported for the SMD, MD, G or OR measure.")
+                           paste("\nThe 'shared_controls' column is only supported for the SMD, SMC, MD, G or OR measure.")
       )
       column_errors[row] = paste(column_errors[row], " The 'shared_controls' column cannot be indicated with a 'RR' or 'IRR' measure. // ")
       column_type_errors[row] = status
@@ -622,7 +630,7 @@
     if (!is.na(x[row, "shared_nexp"]) & x[row, "measure"] %in% c("SMD", "SMC", "MD", "G")) {
       status <- "ERROR"
       error_msgs <- append(error_msgs,
-                           paste("The 'shared_nexp' column cannot be indicated with a 'SMD', 'MD', or 'G' measure.")
+                           paste("The 'shared_nexp' column cannot be indicated with a 'SMD', 'SMC', 'MD', or 'G' measure.")
       )
       column_errors[row] = paste(column_errors[row], " The 'shared_nexp' column cannot be indicated with a 'SMD', 'SMC', 'MD', or 'G' measure. // ")
       column_type_errors[row] = status
@@ -652,7 +660,7 @@
       rep_all_vals = duplicated(all_vals_study) | duplicated(all_vals_study, fromLast = TRUE) # duplicated gets the n-1 duplicates, so, I use this to get them all
 
       x[x$factor == factor, ][rep_all_vals, "duplicate"] <- TRUE
-      i = which(x$factor == factor & x$duplicate == TRUE)
+      i = which(x$factor == factor & x$duplicate == TRUE & is.na(x$multiple_es))
 
       if (any(is.na(df_i$multiple_es) & rep_all_vals)) {
         status <- "ERROR"
@@ -665,9 +673,7 @@
     # if the dataset has multiple ES inputs per study, an error is returned
     if (any(df_agg_i$multiple_es > 1)) {
 
-      i = which(paste(x$factor,
-                      x$author,
-                      x$year) %in%
+      i = which(paste(x$factor,x$author, x$year) %in%
                   paste(factor,
                         df_agg_i[df_agg_i$multiple_es > 1, "Group.2"],
                         df_agg_i[df_agg_i$multiple_es > 1, "Group.3"]))
@@ -816,63 +822,67 @@
                            exp((log(x$ci_lo[indexs]) + log(x$ci_up[indexs])) / 2)))
 
   # IRR marginals as sums:
-  indexs = which(is.na(x$time))
+  indexs = which(is.na(x$time) & measure %in% c("IRR", "logIRR"))
   x$time[indexs] = x$time_exp[indexs] + x$time_nexp[indexs]
 
   # OR / RR marginals as sums:
-  indexs = which(is.na(x$n_controls))
+  indexs = which(is.na(x$n_controls) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_controls[indexs] = x$n_controls_exp[indexs] + x$n_controls_nexp[indexs]
 
-  indexs = which(is.na(x$n_exp))
+  indexs = which(is.na(x$n_exp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_exp[indexs] = x$n_cases_exp[indexs] + x$n_controls_exp[indexs]
 
-  indexs = which(is.na(x$n_nexp))
+  indexs = which(is.na(x$n_nexp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_nexp[indexs] = x$n_cases_nexp[indexs] + x$n_controls_nexp[indexs]
 
   n = x$n_exp + x$n_nexp
-  indexs = which(is.na(n))
+  indexs = which(is.na(n)  & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   n[indexs] = x$n_cases[indexs] + x$n_controls[indexs]
 
   # IRR marginals as complements:
-  indexs = which(is.na(x$time_exp))
+  indexs = which(is.na(x$time_exp) & measure %in% c("IRR", "logIRR"))
   x$time_exp[indexs] = x$time[indexs] - x$time_nexp[indexs]
 
-  indexs = which(is.na(x$time_nexp))
+  indexs = which(is.na(x$time_nexp) & measure %in% c("IRR", "logIRR"))
   x$time_nexp[indexs] = x$time[indexs] - x$time_exp[indexs]
 
   # OR / RR marginals as complements:
-  indexs = which(is.na(x$n_exp))
+  indexs = which(is.na(x$n_exp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_exp[indexs] = n[indexs] - x$n_nexp[indexs]
 
-  indexs = which(is.na(x$n_nexp))
+  indexs = which(is.na(x$n_nexp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_nexp[indexs] = n[indexs] - x$n_exp[indexs]
 
-  indexs = which(is.na(x$n_cases))
+  indexs = which(is.na(x$n_cases) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_cases[indexs] = n[indexs] - x$n_controls[indexs]
 
-  indexs = which(is.na(x$n_cases))
+  indexs = which(is.na(x$n_cases) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_cases[indexs] = x$n_cases_exp[indexs] + x$n_cases_nexp[indexs]
 
-  indexs = which(is.na(x$n_controls))
+  indexs = which(is.na(x$n_controls) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_controls[indexs] = n[indexs] - x$n_cases[indexs]
 
   # IRR / OR / RR n_cases_exp and n_cases_nexp as complements:
-  indexs = which(is.na(x$n_cases_exp))
+  indexs = which(is.na(x$n_cases_exp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_cases_exp[indexs] = x$n_cases[indexs] - x$n_cases_nexp[indexs]
 
-  indexs = which(is.na(x$n_cases_nexp))
+  indexs = which(is.na(x$n_cases_nexp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_cases_nexp[indexs] = x$n_cases[indexs] - x$n_cases_exp[indexs]
 
   # OR / RR n_controls_exp and n_controls_nexp as complements:
-  indexs = which(is.na(x$n_controls_exp))
+  indexs = which(is.na(x$n_controls_exp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_controls_exp[indexs] = x$n_exp[indexs] - x$n_cases_exp[indexs]
 
-  indexs = which(is.na(x$n_controls_nexp))
+  indexs = which(is.na(x$n_controls_nexp) & measure %in% c("OR", "RR", "HR", "IRR", "logIRR", "logOR", "logRR", "logHR"))
   x$n_controls_nexp[indexs] = x$n_nexp[indexs] - x$n_cases_nexp[indexs]
 
   # variance
   indexs = which(!is.na(x$var) & is.na(x$se))
   x$se[indexs] = sqrt(x$var[indexs])
+
+  # n_sample
+  indexs = which(is.na(x$n_sample))
+  x$n_sample[indexs] = x$n_cases[indexs] + x$n_controls[indexs]
 
   # ERRORS: incongruencies
   wrong_n_cases = x$n_cases != x$n_cases_exp + x$n_cases_nexp
@@ -1110,7 +1120,7 @@
   column_type_errors[column_type_errors == ""] <- NA
   column_errors[column_errors == ""] <- NA
 
-  df <- cbind(column_type_errors, column_errors, x)
+  df <- cbind(column_type_errors, column_errors, row_index = x$row_index, subset(x, select =  -c(row_index)))
 
   if (status == "ERROR") {
     attr(returned, "status") <- "ERRORS"
@@ -1138,12 +1148,12 @@
 #' @noRd
 .fix_measure_name = function (x) {
   fixed_measure = switch(toupper(x),
-         "SMD" =, "D"=, "COHEN D" =, "Cohen d" = "SMD",
+         "SMD" =, "D"=, "d"=, "cohen"=, "COHEN D" =, "Cohen d" = "SMD",
          "HR" = "HR",
          "IRR" = "IRR",
          "OR"=, "ODDS RATIO" = "OR",
          "RR" = "RR",
-         "G" =, "HEDGES' G"=, "HEDGES G"=, "Hedges g" =, "Hedges' g" = "G",
+         "G" =, "g"=, "HEDGES' G"=, "HEDGES G"=, "Hedges g" =, "Hedges' g" = "G",
          "MD" =, "MEAN DIFFERENCE" = "MD",
          x
   )

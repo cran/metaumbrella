@@ -40,9 +40,11 @@
 #' @noRd
 .d_j <- function (x) {
 
-  j <- ifelse(x < 1, -1, 1) * exp(lgamma(x / 2) - 0.5 * log(x / 2) - lgamma((x - 1) / 2))
-  na.j <- which(is.na(j))
-  j[na.j] <- 1 - 3 / (4 * x[na.j] - 1)
+  # j <- ifelse(x < 1, -1, 1) * exp(lgamma(x / 2) - 0.5 * log(x / 2) - lgamma((x - 1) / 2))
+  # na.j <- which(is.na(j) | j == 0)
+  # j[na.j] <- 1 - 3 / (4 * x[na.j] - 1)
+  # return(j)
+  j <- ifelse(x <= 1, NA, 1) * exp(lgamma(x / 2) - 0.5 * log(x / 2) - lgamma((x - 1) / 2))
   return(j)
 }
 
@@ -58,11 +60,20 @@
   df = n_cases + n_controls - 2
   J = .d_j(df)
   g = d * J
+
   if (is.null(se)) {
     se_ok = sqrt(1 / n_cases + 1 / n_controls + (1 - (df - 2) / (df * J^2)) * g^2)
   } else {
     se_ok = sqrt(se^2 + (1 - (df - 2) / (df * J^2)) * g^2)
   }
+
+  if (any(is.na(se_ok))) {
+    message("- An error occured when converting the standard error of SMD to G. The standard error of the SMD was assumed to be equal to 'sqrt(1 / n_cases + 1 / n_controls + (1 - (df - 2) / (df * J^2)) * g^2)'.\n")
+  }
+  se_ok = ifelse(is.nan(se_ok),
+                 sqrt(1 / n_cases + 1 / n_controls + (1 - (df - 2) / (df * J^2)) * g^2),
+                 se_ok)
+
   return(data.frame(value = g, se = se_ok))
 }
 
@@ -81,7 +92,11 @@
   if (is.null(se)) {
     se_ok = sqrt(1 / n_cases + 1 / n_controls)
   } else {
-    se_ok = sqrt(se^2 - (1 - (df - 2) / (df * J^2)) * g^2)
+    se_ok = suppressWarnings(sqrt(se^2 - (1 - (df - 2) / (df * J^2)) * g^2))
+    if (is.nan(se_ok)) {
+      se_ok = sqrt(1 / n_cases + 1 / n_controls)
+      message("- An error occured when converting the standard error of G to SMD. The standard error of the SMD was assumed to be equal to 'sqrt(1/n_cases + 1/n_controls)'.\n")
+    }
   }
   return(data.frame(value = d, se = se_ok))
 }

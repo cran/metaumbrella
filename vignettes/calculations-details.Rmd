@@ -1,0 +1,434 @@
+---
+title: "Vignette 4: Details on calculations made by metaumbrella"
+author: "Corentin J. Gosling^a^, Aleix Solanes^a^, Paolo Fusar-Poli & Joaquim Radua"
+bibliography: "refs.bib"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Vignette 4: Details on calculations made by metaumbrella}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{=html}
+<style type="text/css">
+
+*{
+  font-family: "Gill Sans", sans-serif;
+}
+
+h1.title {
+  font-weight: 700;
+  font-size: 2.2rem;
+  padding-top: 0rem;
+  margin-top: 0rem;
+  border-top: none;
+}
+
+#TOC {
+  width: 100%;
+}
+
+h1{
+  font-weight: 550;
+  font-size: 1.9rem;
+  border-top: 1px solid black;
+  margin-top: 3rem;
+  padding-top: 2rem;
+}
+
+
+p{
+  line-height: 1.4rem;
+}
+</style>
+```
+
+# Introduction{-}
+
+This supplementary materials is designed to complement the manual of the metaumbrella package. In Section 1, we present details on the calculations performed by the package to conduct the main analyses (meta-analytic models, assessment of publication bias and excess of statistical significance). In the Section 2, we present the calculations performed by the package to adapt to various user inputs and to convert effect sizes from one to another.
+
+
+# Umbrella calculations
+
+## Effect size measures
+
+The metaumbrella package allows to work with different effect size measures. For studies comparing means, users can work with standardized mean difference (SMD), Hedges' g (G), or mean difference (MD). It is worth noting that, based on the published literature, SMD can alternatively be used to describe a Cohen's d or a Hedges' g measure [@cochrane:2019]. For the sake of clarity, we use SMD to refer only to a Cohen's d. For studies comparing frequencies, users can work with odds ratio or its logarithm (OR), or risk ratio or its logarithm (RR). For studies comparing incidence and hazard rates, users can work with hazard ratio or its logarithm (HR), and incident rate ratio or its logarithm (IRR). For correlational studies, users can work with raw Pearson's correlation coefficients (R) or Fisher's z (Z).
+
+## Meta-analytic models
+
+In the metaumbrella package, users can fit either fixed-effect or random-effects meta-analytic models [@Hedges:1985]. The fixed-effect model assumes that the observed differences in effect sizes between studies arise from sampling error. Therefore, this type of model should mainly be used to pool effect sizes coming from studies with similar methods (such as in the dosage of the intervention or the tool used to measure the outcome), and similar sample characteristics (such as in the age, sex, or severity of the condition).
+
+Considering $i$ = 1, ..., *k* independent effect sizes of a true effect size, the fixed-effect model is given by
+
+\begin{equation} \label{eq:fixed}
+es_i \quad = \quad \theta + \epsilon_i
+\end{equation}
+where $es_i$ denotes the observed effect in the $i$-th study, $\theta$ the shared common true effect and $\epsilon_i$ a within-study error in the $i$-th study. 
+
+
+Contrary to the fixed-effect model, the random-effect model assumes that the observed differences in effect sizes arise not only from sampling error but also because different studies estimate different true effects. Thus, this specification allows combining effect sizes that derive from studies with differences in their methods or in their sample characteristics.
+
+Considering $i$ = 1, ..., *k* independent effect sizes of a true effect size, this random-effects model is given by
+
+\begin{equation} \label{eq:random}
+es_i \quad = \quad \mu + \beta_i + \epsilon_i
+\end{equation}
+
+where $es_i$ denotes the observed effect in the $i$-th study, $\mu$ the average true effect across studies, $\beta_i$ the between-study error for the $i$-th study, $\epsilon_i$ a within-study error in the $i$-th study.
+
+By default, the between-study variance is estimated using a restricted likelihood maximum estimator, but four other estimators (DerSimonian-Laird, maximum-likelihood estimator, Paule-Mandel estimator or Hartung-Knapp-Sidik-Jonkman) are available. To fit the meta-analyses, the *umbrella()* function relies on the *metagen()* function from the R *meta* package [@Balduzzi:2019].
+
+Afterwards, the *umbrella()* function extracts several meta-analytic statistics (the overall pooled estimate and its 95\% confidence interval and $p-value$, three heterogeneity indicators: $tau^2$, $I^2$ and $Q$ statistics), calculates the 95\% prediction interval and estimates whether the largest study included in the meta-analysis has a significant effect.
+
+## Non-independence of effect sizes
+
+A core assumption of standard meta-analytic models is that all effect sizes come from independent participants and experiments. However, this assumption is frequently violated as some form of dependence often arises between effect sizes [@Jackson:2011]. The metaumbrella package distinguishes three forms of dependence and proposes a solution to handle each of them. First, dependence can be observed when effect sizes are nested within a larger factor. For example, this situation occurs when several effect sizes originate from either multiple independent studies reported in the same paper or from multiple independent studies reported in different papers, but conducted by the same research laboratory. We name this type of dependence $hierarchical$ dependence hereafter. Second, dependence can be observed when effect sizes are generated from the same participants. For example, this situation occurs when several effect sizes are derived from the same participants who have completed multiple outcomes at a unique time-point or who have completed the same outcome at multiple time-points. We name this type of dependence $multivariate$ dependence hereafter. Finally, dependence may be observed when effect sizes are generated from the partly same participants. This situation occurs when several effect sizes of a meta-analysis originate from studies that compare independent experimental or exposed groups to a unique control or non-exposed group. We name this type of dependence $partial$ dependence hereafter.
+
+When $hierarchal$ dependence is present in the data, a combined effect size across dependent studies is computed [@Borenstein:2009]. More precisely, all dependent effect sizes nested within a larger factor are resumed to a unique effect size by performing a fixed-effect meta-analysis. The effect size and the variance of this independent effect size are equal to the pooled effect size and its variance in the fixed-effect meta-analysis. The sample size associated with this unique effect size is equal to the sum of the sample size of each independent subgroup.
+
+When $multivariate$ dependence is present in the data, a combined effect size across outcomes or time-points derived from the same units is computed. More precisely, all dependent effect sizes derived from the same units are resumed to a unique effect size by estimating the non-weighted mean of all effect sizes [@Borenstein:2009]. The correlation between these effect sizes (that can be specified by the user) is used to calculate the variance of this combined effect size, as derived from standard formula [@Borenstein:2009]. The sample size associated with this unique effect size is equal to the largest sample size that completed an outcome or time-point.
+
+When $partial$ dependence is present in the data, the shared group is split into several independent subgroups of smaller sample size, as described in the Cochrane Handbook [@cochrane:2019]. More precisely, the number of participants in each independent subgroup is obtained by dividing the total number of participants in a shared group by the number of non-shared groups. These corrected sample sizes are used to re-estimate the effect sizes and their variance.
+
+## Publication bias
+
+To assess the presence of publication bias, the approach described by @Egger:1997 and @Sterne:2005 is used. This approach proposes to conduct a weighted linear regression in which the effect sizes of the individual studies are regressed against their precision (their standard error). If an association between the effect sizes and their precision is found, this can be interpreted as an indication of publication bias.
+
+\begin{equation} \label{eq:egger}
+es_i \quad = \quad \beta_0 + \beta_1 * SE_i
+\end{equation}
+where $es_i$ denotes the observed effect in the $i$-th study and $SE_i$ denotes the standard error of the $i$-th study. This regression is weighted by the inverse of the variance of the effect sizes ($\frac{1}{SE^2}$).
+
+
+When the effect size is a ratio (OR, RR, HR, or IRR), the logarithm of the effect size is used:
+\begin{equation} \label{eq:logegger}
+\log{(es_i)} \quad = \quad \beta_0 + \beta_1 * SE_i
+\end{equation}
+
+No publication bias assessment is conducted if the meta-analysis includes less than three studies.
+
+## Test for excess statistical significance
+
+These tests seek to explore - in a given set of studies - whether the observed number of statistically significant studies is higher than we could expect by chance, indicating the possibility of data tortures or reporting biases [@Ioannidis:2007; @stanley:2021]. These tests are conducted automatically when running the *umbrella()* function but users who are interested in assessing the excess statistical significance without performing an umbrella review can use the *esb.test()* function available in the metaumbrella package.
+
+Several approaches are proposed to conduct this test of excess statistical significance. The original approach described by @Ioannidis:2007 is available (using the *method.esb = "IT.binom"* or *method.esb = "IT.chisq"* arguments in the *umbrella()* and *esb.test()* functions). The new tests proposed by @stanley:2021 are also available (using the *method.esb = "TESS"*, *method.esb = "PSST"* or or *method.esb = "TESSPSST"* arguments in the *umbrella()* and *esb.test()* functions).
+
+### Original Ioannidis and Trikalinos test 
+
+This test for excess significance is a simple binomial (or $\chi^2$) test, in which the expected number of statistically significant studies is the sum of the statistical power of the studies (after assuming that the best approximation of the true effect size is the effect size of the largest study, the pooled effect size, the unrestricted weighted least squares weighted average, or any other estimate given by the user). 
+
+The following paragraphs refer to the strategies followed to estimate the statistical power of each included study depending on the effect size measure.
+
+* **SMD and SMC.** To estimate the power of studies reporting SMD or SMC, the *esb.test()* function starts by dividing the best approximation of the true SMD by the standard error of each study. This allows to estimate, for each study, a t-value ($t = \frac{true_d}{se}$) that is then used to estimate the power according to standard formulas [@Cohen:1988]. Note that if the returned estimated power is larger than 1, the *esb.test()* function uses 1.
+
+* **OR.** Prior to calculation, if any number of cases/controls in the exposed and non-exposed groups is equal to zero, the *esb.test()* function adds $0.5$ to the four groups [@Weber:2020].
+First, the function estimates the odds of exposition in controls as the average of the observed odds in the controls sample and the indirect estimation of the odds from the cases sample according to the best approximation of the true OR, weighted by $n_{controls} * (1 + o_{cases})$ for controls and $n_{cases} * (1 + o_{controls})$ for cases, with
+\begin{equation} \label{eq:orpwra}
+o_{cases} \quad = \quad \frac{n_{cases\_exp}}{n_{cases\_nexp}}
+\end{equation}
+and 
+\begin{equation} \label{eq:orpwrb}
+o_{controls} \quad = \quad \frac{\frac{w_{controls}\: \:n_{controls\_exp}}{n_{controls\_nexp}} + \frac{w_{cases}\: \: n_{cases\_exp}}{n_{cases\_nexp}} / OR}{w_{controls} + w_{cases}}
+\end{equation} where $w_{controls} = n_{controls\_exp} + n_{controls\_nexp}$, $w_{cases} = n_{cases\_exp} + n_{cases\_nexp}$, and where $n_{cases}$ and $n_{controls}$ are the total number of cases and controls, $n_{cases\_exp}$, $n_{cases\_nexp}$, $n_{controls\_exp}$ and $n_{controls\_nexp}$ are the number of cases and controls in the exposed and non-exposed groups.
+Second, it then estimates the odds of exposition in cases multiplying the odds in controls by the best approximation of the true OR .
+Third, it simulates thousands of studies with these parameters creating random numbers of exposed in cases and controls according to binomial distributions with $\pi_{cases} = o_{cases} / (1 + o_{cases})$ and $\pi_{controls} = o_{controls} / (1 + o_{controls})$. Note that $o_{cases} / (1 + o_{cases})$ is the probability of being exposed in the cases sample, and $o_{controls} / (1 + o_{controls})$ is the probability of being exposed in the controls sample.
+Finally, it estimates the statistical power as the proportion of these studies with statistically significant findings.
+
+
+* **RR.** First, the *esb.test()* function estimates the incidence of the event in non-exposed as the average of the observed incidence in non-exposed and the indirect estimation of the incidence from the exposed sample according to the best approximation of the true RR, weighted by the sample sizes
+\begin{equation} \label{eq:rrpwr}
+I_{nexp} \quad = \quad \frac{\frac{w_{nexp}\: \:n_{cases\_nexp}}{n_{nexp}} + \frac{w_{exp}\:*\: n_{cases\_exp}}{n_{exp}} / RR}{w_{nexp} + w_{exp}}
+\end{equation}
+where $w_{nexp} = n_{nexp}$, $w_{exp} = n_{exp}$, and $n_{exp}$ and $n_{nexp}$ are the number of participants in the exposed and non-exposed groups.
+Second, it estimates the incidence of the event in exposed multiplying the incidence of the event in non-exposed by the best approximation of the true RR.
+Third, it simulates thousands of studies with these parameters creating random numbers of cases in exposed and non-exposed according to binomial distributions with $\pi_{exp} = I_{exp}$ and $\pi_{nexp} = I_{nexp}$.
+Finally, it estimates the statistical power as the proportion of these studies with statistically significant findings.
+
+* **IRR.** First, the *esb.test(* function estimates the incidence of the event in non-exposed as the average of the observed incidence in non-exposed and the indirect estimation of the incidence from the exposed sample according to the best approximation of the true IRR, weighted by the times
+\begin{equation} \label{eq:irrpwr}
+IR_{nexp} \quad = \quad \frac{\frac{w_{nexp}\: \:n_{cases\_nexp}}{time_{nexp}} + \frac{w_{exp}\: \: n_{cases\_exp}}{time_{exp}} / IRR}{w_{nexp} + w_{exp}}
+\end{equation}
+where $w_{nexp} = time_{nexp}$, $w_{exp} = time_{exp}$ and where $time_{exp}$ and $time_{nexp}$ are the person-time of disease-free observation in the exposed and non-exposed groups.
+Second, it estimates the incidence of the event in exposed multiplying the incidence of the event in non-exposed by the best approximation of the true IRR.
+Third, it simulates thousands of studies with these parameters creating random numbers of cases in exposed and non-exposed according to Poisson distributions with $\lambda_{exp} = IR_{exp} * time_{exp}$ and $\lambda_{nexp} = IR_{nexp} * time_{nexp}$.
+Finally, it estimates the statistical power as the proportion of these studies with statistically significant findings.
+
+* **HR.** First, the *esb.test()* function estimates the ratio between the numbers of exposed and non-exposed groups. The *esb.test()* function estimates this number empirically to match the statistical power of the study (which could differ depending on factors such as the inclusion of one or other covariate in the study analysis). Specifically, it uses the *optim()* function to find the ratio associated with 50\% power to detect the HR reported in the study with the $p-value$ reported in the study. Afterwards, it calls the *powerCT.default0()* function from the powerSurvEpi package [@powerepi:2021] to estimate the power to detect the best approximation of the true HR with the estimated ratio and $p$~value = 0.05.
+
+* **R and Z.** The *esb.test()* function starts by converting all Z values into R values and then uses the standard formula implemented in the *pwr.r.test()* function of the pwr package [@pwr:package].
+
+Once the statistical power of each study (n = k) has been estimated, the expected number of studies with statistically significant results can be obtained using
+\begin{equation} \label{eq:esig1}
+Esig \quad = \quad \sum_{i=1}^{k} \quad [ power_i ]
+\end{equation}
+
+
+### New excess statistical significance tests 
+
+Recently, @stanley:2021 developed three new tests of excess statistical significance. 
+
+First, the proportion of statistical significance test (PSST) estimates the expected proportion of studies with statistically significant results (based on an estimation of a true effect size and an integration of heterogeneity in the power calculations). This theoretical proportion is then compared to the observed proportion of studies with statistically significant results. When this observed proportion is higher than the expected proportion, it may be interpreted as a signal of excess of statistical significance. 
+
+Second, the test of excess statistical significance (TESS) compares the proportion of excess statistical significance to 5%. When this proportion is higher than 5%, it may be interpreted as a signal of excess of statistical significance. 
+
+Third, a combination of the two previous tests is proposed (TESSPSST). 
+
+In these three tests, the expected number of statistically significant studies (Esig) is the sum of the statistical power of the studies (after assuming that the best approximation of the true effect size is the effect size of the largest study, the pooled effect size, the unrestricted weighted least squares weighted average, or any other estimate given by the user). 
+
+For these tests, the statistical power of a given study is determined using the following formula
+\begin{equation} \label{eq:pwrtess}
+power_i \quad = \quad 1 - pnorm(\frac{1.96 * SE_i - |UWLS|}{\sqrt(SE_i^2 + \tau^2)}, 0, 1)
+\end{equation}
+where $SE_i$ is the standard error of the $i$-th study, \tau is the between-study variance estimated in a meta-analysis, UWLS is the unrestricted weighted least squares weighted average and $pnorm(x, \mu, SD)$ returns the value of the cumulative density function of the normal distribution given a variable ($x$), a population mean ($\mu$) and population standard deviation ($SD$).
+
+Once the statistical power of each study (n = k) has been estimated, the expected number of studies with statistically significant results can be obtained using
+\begin{equation} \label{eq:esig2}
+Esig \quad = \quad \sum_{i=1}^{k} \quad [ power_i ]
+\end{equation}
+
+Then, the two TESS and PSST can be performed
+
+\begin{equation}
+Pss \quad = \quad \frac{SS}{k}
+\end{equation}
+\begin{equation}
+Pe \quad = \quad \frac{Esig}{k}
+\end{equation}
+\begin{equation}
+ESS \quad = \quad \frac{SS - Esig}{k}
+\end{equation}
+\begin{equation}
+PSST \quad = \quad \frac{(Pss - Pe)}{\sqrt(\frac{Pe * (1 - Pe)}{k})}
+\end{equation}
+\begin{equation}
+TESS \quad = \quad \frac{(ESS - 0.05)}{\sqrt(\frac{0.0475}{k})}
+\end{equation}
+where $SS$ is the number of studies with statistically significant results, $Pss$ is the **observed** proportion of statistically significant results and $Pe$ is the **expected** proportion of statistically significant results and $ESS$ the proportion of excess significance 
+
+The PSST and TESS tests are considered as statistically significant if > 1.645. The TESSPSST is considered statistically significant if at least one of the PSST or TESS is significant. 
+
+# Adaptation to various inputs
+
+One of the key advantages of the *umbrella()* function over other statistical softwares and R packages designed to perform meta-analyses lies in the possibility of offering users automatic fitting of numerous meta-analytic models based on a large variety of inputs data. Therefore, users may extract the data reported in the articles without the necessity of undertaking homogenization work if the available information differs between articles. To adapt to the various inputs, the *umbrella()* function includes many internal functions that convert several input statistics into the effect sizes required to conduct the umbrella review.
+
+## Obtention of the value of the effect size
+
+* **SMD, MD, G and SMC.** These four effect size measures are used to quantify the differences between one experimental and one control group on some quantitative, normally distributed dependent variable.
+
+* **SMD** is obtained by the following formulas
+    \begin{equation} \label{eq:smd}
+    SMD \quad = \quad \frac{mean\_cases - mean\_controls}{pooled\_sd}
+    \end{equation}
+    where $mean\_cases$ and $mean\_controls$ are equal to the means of the two groups and where $pooled\_sd$ is equal to
+    \begin{equation} \label{eq:mdsmd}
+    pooled\_sd \quad = \quad \sqrt{\frac{(n\_cases - 1) * sd\_cases^2 + (n\_controls - 1) *
+    sd\_controls^2}{df}}
+    \end{equation}
+where $sd\_cases$ and $sd\_controls$ are equal to the standard deviations of the two groups, $n\_cases$ and $n\_controls$ are the sample sizes of the two groups and $df$ is equal to $n\_cases + n\_controls - 2$
+
+* **G** is obtained by adding a correction to the SMD for the positive bias [@Hedges:1985].
+    \begin{equation} \label{eq:g}
+    G \quad = \quad SMD * J
+    \end{equation}
+    where J is equal to
+    \begin{equation} \label{eq:j}
+    J \quad = \quad exp(\log_{gamma}(df/2) \:-\: 0.5 \:*\: \log(df / 2) \:-\: \log_{gamma}((df \:-\: 1) \:/\:
+    2))
+    \end{equation}
+    We implemented this correction using the R functions *exp()* and *lgamma()* instead of *gamma()* to avoid numerical errors when the degrees of freedom are large @AlbajesEizagirre:2018}
+
+* **MD** For MD, users must directly enter this value.
+
+* **SMC.** This effect size measure is used to quantify the differences in pre-post changes between one experimental and one control group on some quantitative, normally distributed dependent variable. SMC is obtained by the following formulas
+    \begin{equation} \label{eq:smc}
+    sd\_change\_cases \quad = \quad \sqrt(sd\_pre\_cases^2 + sd\_cases^2 - 2*cor*sd\_pre_cases * sd\_cases)
+    \end{equation}
+    \begin{equation}
+    sd\_change\_controls \quad = \quad \sqrt(sd\_pre\_controls^2 + sd\_controls^2 - 2*cor*sd\_pre\_controls *
+    sd\_controls)
+    \end{equation}
+    \begin{equation}
+    smc\_cases \quad = \quad \frac{mean\_cases - mean\_pre\_cases}{sd\_change\_cases} * J
+    \end{equation}
+    \begin{equation}
+    smc\_controls \quad = \quad \frac{mean\_controls - mean\_pre_controls}{sd\_change\_controls} * J
+    \end{equation}
+    \begin{equation}
+    SMC \quad = \quad smc\_cases - smc\_controls
+    \end{equation}
+where $mean\_cases$ and $mean\_controls$ are equal to the means of the two groups at post-test, $mean\_pre\_cases$ and $mean\_pre\_controls$ are equal to the means of the two groups at pre-test, $sd\_cases$ and $sd\_controls$ are equal to the standard deviations of the two groups at post-test, $sd\_pre\_cases$ and $sd\_pre\_controls$ are equal to the standard deviations of the two groups at pre-test, J is the correction for positive bias, and $cor$ is the pre-post correlation.
+
+* **R and Z.** These effect size measures are used to quantify the association between two numeric variables within the same sample. R and Z are obtained by the following formulas
+    - For R, users must directly enter this value.
+    - For Z, the following formula is used
+    \begin{equation} \label{eq:z}
+    Z \quad = \quad 0.5 * \log(\frac{1 + R}{1 - R})
+    \end{equation}
+    where R is the Pearson's correlation coefficient
+
+* **OR and RR.** These two effect size measures are used to quantify the differences between exposed and non-exposed groups on some dichotomous dependent variables. OR and RR are obtained using the following formulas
+    \begin{equation} \label{eq:or}
+    OR \quad = \quad \frac{(n\_cases\_exp \:/\: n\_cases\_nexp)}{(n\_controls\_exp \:/\: n\_controls\_nexp)}
+    \end{equation}
+    \begin{equation} \label{eq:rr}
+    RR \quad = \quad \frac{(n\_cases\_exp \:/\: n\_exp)}{(n\_cases\_nexp \:/\: n\_nexp)}
+    \end{equation}
+    where $n\_exp$ and $n\_nexp$ are numbers of participants in the exposed and non-exposed groups,
+    $n\_cases\_exp$ and $n\_controls\_exp$ to are the numbers of cases and controls in the exposed group and
+    $n\_cases\_nexp$ and $n\_controls\_nexp$ are the numbers of cases and controls in the non-exposed group.
+    Note that if any of the $n\_cases\_exp$, $n\_cases\_nexp$, $n\_controls\_exp$ or $n\_controls\_nexp$ is
+    equal to zero, $0.5$ is added to the four values @Weber:2020}. That said, studies with no participants
+    exposed to the risk factor or with 0 cases are eliminated because they provide no information.
+
+* **IRR.** This effect size measure is used to compare the incidence rates of events occurring at any given point in time between exposed and non-exposed groups. For this measure, we use
+    \begin{equation} \label{eq:irr}
+    IRR \quad = \quad \frac{(n\_cases\_exp \:/\: time\_exp)}{(n\_cases\_nexp \:/\: time\_nexp)}
+    \end{equation}
+where n\_cases\_exp and n\_cases\_nexp are the numbers of cases in the exposed and non-exposed groups and time\_exp and time\_nexp are the person-time rates of the exposed and non-exposed groups.
+
+* **HR.** This effect size measure is used to compare hazard rates of events between exposed and non-exposed groups. Users must directly enter this value.
+
+## Obtention of the variance of the effect size
+
+When information on the variance of the effect size is not directly reported in the dataset, the *umbrella()* function includes several functions to estimate the variance of the effect sizes from raw information.
+
+### Using raw information
+
+* **SMD, MD, G.** For SMD and G, their variance is estimated as follows
+    \begin{equation} \label{eq:varsmd}
+    var_{SMD} \quad = \quad \frac{1}{n\_cases} + \frac{1}{n\_controls}
+    \end{equation}
+    \begin{equation} \label{eq:varg}
+    var_G \quad = \quad var_{SMD} + (1 - (df - 2) / (df * J^2)) * G^2
+    \end{equation}
+For MD, users must enter the variance or any information to estimate it (i.e., the standard error or the 95\% CI).
+
+
+* **OR, RR.**
+The standard formulas allowing to estimate the variance of the logarithm of OR and RR are
+\begin{equation} \label{eq:varor}
+var_{\log(OR)} =\frac{1}{n\_cases\_exp} + \frac{1}{n\_cases\_nexp} + \frac{1}{n\_controls\_exp} + \frac{1}{n\_controls\_nexp}
+\end{equation}
+\begin{equation} \label{eq:varrr}
+var_{\log(RR)} \quad = \quad \frac{1}{n\_cases\_exp} - \frac{1}{n\_exp} + \frac{1}{n\_cases\_nexp} - \frac{1}{n\_nexp}
+\end{equation}
+For OR, when the information regarding these sample sizes is not available and that any information to estimate the variance is available (i.e., the 95\% CI, the standard error, or the variance), another approach is used. In this case, an estimation of the variance is provided using the value of the OR and the total number of cases and controls. Specifically, a function simulates all combinations of the possible number of exposed/non-exposed participants compatible with both the value of the OR and the total number of cases and controls reported and averages the corresponding variances.
+
+* **IRR.**
+For this effect size, the variance of the logarithm of IRR is estimated as
+\begin{equation} \label{eq:varirr}
+var_{\log(IRR)} \quad = \quad \frac{1}{n\_cases\_exp} + \frac{1}{n\_cases\_nexp}
+\end{equation}
+When the IRR and its standard error are known, the *umbrella()* function (re)estimates the number of exposed and the time of exposition from IRR. The aim of this action is two-fold. On the one hand, the *umbrella()* function estimates any missing number of exposed or time of exposition. On the other hand, it makes $var_{\log(IRR)}$ coincide with the original analyses even when those included covariates. Otherwise, $var_{\log(IRR)}$ would be unfairly larger in studies that controlled for potential sources of variability. The formulas to conduct the (re)estimation of the number of exposed are based on the above formulas of IRR and $var_{\log(IRR)}$, although the function uses the \proglang{R} function *optim} to avoid squared roots of negative numbers in internal calculations.
+
+* **HR.** Users must enter the variance of the HR or any information allowing to estimate it (i.e., the standard error or the 95\% CI).
+
+### Using the 95 percent CI
+
+For studies in which users report neither the variance nor the standard error of the effect size, nor the raw information allowing to estimate it, this information is obtained from the 95\% CI.
+
+* **SMD, MD, G.** The variance of these effect size measures is converted from the 95\% CI using the formula
+\begin{equation} \label{eq:varcismd}
+var_{differences} \quad = \quad (\frac{upper\: bound\: 95\% CI - lower\: bound \:95\%\: CI}{2 * qt(0.975, df)})^2
+\end{equation}
+where $qt(x, df)$ returns the value of the inverse cumulative density function of the Student t distribution given a variable ($x$) and degrees of freedom ($df$).
+
+* **R and Z.** The variance of these effect size measures is converted from the 95\% CI using the formula
+\begin{equation} \label{eq:varcirrz}
+var_{correlations} \quad = \quad (\frac{upper\: bound\: 95\% CI - lower\: bound \:95\%\: CI}{2 * qnorm(0.975, 0, 1)})^2
+\end{equation}
+$qnorm(x, \mu, SD)$ returns the value of the inverse cumulative density function of the normal distribution given a variable ($x$), a population mean ($\mu$) and population standard deviation ($SD$).
+
+* **OR, RR, HR, IRR.** The variance of these effect size measures is converted from the 95\% CI using the formula
+\begin{equation} \label{eq:varciratio}
+var_{ratios} \quad = \quad (\frac{\log(upper \:bound \:95\% \:CI) - \log(lower\: bound\: 95\%\: CI)}{2 * qnorm(0.975, 0, 1)})^2
+\end{equation}
+where $qnorm(x, \mu, SD)$ returns the value of the inverse cumulative density function of the normal distribution given a variable ($x$), a population mean ($\mu$) and population standard deviation ($SD$).
+
+
+## Conversions between effect size measures
+
+In three instances, the metaumbrella package performs conversions between effect size measures.
+
+* When the input effect size measure is G and/or MD, they are first automatically converted into an SMD to have all mean comparisons on the same scale. The Ioannidis' test for excess significance bias is performed on these SMD values. However, SMD values are automatically converted into G before running meta-analytic calculations and Egger's test for publication bias.
+
+    * To convert the MD into an SMD, the variance of the MD or any information allowing to estimate it (the standard error or the 95\% CI) is required. Then, the variance of the MD is used to obtain the pooled standard deviation of the MD, which then allows to calculate the SMD
+    \begin{equation} \label{eq:mdtosmd}
+    pooled_{sd} \quad = \quad \frac{\sqrt{var_{MD}}}{\sqrt{1 / n_{cases} + 1 / n_{controls}}}
+    \end{equation}
+    \begin{equation}
+    SMD \quad = \quad \frac{MD}{pooled_{sd}}
+    \end{equation}
+
+    * To convert the G into an SMD, the formula used is
+    \begin{equation} \label{eq:gtosmd}
+    SMD \quad = \quad \frac{G}{J}
+    \end{equation}
+    \begin{equation}
+    var_{SMD} \quad = \quad var_G - (1 - (df - 2) / (df * J^2)) * G^2
+    \end{equation}
+
+* When the effect size measures vary within the same factor, they are converted in the same metric to allow the realization of the meta-analysis. This situation may occur, for example, when the authors of an umbrella review pool together effect sizes from several meta-analyses, or pool together effect sizes found in a systematic review that reported effect sizes in different metrics. The *umbrella()* function performs five types of conversion. It converts R to SMD (situation 1), SMD to OR (situation 2), OR to SMD (situation 3), RR to OR (situation 4), and HR to OR (situation 5). When SMD is included in a meta-analysis with multiple effect size measures, it is used as the main effect size measure and R, Z, OR, RR and HR are converted into an SMD (in the case of RR and HR, they are first converted into an OR, and are then converted into an SMD). When SMD is not included in a meta-analysis with multiple effect size measures, OR is used as the main effect size measure and RR, HR, R and Z are converted into an OR (in the case of R and Z, they are first converted into a SMD, and are then converted into an OR). IRR is not converted by the *umbrella()* function.
+
+    * **Situation 1:** when users report both R and/or Z and SMD within the same meta-analysis, the R and Z are converted into an SMD using the standard formula @Borenstein:2009.
+    \begin{equation} \label{eq:rtosmd}
+    SMD \quad = \quad \frac{2 * R}{\sqrt(1 - R^2)}
+    \end{equation}
+    \begin{equation}
+    var_{SMD} \quad = \quad \frac{4 * var_R}{(1 - R^2)^3}
+    \end{equation}
+    Note that the variance of R is derived from the raw standard error / variance or 95\% CI of Z. This choice can lead to a small approximation when users report only R values and total sample size but this was made to ensure that the standard errors of meta-analyses reporting aggregated effect sizes were not estimated as for an individual study. 
+
+    * **Situation 2:** when users report both R and/or Z and OR within the same meta-analysis, the R and Z are converted into a SMD using the formula above and are then converted into a OR using the standard formula [@Borenstein:2009]
+    \begin{equation} \label{eq:rtoOR}
+    OR \quad = \quad exp(\frac{SMD * \pi}{\sqrt{3}})
+    \end{equation}
+    \begin{equation}
+    var_{OR} = var_d * \pi^2 / 3
+    \end{equation}
+
+    * **Situation 3:** when users report both SMD and OR within the same meta-analysis, the OR is converted into an SMD using the standard formula @Borenstein:2009}
+    \begin{equation} \label{eq:ortosmd}
+    SMD \quad = \quad \frac{\log(OR) * \sqrt(3)}{\pi}
+    \end{equation}
+
+    * **Situation 4:** when users report both OR and RR within the same factor, the RR is converted into an OR. Two distinct approaches can be used to perform this conversion. First, when users indicate the number of cases and controls in the exposed and non-exposed groups, this information is used to estimate an OR using the standard formula to estimate this effect size (see previous formulas). In contrast, if users provide only the value of the RR plus any information regarding the variance (i.e., either the variance, standard error or 95\% CI) plus the total number of cases and controls, the number of cases and controls in both the exposed and non-exposed groups are estimated using approach described in the following section and then the OR is calculated using the standard formula to estimate this effect size.
+
+    * **Situation 5:** when users report both OR and HR within the same factor, the HR is assumed to be equal to an OR.
+
+* Last, the *umbrella()* function reports all pooled effect sizes of meta-analyses in their original metric but also in equivalent odds ratio (eOR) and equivalent Hedges' G (eG) to facilitate the comparison of effect sizes between meta-analyses. Pooled effect sizes expressed as eG are converted into an eOR using the formula described in @Borenstein:2009.
+\begin{equation} \label{eq:smdtoeor}
+eOR \quad = \quad exp(\frac{eG * \pi}{\sqrt{3}})
+\end{equation}
+Pooled effect sizes expressed as OR, RR, HR and IRR are assumed to be equal to an eOR.
+\begin{equation} \label{eq:rrtoeor}
+eOR \quad = \quad OR \quad = \quad RR \quad = \quad HR \quad = \quad IRR
+\end{equation}
+Pooled effect sizes expressed as R, OR, RR, HR and IRR are converted into an eG using the formula described in @Borenstein:2009.
+\begin{equation} \label{eq:eortosmd}
+eG \quad = \quad \frac{\log(eOR) * \sqrt{3}}{\pi}
+\end{equation}
+\begin{equation} \label{eq:rztosmd}
+SMD \quad = \quad \frac{2 * R}{\sqrt(1 - R^2)}
+\end{equation}
+where eOR can be any of OR, RR, HR or IRR. 
+
+
+## Obtention of missing variables
+
+The *umbrella()* function derives missing variables from existing variables, either from obvious relationships (e.g., the number of cases in the non-exposed sample is the total number of cases minus the number of cases in the exposed sample), or from standard formulas (e.g., from the formula of the variance).
+
+If there is no formula to obtain the missing figure, in some cases the missing variable can have any value as far as some relationships are kept. In such cases, the simplest value is used. For instance, in studies reporting IRR but with missing follow-up times in the exposed and non-exposed groups, the function sets the overall time to 1 and then splits it among the exposed and non-exposed groups to match the reported IRR.
+
+Otherwise, the function finds the value that best matches the reported data. For instance, when working with OR or RR, users do not necessarily have the information on the number of cases and controls in the exposed and non-exposed groups and may report only the effect size value and the overall number of cases and controls. In this case, the *umbrella()* function simulates all combinations of the possible number of cases and controls in the exposed and non-exposed groups compatible with the actual value of OR or RR. Then, it selects the combination whose variance coincides with the variance reported. Similarly, when the number of cases in the exposed and non-exposed groups is not reported when working with IRR, the *umbrella()* function uses the *optim()* to find the number of cases in the exposed and non-exposed groups that results in a variance that coincides with the reported variance. Afterwards, it recalculates the times so that the resulting IRR coincides with the reported IRR.
+
+## Unrounding of extracted effect size estimates
+
+To replicate the meta-analyses in an umbrella review, it is necessary to rely on information reported in the articles when the raw data are not shared publicly. Among the different pieces of information that permit replication of the meta-analyses, the effect sizes of the individual studies along with their 95\% CI are often available in forest plots. However, authors must round off the information reported which leads to a decrease in the precision when using this information to replicate the meta-analysis. Therefore, the *umbrella()* function unrounds this information when the input information to replicate a meta-analysis is the effect size along with the 95\% confidence interval. To do so, we used the function *optim()* to find the mean and standard error resulting in a confidence interval that, once rounded, is identical to the one reported in the paper. For instance, imagine the authors find an OR = 3.140 and the standard error of the log(OR) is 0.170, resulting in a 95\% CI = 2.250-4.382. If authors rounded these values to one decimal figure, they would report OR = 3.1 with 95\% CI = 2.3-4.4. However, the *umbrella(* function unrounds these figures to OR = 3.136344 with 95\% CI = 2.248973-4.373843, closer to the true statistics.
+
+# References
+

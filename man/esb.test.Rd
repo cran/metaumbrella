@@ -2,7 +2,7 @@
 % Please edit documentation in R/esb_test.R
 \name{esb.test}
 \alias{esb.test}
-\title{Perform the Ioannidis test for excess of significance}
+\title{Perform some tests for excess of significance}
 \usage{
 esb.test(
   x,
@@ -10,9 +10,10 @@ esb.test(
   n_cases = NULL,
   n_controls = NULL,
   measure = NULL,
-  method = "IT.binom",
-  true_effect = "largest",
-  seed = NA
+  method.esb = "TESSPSST",
+  true_effect = "UWLS",
+  seed = NA,
+  tau2 = NA
 )
 }
 \arguments{
@@ -26,15 +27,17 @@ This information  can be indicated via the \code{n_cases} argument of the \code{
 \item{n_controls}{vector with the number of controls of each included studies. Only required when \code{x} is an object of class \dQuote{rma} or \dQuote{meta}
 This information  can be indicated via the \code{n_controls} argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{measure}{the measure of the effect: "SMD", "MD", "G", "OR" or "logOR, "RR" or "logRR", "HR" or "logHR", "IRR" or "logIRR".
+\item{measure}{the measure of the effect: "SMD", "MD", "R", "Z", "G", "OR" or "logOR, "RR" or "logRR", "HR" or "logHR", "IRR" or "logIRR".
 If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either "SMD" or "OR". However, note that for \dQuote{rma} objects, a SMD is systematically assumed to be a G (to respect the naming used in the \pkg{metafor} package). For \dQuote{meta} objects, a SMD is assumed to be a G unless it is explicitly stated that this is not the case (i.e., using the \code{method.smd = "Cohen"} argument).
 The effect size measure used can be indicated via the measure argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{method}{the method used to conduct the test. It must be \code{IT.binom} or \code{IT.chisq}  (see details).}
+\item{method.esb}{the method used to conduct the test. It must be \code{IT.binom}, \code{IT.chisq}, \code{PSST}, \code{TESS} or \code{TESSPSST}  (see details). Default is \code{"TESSPSST"}.}
 
-\item{true_effect}{the best approximation of the true effect. It must be \code{"largest"} or a numeric value (see details).}
+\item{true_effect}{the best approximation of the true effect. It must be \code{"largest"}, \code{"UWLS"} or a numeric value (see details). Default is \code{"UWLS"}.}
 
 \item{seed}{an integer value used as an argument by the set.seed() function. Only used for measures "OR", "logOR, "RR", "logRR", "IRR" or "logIRR".}
+
+\item{tau2}{The tau2 value that should be used when using one of the \code{PSST}, \code{TESS} or \code{TESSPSST} methods (see details).}
 }
 \value{
 The dataset contains the following columns: \tabular{ll}{
@@ -59,21 +62,25 @@ The dataset contains the following columns: \tabular{ll}{
 }
 }
 \description{
-The \code{esb.test()} function performs the 'Ioannidis' test to examine the presence of an excess of significance in a given set of studies.
-This test aims to determine whether there is an excess in the observed number of studies with statistically significant results given the mean statistical power.
+The \code{esb.test()} function performs various tests to examine the presence of an excess of statistical significance in a given set of studies.
+These tests aims to determine whether there is an excess in the observed number of studies with statistically significant results compared to what could have been expected.
 }
 \details{
 The function starts by calculating whether each individual study has significant results (p < .05). Then, it estimates the statistical power of each individual study to detect an effect size equal to the best approximation of the true effect.
 The \code{true_effect} argument can be used to select the method that will be applied to estimate the true effect.
 \itemize{
 \item If \code{"largest"} is entered, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
+\item If \code{"UWLS"} is entered, the true effect size is assumed to be equal to unrestricted weighted least squares weighted average.
 \item If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of ratios must be in their natural scale).
 }
 
-Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method} argument can be used to select the test.
+Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method.esb} argument can be used to select the test.
 \itemize{
-\item If \code{"IT.binom"} is entered, the function performs a binomial exact test of a simple null hypothesis about the probability of success. In this test, the studies with statistically significant results are considered as successes. The mean statistical power to detect the best approximation of the true effect is considered as the probability of success. The exact test is significant if the number of statistically significant studies is higher than what could be have been expected given the mean observed power.
-\item If \code{"IT.chisq"} is entered, the function performs a chi-square test based on the number of studies with significant results, the number of studies with non-significant results and their associated probability of occurrence (i.e., the statistical power to detect the best approximation of the true effect). The chi-square test is significant if the number of statistically significant studies is higher than what could be have been expected given the observed power.
+\item If \code{"IT.binom"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a binomial exact test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
+\item If \code{"IT.chisq"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a chi-square test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
+\item If \code{"TESS"} is entered, the test of excess statistical significance (TESS) described by Stanley and colleagues (2021) is performed. This test asseses whether the proportion of excess statistical significance is larger than 5\%. In this test, power calculations take into account between-study heterogeneity.
+\item If \code{"PSST"} is entered, the proportion of statistical significance test (PSST) described by Stanley and colleagues (2021) is performed. This is a test assessing whether the proportion of statistically significant studies is higher than what could have been expected given the mean statistical power. In this test, power calculations take into account between-study heterogeneity.
+\item If \code{"TESSPSST"} is entered, the function combines results of both "PSST" and "TESS" analyses. "TESSPSST" assumes an excess of statistical significance if at least one of "TESS" and "PSST" is statistically significant.
 }
 }
 \examples{
@@ -81,10 +88,11 @@ Last, this function performs a statistical test to determine whether the observe
 df <- df.SMD[df.SMD$factor == "Surgical", ]
 
 ### perform an excess significance bias directly on this dataframe
-esb <- esb.test(df, measure = "SMD", input = "dataframe")
+esb <- esb.test(df, measure = "SMD", input = "dataframe",
+                method.esb = "IT.binom", true_effect = "largest")
 
 ### perform an excess significance bias using the umbrella function
-esb.umbrella <- umbrella(df)[[1]]$esb
+esb.umbrella <- umbrella(df, method.esb = "IT.binom", true_effect = "largest")[[1]]$esb
 
 ### perform an excess significance bias on a rma object
 ### we convert the SMD into Hedges' g
@@ -94,7 +102,7 @@ rma <- metafor::rma(yi = G$value, sei = G$se,
                     ni = df$n_cases + df$n_controls,
                     data = df)
 
-esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma")
+esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma", method.esb = "IT.binom")
 
 ### perform an excess significance bias on a meta object
 meta <- meta::metagen(TE = G$value, seTE = G$se,
@@ -103,7 +111,7 @@ meta <- meta::metagen(TE = G$value, seTE = G$se,
                       n.c = df$n_controls,
                       data = df)
 
-esb.meta <- esb.test(meta, input = "meta")
+esb.meta <- esb.test(meta, input = "meta", method.esb = "IT.binom")
 
 all.equal(esb$p.value, esb.umbrella$p.value, esb.rma$p.value, esb.meta$p.value)
 }

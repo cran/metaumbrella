@@ -13,7 +13,7 @@ test_that("power for d is correctly estimated for individual studies", {
   tes.pwr = metafor::tes(x = df.save$value, sei = df.save$se, theta = 0.2,
                          alternative = "two.sided")
 
-  umb.pwr = umbrella(df.save, true_effect = 0.2)[[1]]$esb$power
+  umb.pwr = umbrella(df.save, true_effect = 0.2, method.esb = "IT.binom")[[1]]$esb$power
   expect_equal(pow_umb, pow_pwr)
   expect_equal(pow_umb, umb.pwr)
   expect_equal(pow_umb, tes.pwr$power, tolerance = 5e-3)
@@ -21,7 +21,7 @@ test_that("power for d is correctly estimated for individual studies", {
 
 test_that("power for d is correctly estimated for pooled ES", {
 
-  umb <- union.umbrella(union.umbrella(umbrella(df.SMD), umbrella(df.OR)), umbrella(df.HR))
+  umb <- union.umbrella(union.umbrella(umbrella(df.SMD, method.esb = "IT.binom", true_effect = "largest"), umbrella(df.OR, method.esb = "IT.binom", true_effect = "largest")), umbrella(df.HR, method.esb = "IT.binom", true_effect = "largest"))
 
   pow_meta_umb <- pow_meta_pwr <- NA
   n = 0
@@ -63,7 +63,7 @@ test_that("power for OR is correctly estimated", {
   tes.pwr = metafor::tes(x = log(df$value), sei = df$se, theta = log(2),
                          alternative = "two.sided")
 
-  umb.pwr = umbrella(subset(df.OR, factor == "ID"), true_effect = 2, seed = 4321)[[1]]$esb$power
+  umb.pwr = umbrella(subset(df.OR, factor == "ID"), true_effect = 2, seed = 4321, method.esb = "IT.binom")[[1]]$esb$power
   expect_equal(pow_umb, umb.pwr)
   expect_equal(pow_umb, pow_epi, tolerance = 7e-2)
   expect_equal(pow_umb, tes.pwr$power, tolerance = 5e-2)
@@ -76,7 +76,7 @@ test_that("power for IRR is correctly estimated", {
   tes.pwr = metafor::tes(x = log(df$value), sei = df$se, theta = log(1.3),
                          alternative = "two.sided")
 
-  umb.pwr = umbrella(df.IRR, true_effect = 1.3, seed = 4321)[[1]]$esb$power
+  umb.pwr = umbrella(df.IRR, true_effect = 1.3, seed = 4321, method.esb = "IT.binom")[[1]]$esb$power
 
   expect_equal(umb.pwr, tes.pwr$power, tolerance = 5e-2)
   expect_equal(mean(umb.pwr), mean(tes.pwr$power), tolerance = 5e-2)
@@ -88,7 +88,7 @@ test_that("power for RR is correctly estimated", {
   tes.pwr = metafor::tes(x = log(df$value), sei = df$se, theta = log(1.3),
                          alternative = "two.sided")
 
-  umb.pwr = umbrella(df.RR, true_effect = 1.3, seed = 4321)[[1]]$esb$power
+  umb.pwr = umbrella(df.RR, true_effect = 1.3, seed = 4321, method.esb = "IT.binom")[[1]]$esb$power
 
   expect_equal(umb.pwr, tes.pwr$power, tolerance = 5e-1)
   expect_equal(mean(umb.pwr), mean(tes.pwr$power), tolerance = 5e-1)
@@ -100,7 +100,7 @@ test_that("power for HR is correctly estimated", {
   tes.pwr = metafor::tes(x = log(df$value), sei = df$se, theta = log(2),
                          alternative = "two.sided")
 
-  umb.pwr = umbrella(subset(df.HR, factor == "Yoga"), true_effect = 2)[[1]]$esb$power
+  umb.pwr = umbrella(subset(df.HR, factor == "Yoga"), true_effect = 2, method.esb = "IT.binom")[[1]]$esb$power
 
   expect_equal(umb.pwr, tes.pwr$power, tolerance = 1)
   expect_equal(mean(umb.pwr), mean(tes.pwr$power), tolerance = 1)

@@ -347,9 +347,9 @@ strat.pers2 <- metaumbrella:::.quiet(add.evidence(umb.OR.multi_1, criteria = "Pe
 
 DT::datatable(summary(strat.pers2), options = list(
     scrollX = TRUE,
+    scrollY = "600px", 
     dom = c('t'),
     ordering = FALSE,
-    pageLength = 5,
     columnDefs = list(
                   list(width = '110px',
                        targets = "_all"),

@@ -3,41 +3,47 @@
 #' This function performs various calculations needed for an umbrella review.
 #'
 #' @param x a well-formatted dataset.
-#' @param method.var the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used.
+#' @param method.var the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used. A fixed-effect meta-analysis can be obtained by indicated the \code{method.var = "FE"} argument.
 #' @param mult.level a logical variable indicating the presence of multiple effect sizes per study in at least one factor of the umbrella review. Default is \code{FALSE} (i.e., each study of all factors include only one effect size). If \code{mult.level = TRUE} is specified, the Borenstein's methods are used to generate only one effect size per study. See \code{\link{metaumbrella-package}} for more information.
 #' @param r a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.
-#' @param method.esb the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"} or \code{"IT.chisq"} (see details). Default is \code{"IT.binom"}.
-#' @param true_effect the method to estimate the true effect in the test for excess of significance. It must be \code{"largest"}, \code{"pooled"} or a numeric value (see details). Default is \code{"largest"}.
-#' @param seed an integer value used as an argument by the set.seed() function. Only used for the Ioannidis' test for excess of significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.
+#' @param method.esb the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"}, \code{"IT.chisq"}, \code{"PSST"}, \code{"TESS"} or \code{"TESSPSST"}  (see details). Default is \code{TESSPSST}.
+#' @param true_effect the method to estimate the true effect in the test for excess significance. It must be \code{"largest"}, \code{"UWLS"}, \code{"pooled"} or a numeric value (see details). Default is \code{"UWLS"}.
+#' @param pre_post_cor The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. If your umbrella review includes pre-post controlled studies, you should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.
+#' @param seed an integer value used as an argument by the set.seed() function. Only used for the \code{"IT.binom"} and \code{"IT.chisq"} tests for excess significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.
 #' @param verbose a logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.
 #'
 #' @details
 #' This function automatically performs calculations allowing to stratify evidence according to various criteria.
 #' For each factor included in a well-formatted dataset, this function automatically:
-#'  * performs fixed- and random-effects meta-analyses.
+#'  * performs fixed- or random-effects meta-analyses.
 #'  * provides an estimation of the between-study variance and heterogeneity using three indicators (\eqn{tau^2}, Q-statistic and \eqn{I^2} statistic).
 #'  * estimates the 95% prediction interval (if the number of studies is equal or larger to 3).
 #'  * provides an identification of the statistical significance of the largest study included in the meta-analysis.
 #'  * provides an assessment of publication bias using the Egger's test (if the number of studies is equal or larger to 3).
-#'  * provides an assessment of excess significance bias using the Ioannidis' test.
+#'  * provides an assessment of excess significance using various methods.
 #'  * performs a jackknife leave-one-out meta-analysis (if the number of studies is equal or larger to 2).
 #'  * calculates the proportion of participants included in studies at low risk of bias (if study quality is indicated in the dataset).
 #'
-#' A specificity of this function is that it does not include arguments to specify the name of the columns of the dataset used as input.
-#' Instead, the function requires users to build a dataset that meets fixed rules.
-#' Details on how building this \code{well-formatted dataset} are given in the \code{\link{metaumbrella-package}} section of this manual and a vignette is specifically dedicated to this topic.
-#' Moreover, examples of \code{well-formatted datasets} are available as data distributed along with the package (see \link{df.OR}, \link{df.OR.multi}, \link{df.SMD}, \link{df.RR}, \link{df.HR}, \link{df.IRR}).
+#' A specificity of the \code{\link{umbrella}()} function is that it does not include arguments to specify the name of the columns of the dataset used as input.
+#' Instead, the function requires users to prepare a dataset that meets fixed rules.
+#' Details on how building this \code{well-formatted dataset} are given in the \code{\link{metaumbrella-package}} section of this manual. A vignette also provides a step-by-step tutorial.
+#' Moreover, examples of \code{well-formatted datasets} are available as data distributed along with the package (see \link{df.OR}, \link{df.OR.multi}, \link{df.R}, \link{df.SMC},\link{df.SMD}, \link{df.RR}, \link{df.HR}, \link{df.IRR}).
 #'
-#' When estimating the test for excess of significance, the \code{\link{umbrella}()} function must assume a best approximation of the true effect.
-#' The \code{true_effect} argument can be used to select the method that will be applied to estimate this approximation of the true effect.
-#' * If \code{"largest"} is selected, the best approximation of the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
-#' * If \code{"pooled"} is selected, the best approximation of the true effect size is assumed to be equal to the pooled effect size of the meta-analysis.
-#' * If a \code{numeric} value is entered, the best approximation of the true effect size is assumed to be equal to this numeric value. Note that when entering a numeric value for a ratio, the value should be given in its natural scale (and not in its logarithm).
+#' When estimating the test for excess significance, the \code{\link{umbrella}()} function must assume a best approximation of the true effect.
+#' The \code{true_effect} argument can be used to select the method that will be applied to estimate the true effect.
+#' * If \code{"largest"} is entered, the true effect size is assumed to be equal to the effect size of the largest study included in the meta-analysis.
+#' * If \code{"pooled"} is entered, the true effect size is assumed to be equal to the meta-analytic pooled effect size.
+#' * If \code{"UWLS"} is entered, the true effect size is assumed to be equal to unrestricted weighted least squares weighted average.
+#' * If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of ratios must be in their natural scale).
+#'
+#' Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method.esb} argument can be used to select the test. Details on each method can be found in the \code{\link{esb.test}} section.
 #'
 #' @return
 #' The \code{umbrella()} function returns an object of class \dQuote{umbrella}, which is a list containing information required for stratifying the evidence.
 #' This list contains, for each factor included in the umbrella review:
 #' \tabular{ll}{
+#'  \code{factor} \tab the name of the factor analyzed.\cr
+#'  \tab \cr
 #'  \code{measure} \tab the measure of the effect used to perform the calculations.\cr
 #'  \tab \cr
 #'  \code{x} \tab the data used to conduct the meta-analysis. Note that these data may be\cr
@@ -54,19 +60,16 @@
 #'  \tab \cr
 #'  \code{method.var} \tab the estimator used for fitting the random effects meta-analyses\cr
 #'  \tab \cr
-#'  \code{random} \tab pooled effect size, p-value and 95% confidence interval and prediction\cr
-#'  \tab  interval of the random-effects meta-analysis.\cr
-#'  \tab \cr
-#'  \code{fixed} \tab pooled effect size, p-value and 95% confidence interval and prediction\cr
-#'  \tab  interval of the fixed-effect meta-analysis.\cr
+#'  \code{ma_results} \tab pooled effect size, p-value and 95% confidence interval and prediction\cr
+#'  \tab  interval of the meta-analysis.\cr
 #'  \tab \cr
 #'  \code{largest} \tab 95% confidence interval of the largest study.\cr
 #'  \tab \cr
-#'  \code{heterogeneity} \tab \eqn{tau^2}, \eqn{I^2} and Q test.\cr
+#'  \code{heterogeneity} \tab \eqn{tau^2}, \eqn{I^2} and results of the Q-test.\cr
 #'  \tab \cr
 #'  \code{egger} \tab estimate and p-value of the Egger's test for publication bias.\cr
 #'  \tab \cr
-#'  \code{esb} \tab results of the Ioannidis' test for excess of significance bias. See\cr
+#'  \code{esb} \tab results of the test for excess significance bias. See\cr
 #'  \tab \code{\link{esb.test}()} for more information.\cr
 #'  \tab \cr
 #'  \code{riskofbias} \tab percentage of participants in studies at low risk of bias.\cr
@@ -115,7 +118,7 @@
 #' ### obtain a stratification of the evidence according to the Ioannidis classification
 #' add.evidence(umb.multi, criteria = "Ioannidis")
 #' }
-umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method.esb = "IT.binom", true_effect = "largest", seed = NA, verbose = TRUE) {
+umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method.esb = "TESSPSST", true_effect = "UWLS", pre_post_cor = NA, seed = NA, verbose = TRUE) {
 
   # initial checkings ------
   checkings <- .check_data(x)
@@ -140,7 +143,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
     x_i = x[which(x$factor == factor), ]
 
 
-      x_i_ok <- .format_dataset(x_i, method.var = method.var, mult.level = mult.level, r = r, verbose = verbose, pre_post_cor = NULL)
+      x_i_ok <- .format_dataset(x_i = x_i, method.var = method.var, mult.level = mult.level, r = r, verbose = verbose, pre_post_cor = pre_post_cor)
 
       measure <- attr(x_i_ok, "measure")
       measure_length <- rep(measure, nrow(x_i_ok))
@@ -157,28 +160,6 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
 
       rownames(n) = "n"
 
-      # select the function performing the meta-analysis
-      # .meta <- switch(as.character(attr(x_i_ok, "meta")),
-      #                 "SMD_standard_raw_information" =,
-      #                 "SMD_multilevel_raw_information" =,
-      #                 "SMD_multilevel_generic" =,
-      #                 "SMD_standard_generic" =,
-      #                 "R_standard_generic" =,
-      #                 "R_multilevel_generic" = .meta_gen,
-      #                 "OR_standard_raw_information" = ,
-      #                 "RR_standard_raw_information" = ,
-      #                 "IRR_standard_raw_information" = ,
-      #                 "OR_multilevel_raw_information" =,
-      #                 "OR_multilevel_generic" =,
-      #                 "OR_standard_generic" = ,
-      #                 "RR_multilevel_raw_information" =,
-      #                 "RR_multilevel_generic" =,
-      #                 "RR_standard_generic" = ,
-      #                 "IRR_multilevel_raw_information" =,
-      #                 "IRR_multilevel_generic" =,
-      #                 "IRR_standard_generic" = ,
-      #                 "HR_multilevel_generic" =,
-      #                 "HR_standard_generic" = .meta_gen_log)
       .meta <- switch(as.character(measure),
                       "SMD" =,
                       "Z" =,
@@ -214,34 +195,32 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
         i2 = NA
         qe = NA
         qe_p.value = NA
-        } else if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) { #
-        # metansue object ----------------------------------------------------------------------
-        # this is currently not used but this feature will be proposed in a future update
-        k = length(m$known$i) + length(m$unknown$i)
-        coef = m$hypothesis$coef
-        se = m$hypothesis$se
-        p.value = m$hypothesis$p.value
-        ci_lo = m$hypothesis$ci[1]
-        ci_up = m$hypothesis$ci[2]
-        tau2 = m$heterogeneity$tau2
-        i2 = m$heterogeneity$i2 * 100
-        qe = m$heterogeneity$qe
-        qe_p.value = m$heterogeneity$p.value
-        # ---------------------------------------------------------------------------------------
-      } else {
-        # meta object
-        k = m$k
-        coef = m$TE.random
-        se = m$seTE.random
-        z = m$zval.random
-        p.value = m$pval.random
-        ci_lo = m$lower.random
-        ci_up = m$upper.random
-        tau2 = m$tau^2
-        i2 = m$I2 * 100
-        qe = m$Q
-        qe_p.value = m$pval.Q
-      }
+        } else if (method.var == "FE") { #
+          k = m$k
+          coef = m$TE.fixed
+          se = m$seTE.fixed
+          z = m$zval.fixed
+          p.value = m$pval.fixed
+          ci_lo = m$lower.fixed
+          ci_up = m$upper.fixed
+          tau2 = 0
+          i2 = m$I2 * 100
+          qe = m$Q
+          qe_p.value = m$pval.Q
+        } else {
+          k = m$k
+          coef = m$TE.random
+          se = m$seTE.random
+          z = m$zval.random
+          p.value = m$pval.random
+          ci_lo = m$lower.random
+          ci_up = m$upper.random
+          tau2 = m$tau^2
+          i2 = m$I2 * 100
+          qe = m$Q
+          qe_p.value = m$pval.Q
+        }
+
 
       # calculate prediction interval
       # only for meta-analyses with at least 3 studies
@@ -259,30 +238,15 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       }
 
       # Create summary datasets of the random-effects model
-      random = data.frame(value = coef, z, p.value, ci_lo, ci_up, pi_lo, pi_up)
-      rownames(random) = switch(as.character(measure),
+      ma_results = data.frame(value = coef, z, p.value, ci_lo, ci_up, pi_lo, pi_up)
+      rownames(ma_results) = switch(as.character(measure),
                                 "SMD" = "Bias-corrected SMD",
                                 "Z" = "Fisher's Z",
-                                "SMC" = "Standardized mean change",
+                                "SMC" = "SMC",
                                 "OR" = "log (OR)",
                                 "RR" = "log (RR)",
                                 "IRR" = "log (IRR)",
                                 "HR" = "log (HR)")
-
-      # Create summary datasets of the fixed-effects model
-      if (nrow(x_i_ok) > 1) {
-        fixed = data.frame(value = m$TE.fixed, p.value = m$pval.fixed)
-        rownames(fixed) = switch(as.character(measure),
-                                 "SMD" = "Bias-corrected SMD",
-                                 "Z" = "Fisher's Z",
-                                 "SMC" = "Standardized mean change",
-                                 "OR" = "log (OR)",
-                                 "RR" = "log (RR)",
-                                 "IRR" = "log (IRR)",
-                                 "HR" = "log (HR)")
-      } else {
-        fixed = data.frame("only one study" = 1)
-      }
 
       # Create summary datasets of the heterogeneity
       heterogeneity = data.frame(tau2, i2, qe, p.value = qe_p.value)
@@ -315,13 +279,11 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
         if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) {
           # for future updates
           mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD")
-
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
         } else if (measure %in% c("SMD", "SMC", "Z")) {
 
           mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "non_ratio")
-
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
         } else if (measure %in% c("OR", "HR", "RR", "IRR")) {
@@ -335,15 +297,21 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       # excess significance bias
       if (true_effect == "largest") {
         true_value = "largest"
+      } else if (true_effect == "UWLS") {
+        true_value = "UWLS"
       } else if (true_effect == "pooled") {
-        true_value = ifelse(measure %in% c("SMD", "SMC", "Z"), .as_numeric(random$coef), exp(.as_numeric(random$coef)))
+        true_value = ifelse(measure %in% c("SMD", "SMC", "Z"), .as_numeric(ma_results$coef), exp(.as_numeric(ma_results$coef)))
       } else if (is.numeric(true_effect)) {
         true_value = true_effect
       } else {
-        stop("The input in the 'true_effect' argument should be 'pooled', 'largest' or a numeric value. Please see the manual for more information.")
+        stop("The input in the 'true_effect' argument should be 'pooled', 'UWLS', 'largest' or a numeric value. Please see the manual for more information.")
       }
 
-      esb = esb.test(x_i_ok, method = method.esb, measure = measure, input = "other", true_effect = true_value, seed = seed)
+      if (n_studies < 3) {
+        esb = data.frame(p.value = NA)
+      } else {
+        esb = esb.test(x_i_ok, method.esb = method.esb, measure = measure, input = "other", true_effect = true_value, seed = seed, tau2 = tau2)
+      }
 
       # risk of bias
       riskofbias = weighted.mean(x_i_ok$rob.recoded, x_i_ok$sum_N) * 100
@@ -357,8 +325,9 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       if (nrow(x_i_ok) > 1) {
         for (i in 1:nrow(x_i_ok)) {
             m_i = .meta(x_i_ok[(1:n_studies)[-i], ], method.var)
-            if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) {
-              jk_i = data.frame(value = m_i$hypothesis$coef, p.value = m_i$hypothesis$p.value)
+
+            if (method.var == "FE") {
+              jk_i = data.frame(value = m_i$TE.fixed, p.value = m_i$pval.fixed)
             } else {
               jk_i = data.frame(value = m_i$TE.random, p.value = m_i$pval.random)
             }
@@ -371,14 +340,14 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
 
     # FINAL
     y[[factor]] = list(
+      factor = factor,
       measure = measure,
       x = x_i_ok,
       x_multi = attr(x_i_ok, "data_mult"),
       x_shared = attr(x_i_ok, "comparison_adjustment"),
       n = n,
       method.var = method.var,
-      random = random,
-      fixed = fixed,
+      ma_results = ma_results,
       largest = largest,
       heterogeneity = heterogeneity,
       egger = egger,
@@ -399,9 +368,8 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
   if (verbose) {
     if (attr(checkings, "status") == "WARNINGS") {
       attr(y, "message") = paste("\nSome warnings occurred during the chekings. Please verify error messages shown using the 'view.errors.umbrella()' function.")
+      message(attr(y, "message"))
     }
   }
-
-  message(attr(y, "message"))
   return(y)
 }

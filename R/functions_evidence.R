@@ -64,7 +64,7 @@
   attr(x, "criteria") = "Ioannidis"
   for (name in names(x)) {
     x_i = x[[name]]
-    p.value <- x_i$random$p.value
+    p.value <- x_i$ma_results$p.value
     if (is.na(p.value)) { # in OR meta function needs exposed, if no exposed then NA returned
       warning("Error calculating evidence in ", rownames(x_i$data))
     }
@@ -74,13 +74,15 @@
       if (p.value < 1e-6) {
         if (
           x_i$heterogeneity$i2 < 50 &&
-          !is.na(x_i$random$pi_lo) &&
-          sign(x_i$random$pi_lo) == sign(x_i$random$pi_up) &&
+          !is.na(x_i$ma_results$pi_lo) &&
+          sign(x_i$ma_results$pi_lo) == sign(x_i$ma_results$pi_up) &&
           x_i$egger$p.value > 0.05 &&
           x_i$esb$p.value > 0.05
         ) {
           y_i = "I"
-        } else if (sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up)) {
+        } else if (sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up) &&
+                   sign(x_i$largest$ci_lo) == sign(x_i$ma_results$ci_lo) &&
+                   sign(x_i$largest$ci_up) == sign(x_i$ma_results$ci_up)) {
           y_i = "II"
         } else {
           y_i = "III"
@@ -123,15 +125,18 @@
       total_n <- x_i$n$total_n
       n_studies <- x_i$n$studies
       n_cases <- x_i$n$cases
-      p_value <- x_i$random$p.value
+      p_value <- x_i$ma_results$p.value
       I2 <- x_i$heterogeneity$i2
       riskofbias <- x_i$riskofbias
       amstar <- x_i$amstar
       JK_p <- max(x_i$jk)
       egger_p <- x_i$egger$p.value
       esb_p <- x_i$esb$p.value
-      pi <- ifelse(sign(x_i$random$pi_lo) == sign(x_i$random$pi_up), "notnull", "null")
-      largest_CI <- ifelse(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), "notnull", "null")
+      pi <- ifelse(sign(x_i$ma_results$pi_lo) == sign(x_i$ma_results$pi_up), "notnull", "null")
+      largest_CI <- ifelse(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up) &&
+                           sign(x_i$largest$ci_lo) == - sign(x_i$ma_results$ci_lo) &&
+                           sign(x_i$largest$ci_up) == - sign(x_i$ma_results$ci_up), "opposite direction",
+                           ifelse(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), "notnull", "null"))
 
       if (any(duplicated(colnames(t(unlist(class_I))))) |
           any(duplicated(colnames(t(unlist(class_II))))) |
