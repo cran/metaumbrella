@@ -637,6 +637,40 @@ test_that("reverse ES leads to similar results: SMD", {
   expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
 })
 
+test_that("reverse ES leads to similar results: R", {
+  skip_on_cran()
+  dfR <- df.R; dfR$reverse_es <- "reverse"
+
+  umb1 <- .quiet(umbrella(dfR))
+  umb2 <- .quiet(umbrella(df.R))
+  expect_equal(umb1[[1]]$ma_results[,1], -umb2[[1]]$ma_results[,1], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,3], umb2[[1]]$ma_results[,3], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,4], -umb2[[1]]$ma_results[,5], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,5], -umb2[[1]]$ma_results[,4], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,6], -umb2[[1]]$ma_results[,7], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,7], -umb2[[1]]$ma_results[,6], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+})
+
+test_that("reverse ES leads to similar results: SMC", {
+  skip_on_cran()
+  dfsmcR <- df.SMC; dfsmcR$reverse_es <- "reverse"
+
+  umb1 <- .quiet(umbrella(dfsmcR))
+  umb2 <- .quiet(umbrella(df.SMC))
+  expect_equal(umb1[[1]]$ma_results[,1], -umb2[[1]]$ma_results[,1], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,3], umb2[[1]]$ma_results[,3], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,4], -umb2[[1]]$ma_results[,5], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,5], -umb2[[1]]$ma_results[,4], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,6], -umb2[[1]]$ma_results[,7], tolerance = tol_large)
+  expect_equal(umb1[[1]]$ma_results[,7], -umb2[[1]]$ma_results[,6], tolerance = tol_large)
+  expect_equal(umb1[[1]]$heterogeneity$i2, umb2[[1]]$heterogeneity$i2, tolerance = tol_large)
+  expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value, tolerance = tol_large)
+  expect_equal(umb1[[1]]$esb$p.value, umb2[[1]]$esb$p.value, tolerance = tol_large)
+})
+
 test_that("reverse ES leads to similar results: OR", {
   skip_on_cran()
   dfor <- df.OR; dfor$reverse_es <- "reverse"

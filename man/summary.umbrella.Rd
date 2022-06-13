@@ -66,9 +66,9 @@ Depending on the classification used, the dataframe returned include certain inf
 \tab \cr
 \code{egger_sign} \tab whether the p-value of the Egger's test is < .05 ("sig." vs. "ns").\cr
 \tab \cr
-\code{ESB_p} \tab the p-value of the Ioannidis' test for excess of significance.\cr
+\code{ESB_p} \tab the p-value of the test for excess of significance bias.\cr
 \tab \cr
-\code{ESB_sign} \tab whether the p-value of the Ioannidis' test is < .05 ("sig." vs. "ns").\cr
+\code{ESB_sign} \tab whether the p-value of the excess of significance test is < .05 ("sig." vs. "ns").\cr
 \tab \cr
 \code{power_med} \tab the power to detect a SMD of 0.5 at an alpha of .05 based on the number of\cr
 \tab cases and controls included in the meta-analysis (when IRR is used as effect size\cr

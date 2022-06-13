@@ -19,6 +19,10 @@
   } else if (nrow(x) == 0) {
     stop("Dataframe passed to the umbrella() function has no row. Check format of the dataset.")
   }
+  # JAMOVI
+  # if (length(colnames(x)) == 0 | nrow(x) == 0) {
+  #   stop("No dataset detected. Load (or reload) your dataset and drag-and-drop appropriate column names to the 'List of variables' selector.")
+  # }
 
 
   #### Initialize some settings ------
@@ -143,7 +147,7 @@
   }
 
   #### set "na", "inf" or blank as NA
-  x[x == "" | x == " " | x == "na" | x == "NA" | x == "n/a" | x == "N/A" | x == "inf" | x == "infinity" | x == "Infinity" | x == "INFINITY" | x == "INF" | x == "Inf"] <- NA
+  x[x == "" | x == " " | x == "NaN" | x == "na" | x == "NA" | x == "n/a" | x == "N/A" | x == "inf" | x == "infinity" | x == "Infinity" | x == "INFINITY" | x == "INF" | x == "Inf"] <- NA
 
   #### remove rows that do not contain author or study
   if (("study" %in% colnames(x)) & nrow(x[is.na(x$study),]) > 0) {

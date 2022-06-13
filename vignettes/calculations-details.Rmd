@@ -49,14 +49,14 @@ p{
 
 # Introduction{-}
 
-This supplementary materials is designed to complement the manual of the metaumbrella package. In Section 1, we present details on the calculations performed by the package to conduct the main analyses (meta-analytic models, assessment of publication bias and excess of statistical significance). In the Section 2, we present the calculations performed by the package to adapt to various user inputs and to convert effect sizes from one to another.
+This supplementary materials is designed to complement the manual of the metaumbrella package. In Section 1, we present details on the calculations performed by the package to conduct the main analyses (meta-analytic models, assessment of publication bias and excess of statistical significance). In Section 2, we present the calculations performed by the package to adapt to various user inputs and to convert effect sizes from one to another.
 
 
 # Umbrella calculations
 
 ## Effect size measures
 
-The metaumbrella package allows to work with different effect size measures. For studies comparing means, users can work with standardized mean difference (SMD), Hedges' g (G), or mean difference (MD). It is worth noting that, based on the published literature, SMD can alternatively be used to describe a Cohen's d or a Hedges' g measure [@cochrane:2019]. For the sake of clarity, we use SMD to refer only to a Cohen's d. For studies comparing frequencies, users can work with odds ratio or its logarithm (OR), or risk ratio or its logarithm (RR). For studies comparing incidence and hazard rates, users can work with hazard ratio or its logarithm (HR), and incident rate ratio or its logarithm (IRR). For correlational studies, users can work with raw Pearson's correlation coefficients (R) or Fisher's z (Z).
+The metaumbrella package allows to work with different effect size measures. For studies comparing means, users can work with standardized mean difference (SMD), Hedges' g (G), mean difference (MD) or standardized mean change (SMC). It is worth noting that, based on the published literature, SMD can alternatively be used to describe a Cohen's d or a Hedges' g measure [@cochrane:2019]. For the sake of clarity, we use SMD to refer only to a Cohen's d. For studies comparing frequencies, users can work with odds ratio or its logarithm (OR), or risk ratio or its logarithm (RR). For studies comparing incidence and hazard rates, users can work with hazard ratio or its logarithm (HR), and incident rate ratio or its logarithm (IRR). For correlationnal studies, users can work with raw Pearson's correlation coefficients (R) or Fisher's z (Z).
 
 ## Meta-analytic models
 
@@ -80,9 +80,9 @@ es_i \quad = \quad \mu + \beta_i + \epsilon_i
 
 where $es_i$ denotes the observed effect in the $i$-th study, $\mu$ the average true effect across studies, $\beta_i$ the between-study error for the $i$-th study, $\epsilon_i$ a within-study error in the $i$-th study.
 
-By default, the between-study variance is estimated using a restricted likelihood maximum estimator, but four other estimators (DerSimonian-Laird, maximum-likelihood estimator, Paule-Mandel estimator or Hartung-Knapp-Sidik-Jonkman) are available. To fit the meta-analyses, the *umbrella()* function relies on the *metagen()* function from the R *meta* package [@Balduzzi:2019].
+By default, the between-study variance is estimated using a restricted maximum likelihood estimator, but four other estimators (DerSimonian-Laird, maximum-likelihood estimator, Paule-Mandel estimator or Hartung-Knapp-Sidik-Jonkman) are available. To fit the meta-analyses, the *umbrella()* function relies on the *metagen()* function from the R *meta* package [@Balduzzi:2019].
 
-Afterwards, the *umbrella()* function extracts several meta-analytic statistics (the overall pooled estimate and its 95\% confidence interval and $p-value$, three heterogeneity indicators: $tau^2$, $I^2$ and $Q$ statistics), calculates the 95\% prediction interval and estimates whether the largest study included in the meta-analysis has a significant effect.
+Afterwards, the *umbrella()* function extracts several meta-analytic statistics (the overall pooled estimate and its 95\% confidence interval and p-value, three heterogeneity indicators: $tau^2$, $I^2$ and $Q$ statistics), calculates the 95\% prediction interval and estimates whether the largest study included in the meta-analysis has a significant effect.
 
 ## Non-independence of effect sizes
 
@@ -115,7 +115,7 @@ No publication bias assessment is conducted if the meta-analysis includes less t
 
 These tests seek to explore - in a given set of studies - whether the observed number of statistically significant studies is higher than we could expect by chance, indicating the possibility of data tortures or reporting biases [@Ioannidis:2007; @stanley:2021]. These tests are conducted automatically when running the *umbrella()* function but users who are interested in assessing the excess statistical significance without performing an umbrella review can use the *esb.test()* function available in the metaumbrella package.
 
-Several approaches are proposed to conduct this test of excess statistical significance. The original approach described by @Ioannidis:2007 is available (using the *method.esb = "IT.binom"* or *method.esb = "IT.chisq"* arguments in the *umbrella()* and *esb.test()* functions). The new tests proposed by @stanley:2021 are also available (using the *method.esb = "TESS"*, *method.esb = "PSST"* or or *method.esb = "TESSPSST"* arguments in the *umbrella()* and *esb.test()* functions).
+Several approaches are proposed to conduct this test of excess statistical significance. The original approach described by @Ioannidis:2007 is available (using the *method.esb = "IT.binom"* or *method.esb = "IT.chisq"* arguments in the *umbrella()* and *esb.test()* functions). The new tests proposed by @stanley:2021 are also available (using the *method.esb = "TESS"*, *method.esb = "PSST"* or or *method.esb = "TESSPSST"* arguments in the *umbrella()* and *esb.test()* functions). For these tests, **G** and **MD** are systematically converted into a **SMD** prior to calculations.  
 
 ### Original Ioannidis and Trikalinos test 
 
@@ -123,7 +123,7 @@ This test for excess significance is a simple binomial (or $\chi^2$) test, in wh
 
 The following paragraphs refer to the strategies followed to estimate the statistical power of each included study depending on the effect size measure.
 
-* **SMD and SMC.** To estimate the power of studies reporting SMD or SMC, the *esb.test()* function starts by dividing the best approximation of the true SMD by the standard error of each study. This allows to estimate, for each study, a t-value ($t = \frac{true_d}{se}$) that is then used to estimate the power according to standard formulas [@Cohen:1988]. Note that if the returned estimated power is larger than 1, the *esb.test()* function uses 1.
+* **SMD and SMC.** To estimate the power of studies reporting SMD or SMC, the *esb.test()* function starts by dividing the best approximation of the true SMD or SMC by the standard error of each study. This allows to estimate, for each study, a t-value ($t = \frac{true_d}{se}$) that is then used to estimate the power according to standard formulas [@Cohen:1988]. Note that if the returned estimated power is larger than 1, the *esb.test()* function uses 1.
 
 * **OR.** Prior to calculation, if any number of cases/controls in the exposed and non-exposed groups is equal to zero, the *esb.test()* function adds $0.5$ to the four groups [@Weber:2020].
 First, the function estimates the odds of exposition in controls as the average of the observed odds in the controls sample and the indirect estimation of the odds from the cases sample according to the best approximation of the true OR, weighted by $n_{controls} * (1 + o_{cases})$ for controls and $n_{cases} * (1 + o_{controls})$ for cases, with
@@ -157,7 +157,7 @@ Second, it estimates the incidence of the event in exposed multiplying the incid
 Third, it simulates thousands of studies with these parameters creating random numbers of cases in exposed and non-exposed according to Poisson distributions with $\lambda_{exp} = IR_{exp} * time_{exp}$ and $\lambda_{nexp} = IR_{nexp} * time_{nexp}$.
 Finally, it estimates the statistical power as the proportion of these studies with statistically significant findings.
 
-* **HR.** First, the *esb.test()* function estimates the ratio between the numbers of exposed and non-exposed groups. The *esb.test()* function estimates this number empirically to match the statistical power of the study (which could differ depending on factors such as the inclusion of one or other covariate in the study analysis). Specifically, it uses the *optim()* function to find the ratio associated with 50\% power to detect the HR reported in the study with the $p-value$ reported in the study. Afterwards, it calls the *powerCT.default0()* function from the powerSurvEpi package [@powerepi:2021] to estimate the power to detect the best approximation of the true HR with the estimated ratio and $p$~value = 0.05.
+* **HR.** First, the *esb.test()* function estimates the ratio between the numbers of exposed and non-exposed groups. The *esb.test()* function estimates this number empirically to match the statistical power of the study (which could differ depending on factors such as the inclusion of one or other covariate in the study analysis). Specifically, it uses the *optim()* function to find the ratio associated with 50\% power to detect the HR reported in the study with the p-value reported in the study. Afterwards, it calls the *powerCT.default0()* function from the powerSurvEpi package [@powerepi:2021] to estimate the power to detect the best approximation of the true HR with the estimated ratio and $p$~value = 0.05.
 
 * **R and Z.** The *esb.test()* function starts by converting all Z values into R values and then uses the standard formula implemented in the *pwr.r.test()* function of the pwr package [@pwr:package].
 
@@ -245,7 +245,7 @@ where $sd\_cases$ and $sd\_controls$ are equal to the standard deviations of the
 
 * **SMC.** This effect size measure is used to quantify the differences in pre-post changes between one experimental and one control group on some quantitative, normally distributed dependent variable. SMC is obtained by the following formulas
     \begin{equation} \label{eq:smc}
-    sd\_change\_cases \quad = \quad \sqrt(sd\_pre\_cases^2 + sd\_cases^2 - 2*cor*sd\_pre_cases * sd\_cases)
+    sd\_change\_cases \quad = \quad \sqrt(sd\_pre\_cases^2 + sd\_cases^2 - 2*cor*sd\_pre\_cases * sd\_cases)
     \end{equation}
     \begin{equation}
     sd\_change\_controls \quad = \quad \sqrt(sd\_pre\_controls^2 + sd\_controls^2 - 2*cor*sd\_pre\_controls *
@@ -255,7 +255,7 @@ where $sd\_cases$ and $sd\_controls$ are equal to the standard deviations of the
     smc\_cases \quad = \quad \frac{mean\_cases - mean\_pre\_cases}{sd\_change\_cases} * J
     \end{equation}
     \begin{equation}
-    smc\_controls \quad = \quad \frac{mean\_controls - mean\_pre_controls}{sd\_change\_controls} * J
+    smc\_controls \quad = \quad \frac{mean\_controls - mean\_pre\_controls}{sd\_change\_controls} * J
     \end{equation}
     \begin{equation}
     SMC \quad = \quad smc\_cases - smc\_controls
@@ -281,7 +281,7 @@ where $mean\_cases$ and $mean\_controls$ are equal to the means of the two group
     $n\_cases\_exp$ and $n\_controls\_exp$ to are the numbers of cases and controls in the exposed group and
     $n\_cases\_nexp$ and $n\_controls\_nexp$ are the numbers of cases and controls in the non-exposed group.
     Note that if any of the $n\_cases\_exp$, $n\_cases\_nexp$, $n\_controls\_exp$ or $n\_controls\_nexp$ is
-    equal to zero, $0.5$ is added to the four values @Weber:2020}. That said, studies with no participants
+    equal to zero, $0.5$ is added to the four values [@Weber:2020]. That said, studies with no participants
     exposed to the risk factor or with 0 cases are eliminated because they provide no information.
 
 * **IRR.** This effect size measure is used to compare the incidence rates of events occurring at any given point in time between exposed and non-exposed groups. For this measure, we use
@@ -298,14 +298,27 @@ When information on the variance of the effect size is not directly reported in 
 
 ### Using raw information
 
-* **SMD, MD, G.** For SMD and G, their variance is estimated as follows
+* **SMD, G.** For SMD and G, their variance is estimated as follows
     \begin{equation} \label{eq:varsmd}
     var_{SMD} \quad = \quad \frac{1}{n\_cases} + \frac{1}{n\_controls}
     \end{equation}
     \begin{equation} \label{eq:varg}
     var_G \quad = \quad var_{SMD} + (1 - (df - 2) / (df * J^2)) * G^2
     \end{equation}
-For MD, users must enter the variance or any information to estimate it (i.e., the standard error or the 95\% CI).
+    
+* **SMC** For SMC, the variance is estimated as
+    \begin{equation} \label{eq:varsmccasess}
+    var_{SMCcases} \quad = \quad \frac{1}{n\_cases} + \frac{smc\_cases^2}{2 * n\_cases}
+    \end{equation}
+    \begin{equation} \label{eq:varsmccontrols}
+    var_{SMCcontrols} \quad = \quad \frac{1}{n\_controls} + \frac{smc\_controls^2}{2 * n\_controls}
+    \end{equation}
+    \begin{equation} \label{eq:varmc}
+    var_{SMC} \quad = var_{SMCcases} + var_{SMCcontrols}
+    \end{equation}
+
+
+* **MD** For MD, users must enter the variance or any information to estimate it (i.e., the standard error or the 95\% CI).
 
 
 * **OR, RR.**
@@ -331,7 +344,7 @@ When the IRR and its standard error are known, the *umbrella()* function (re)est
 
 For studies in which users report neither the variance nor the standard error of the effect size, nor the raw information allowing to estimate it, this information is obtained from the 95\% CI.
 
-* **SMD, MD, G.** The variance of these effect size measures is converted from the 95\% CI using the formula
+* **SMD, MD, SMC, G.** The variance of these effect size measures is converted from the 95\% CI using the formula
 \begin{equation} \label{eq:varcismd}
 var_{differences} \quad = \quad (\frac{upper\: bound\: 95\% CI - lower\: bound \:95\%\: CI}{2 * qt(0.975, df)})^2
 \end{equation}

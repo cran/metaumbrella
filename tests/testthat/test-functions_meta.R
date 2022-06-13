@@ -20,6 +20,23 @@ test_that(".meta_gen correctly estimates the pooled effect size for d values wit
   expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
 })
 
+test_that(".meta_gen correctly estimates the pooled effect size for d values with raw information", {
+  df <- subset(df.SMD, factor == "Pharmacological", select = -c(value, se, ci_lo, ci_up))
+
+  umb <- umbrella(df, method.var = "FE")[[1]]$ma_results
+
+  df_mfr = metafor::escalc(m1i = mean_cases, m2i = mean_controls,
+                           sd1i = sd_cases, sd2i = sd_controls,
+                           n1i = n_cases, n2i = n_controls,
+                           data = df, measure = "SMD", vtype = "UB")
+
+  meta <- metafor::rma.uni(yi = yi, vi = vi, data = df_mfr, method = "FE")
+
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
+})
+
+
 # SMD - generic
 test_that(".meta_gen correctly estimates the pooled effect size for d values value/SE", {
 
@@ -366,149 +383,32 @@ test_that(".meta_gen_log correctly estimates the pooled effect size for HR value
 
 #######################################################################################
 
-# test_that(".format_dataset selects appropriate meta analysis type: OR", {
-#
-#   # simple level
-#   df1 = subset(df.OR, factor = unique(df.OR$factor)[1])
-#   format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
-#   expect_equal(attr(format1, "meta"), "OR_standard_raw_information")
-#
-#   n_cases = with(df.OR, n_cases_exp + n_cases_nexp)
-#   n_controls = with(df.OR, n_controls_exp + n_controls_nexp)
-#   df2 = subset(df.OR, factor = unique(df.OR$factor)[1], select = -c(n_cases_exp, n_controls_exp, n_cases_nexp, n_controls_nexp))
-#   df2$n_cases = n_cases
-#   df2$n_controls = n_controls
-#   format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
-#   expect_equal(attr(format2, "meta"), "OR_standard_generic")
-#
-#   # multilevel
-#   df3 = subset(df.OR.multi, factor = unique(df.OR.multi$factor)[1])
-#   format3 = .quiet(.format_dataset(attr(.check_data(df3), "data"), mult.level = TRUE))
-#   expect_equal(attr(format3, "meta"), "OR_multilevel_raw_information")
-#
-#   n_cases = with(df.OR.multi, n_cases_exp + n_cases_nexp)
-#   n_controls = with(df.OR.multi, n_controls_exp + n_controls_nexp)
-#   df4 = subset(df.OR.multi, factor = unique(df.OR.multi$factor)[1], select = -c(n_cases_exp, n_controls_exp, n_cases_nexp, n_controls_nexp))
-#   df4$n_cases = n_cases
-#   df4$n_controls = n_controls
-#   format4 = .quiet(.format_dataset(attr(.check_data(df4), "data"), mult.level = TRUE))
-#   expect_equal(attr(format4, "meta"), "OR_multilevel_generic")
-# })
-#
-# test_that(".format_dataset selects appropriate meta analysis type: SMD", {
-#
-#   # when SMD/MD/G is used only metagen is used to allow a unique estimation of G
-#
-#   # simple level
-#   df1 = subset(df.SMD, factor = unique(df.SMD$factor)[1])
-#   format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
-#   expect_equal(attr(format1, "meta"), "SMD_standard_generic")
-#
-#   df2 = subset(df.SMD, factor = unique(df.SMD$factor)[1], select = -c(mean_cases, mean_controls))
-#   format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
-#   expect_equal(attr(format2, "meta"), "SMD_standard_generic")
-#
-#
-#   # multi level
-#   df1$author[2] <- df1$author[1]
-#   df1$year[2] <- df1$year[1]
-#   df1$multiple_es <- NA
-#   df1$multiple_es[1:2] <- "outcomes"
-#   format3 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
-#   expect_equal(attr(format3, "meta"), "SMD_multilevel_generic")
-#
-#   df2$author[2] <- df2$author[1]
-#   df2$year[2] <- df2$year[1]
-#   df2$multiple_es <- NA
-#   df2$multiple_es[1:2] <- "outcomes"
-#   format4 = .quiet(.format_dataset(attr(.check_data(df2), "data"), mult.level = TRUE))
-#   expect_equal(attr(format4, "meta"), "SMD_multilevel_generic")
-# })
-#
-# test_that(".format_dataset selects appropriate meta analysis type: RR", {
-#
-#   # simple level
-#   df1 = subset(df.RR, factor = unique(df.RR$factor)[1])
-#   format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
-#   expect_equal(attr(format1, "meta"), "RR_standard_raw_information")
-#
-#   n_cases = with(df.RR, n_cases_exp + n_cases_nexp)
-#   n_controls = with(df.RR, n_exp + n_nexp - n_cases_exp - n_cases_nexp)
-#   df2 = subset(df.RR, factor = unique(df.RR$factor)[1], select = -c(n_cases_exp, n_cases_nexp, n_exp, n_nexp))
-#   df2$n_cases = n_cases
-#   df2$n_controls = n_controls
-#   format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
-#   expect_equal(attr(format2, "meta"), "RR_standard_generic")
-#
-#
-#   # multi level
-#   df1$author[2] <- df1$author[1]
-#   df1$year[2] <- df1$year[1]
-#   df1$multiple_es <- NA
-#   df1$multiple_es[1:2] <- "outcomes"
-#   format3 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
-#   expect_equal(attr(format3, "meta"), "RR_multilevel_raw_information")
-#
-#   df2$author[2] <- df2$author[1]
-#   df2$year[2] <- df2$year[1]
-#   df2$multiple_es <- NA
-#   df2$multiple_es[1:2] <- "outcomes"
-#   format4 = .quiet(.format_dataset(attr(.check_data(df2), "data"), mult.level = TRUE))
-#   expect_equal(attr(format4, "meta"), "RR_multilevel_generic")
-# })
-#
-# test_that(".format_dataset selects appropriate meta analysis type: HR", {
-#
-#   # simple level
-#   df1 = subset(df.HR, factor = unique(df.HR$factor)[1])
-#   format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
-#   expect_equal(attr(format1, "meta"), "HR_standard_generic")
-#
-#
-#   # multi level
-#   df1$author[2] <- df1$author[1]
-#   df1$year[2] <- df1$year[1]
-#   df1$multiple_es <- NA
-#   df1$multiple_es[1:2] <- "outcomes"
-#   format2 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
-#   expect_equal(attr(format2, "meta"), "HR_multilevel_generic")
-#
-#   df2 <- df.RR
-#   df2$measure <- "HR"
-#   df2$n_cases = with(df2, n_cases_exp + n_cases_nexp)
-#   df2$n_controls = with(df2, n_exp + n_nexp - n_cases_exp - n_cases_nexp)
-#
-#   format3 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
-#   expect_equal(attr(format3, "meta"), "HR_standard_generic")
-# })
-#
-#
-# test_that(".format_dataset selects appropriate meta analysis type: IRR", {
-#
-#   # simple level
-#   df1 = subset(df.IRR, factor = unique(df.IRR$factor)[1])
-#   format1 = .quiet(.format_dataset(attr(.check_data(df1), "data")))
-#   expect_equal(attr(format1, "meta"), "IRR_standard_raw_information")
-#
-#   df2 = subset(df.IRR, factor = unique(df.IRR$factor)[1], select = -c(time_exp, time_nexp))
-#   format2 = .quiet(.format_dataset(attr(.check_data(df2), "data")))
-#   expect_equal(attr(format2, "meta"), "IRR_standard_generic")
-#
-#   # multi level
-#   df1$author[2] <- df1$author[1]
-#   df1$year[2] <- df1$year[1]
-#   df1$multiple_es <- NA
-#   df1$multiple_es[1:2] <- "outcomes"
-#   format3 = .quiet(.format_dataset(attr(.check_data(df1), "data"), mult.level = TRUE))
-#   expect_equal(attr(format3, "meta"), "IRR_multilevel_raw_information")
-#   umb3 = umbrella(df1, mult.level = TRUE)
-#
-#   df2$author[2] <- df2$author[1]
-#   df2$year[2] <- df2$year[1]
-#   df2$multiple_es <- NA
-#   df2$multiple_es[1:2] <- "outcomes"
-#   format4 = .quiet(.format_dataset(attr(.check_data(df2), "data"), mult.level = TRUE))
-#   expect_equal(attr(format4, "meta"), "IRR_multilevel_generic")
-#
-# })
+##########
+### R ###
+##########
+
+# R - standard analysis
+test_that("meta_gen correctly estimates the pooled effect size from R", {
+
+  df <- subset(df.R, factor == "Gestational_hypertension")
+
+  umb <- umbrella(df, method.var = "REML")[[1]]$ma_results
+  meta <- metafor::rma.uni(ri = value, ni = n_sample,
+                           data = df, method = "REML", measure = "ZCOR")
+
+  expect_equal(as.numeric(as.character(umb$value)), as.numeric(as.character(meta$beta)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$p.value)), as.numeric(as.character(meta$pval)), tolerance = tol_large)
+})
+
+test_that("meta_gen correctly estimates the prediction interval size from R", {
+
+  df <- subset(df.R, factor == "Gestational_hypertension")
+
+  umb <- umbrella(df, method.var = "REML")[[1]]$ma_results
+  meta <- meta::metacor(cor = value, n = n_sample,
+                           data = df, method.tau = "REML", prediction = TRUE)
+
+  expect_equal(as.numeric(as.character(umb$pi_lo)), as.numeric(as.character(meta$lower.predict)), tolerance = tol_large)
+  expect_equal(as.numeric(as.character(umb$pi_up)), as.numeric(as.character(meta$upper.predict)), tolerance = tol_large)
+})
 

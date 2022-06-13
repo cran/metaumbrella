@@ -179,8 +179,8 @@
     measure = unique(x_i[, "measure"])
   }
 
-  if (!method.var %in% c("DL", "hksj", "REML", "PM", "ML")) {
-    stop("The between-study variance estimator (argument method.var of the umbrella function) should be either 'PM', 'ML', 'DL', 'hksj' or 'REML'.")
+  if (!method.var %in% c("DL", "hksj", "REML", "PM", "ML", "FE")) {
+    stop("The between-study variance estimator (argument method.var of the umbrella function) should be either 'PM', 'ML', 'DL', 'hksj', 'REML' or 'FE'.")
   }
 
   #### Multivariate situations ------

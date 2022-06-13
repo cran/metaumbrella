@@ -341,13 +341,12 @@ metaumbrella:::.quiet(forest(strat.prso,
 #                  xlim = c(-10, 5),
 #                  pos_text = "center",
 #                  xlim_factor = -4,
-#                  ylim_correction_text = -.10,
 #                  print.classes = c("I", "II", "III", "IV"),
 #                  cex_text = 0.8, # reduce the size of the text of the factor and new columns
 #                  cex_value = 0.8,# reduce the size of the text of the value column
 #                  cex_text_header = 0.8, # reduce the size of the header of the factor and new columns
-#                  cex_value_header = 0.8 # reduce the size of the header of the value column
-#  
+#                  cex_value_header = 0.8, # reduce the size of the header of the value column
+#                  cex_dots = 0.8 # reduce the size of the squares
 #  )
 
 ## ---- echo=FALSE, warning=FALSE, fig.width = 7, fig.height = 8----------------
@@ -362,7 +361,8 @@ metaumbrella:::.quiet(forest(strat.prso,
                 cex_text = 0.8,
                 cex_value = 0.8,
                 cex_text_header = 0.8,
-                cex_value_header = 0.8
+                cex_value_header = 0.8,
+                cex_dots = 0.5 # 
 
 )) 
 

@@ -103,9 +103,6 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
   }
 
 
-
-
-
   # we check that the input passed to the function is appropriate according to the input required
   #### RMA -------
   if (input == "rma") {

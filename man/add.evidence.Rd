@@ -51,7 +51,7 @@ This classification allows to stratify evidence according to the criteria descri
 This classification proposes to stratify evidence in five ordinal classes: "Class I", "Class II", "Class III", "Class IV", "Class ns".
 The criteria for each class are the following:
 \itemize{
-\item \bold{Class I:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-6}, \eqn{I^2} < 0.5, 95\% prediction interval excluding the null, p-value of the Egger test > .05 and p-value of the Ioannidis test > .05.
+\item \bold{Class I:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-6}, \eqn{I^2} < 0.5, 95\% prediction interval excluding the null, p-value of the Egger test > .05 and p-value of the excess of statistical significance test > .05.
 \item \bold{Class II:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-6}, largest study with a statistically significant effect and class I criteria not met.
 \item \bold{Class III:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-3} and class I-II criteria not met.
 \item \bold{Class IV:} p-value of the meta-analysis < 0.05 and class I-III criteria not met.
@@ -90,7 +90,7 @@ A description of the criteria and their corresponding inputs is provided below:
 \item \code{rob}: a percentage of participants included in studies \bold{at low risk of bias}. Note that the approach to determining whether a study is at low risk of bias is left to the user. If the percentage of participants included in studies at low risk of bias is \bold{strictly superior} to the threshold value indicated in \code{rob}, the class for which this value is indicated can be reached.
 \item \code{amstar}: an AMSTAR rating on the methodological quality of the meta-analysis. If the AMSTAR value of the meta-analysis is \bold{strictly superior} to the threshold value indicated in \code{amstar}, the class for which this value is indicated can be reached.
 \item \code{egger_p}: a p-value of an Egger's test for publication bias. If the p-value of the Egger's test is \bold{strictly superior} to the threshold value indicated in \code{egger_p}, the class for which this value is indicated can be reached.
-\item \code{esb_p}: a p-value of an Ioannidis' test for the excess of significance bias (ESB). If the p-value  of the Ioannidis' test is \bold{strictly superior} to the threshold value indicated in \code{esb_p}, the class for which this value is indicated can be reached.
+\item \code{esb_p}: a p-value of a test for excess of statistical significance bias (ESB). If the p-value  of the test is \bold{strictly superior} to the threshold value indicated in \code{esb_p}, the class for which this value is indicated can be reached.
 \item \code{JK_p}: the largest p-value obtained in the jackknife meta-analysis (JK). If the largest p-value obtained in the jackknife meta-analysis is \bold{strictly inferior} to the threshold value indicated in \code{JK_p}, the class for which this value is indicated can be reached.
 \item \code{pi}: a "notnull" value indicates that users request the 95\% prediction interval of the meta-analysis to exclude the null value to achieve the class for which it is indicated.
 \item \code{largest_CI}: a "notnull" value indicates that users request the 95\% confidence interval of the largest study included in the meta-analysis to exclude the null value to achieve the class for which it is indicated.

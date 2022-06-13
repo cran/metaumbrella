@@ -128,6 +128,11 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
   if (attr(checkings, "status") == "ERRORS") {
     stop("Data did not pass the checkings. Resolve formatting errors using the 'view.errors.umbrella()' function.")
   }
+  # JAMOVI
+  # if (attr(checkings, "status") == "ERRORS") {
+  #   stop("Data did not pass the checkings. You can find the list of error messages and problematic rows in the table below.")
+  # }
+
 
   # if the dataset is well formatted, initialize some settings ------
   list_author_concern = list_factor_concern = NULL
@@ -227,10 +232,6 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       if (n_studies < 3) {
         pi_lo = NA
         pi_up = NA
-      } else if (measure == "Z") {
-        # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5028066/
-        pi_lo = coef - sqrt((coef - ci_lo)^2 + (ci_up - coef)^2)
-        pi_up = coef + sqrt((coef - ci_lo)^2 + (ci_up - coef)^2)
       } else {
         half_pi = qt(0.975, n_studies - 2) * sqrt(tau2 + se^2)
         pi_lo = coef - half_pi

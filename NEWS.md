@@ -1,7 +1,10 @@
+# metaumbrella 1.0.5
+- Fixed some bugs preventing to use all functions in the app and jamovi module
+
 # metaumbrella 1.0.4
-- three new effect size measures are available (SMC, R, and Z)
-- three new ESB tests are available (from Stanley and colleagues, 2021: PSST, TESS, TESSPSST)
-- fixed some bugs when drawing a forest plot with colors
+- Three new effect size measures are available (SMC, R, and Z)
+- Three new ESB tests are available (from Stanley and colleagues, 2021: PSST, TESS, TESSPSST)
+- Fixed some bugs when drawing a forest plot with colors
 - The summary() function now allows to obtain more information on heterogeneity (via the 'het_max' argument)
 - The umbrella() function now allows to request a fixed-effect meta-analysis (via the 'method.var' argument)
 - The umbrella() function now allows to choose the excess of statistical significance test (via the 'method.esb' argument)

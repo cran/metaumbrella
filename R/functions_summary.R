@@ -59,9 +59,9 @@
 #'  \tab \cr
 #'  \code{egger_sign} \tab whether the p-value of the Egger's test is < .05 ("sig." vs. "ns").\cr
 #'  \tab \cr
-#'  \code{ESB_p} \tab the p-value of the Ioannidis' test for excess of significance.\cr
+#'  \code{ESB_p} \tab the p-value of the test for excess of significance bias.\cr
 #'  \tab \cr
-#'  \code{ESB_sign} \tab whether the p-value of the Ioannidis' test is < .05 ("sig." vs. "ns").\cr
+#'  \code{ESB_sign} \tab whether the p-value of the excess of significance test is < .05 ("sig." vs. "ns").\cr
 #'  \tab \cr
 #'  \code{power_med} \tab the power to detect a SMD of 0.5 at an alpha of .05 based on the number of\cr
 #'  \tab cases and controls included in the meta-analysis (when IRR is used as effect size\cr
@@ -267,7 +267,7 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
                        "Z" = round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100,
                        "SMD"=, "SMC" =, "OR"=, "RR"=, "HR" = round(.power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100)
 
-    measure = ifelse(measure == "SMD", "G", ifelse(measure == "Z", "R", measure))
+    measure = ifelse(measure %in% c("SMD"), "G", ifelse(measure == "Z", "R", measure))
 
 
 ######################################################################################
@@ -276,8 +276,12 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
       out_i = data.frame(
         Factor = name, n_studies, total_n, n_cases, n_controls,
         measure,
-        value, value_CI, eG, eG_CI, eOR, eOR_CI, p_value,
-        I2, PI_eG, PI_eOR,
+        value, value_CI,
+        eG, eG_CI,
+        eOR, eOR_CI,
+        p_value,
+        I2,
+        PI_eG, PI_eOR,
         egger_p, ESB_p,
         power_med, JK_p,
         largest_CI_eG, largest_CI_eOR,

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Corentin J. Goslinga, Aleix Solanesa, Paolo Fusar-Poli &amp; Joaquim Radua" />
 
-<meta name="date" content="2022-06-09" />
+<meta name="date" content="2022-06-13" />
 
 <title>Vignette 4: Details on calculations made by metaumbrella</title>
 
@@ -262,7 +262,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 metaumbrella</h1>
 <h4 class="author">Corentin J. Gosling<sup>a</sup>, Aleix
 Solanes<sup>a</sup>, Paolo Fusar-Poli &amp; Joaquim Radua</h4>
-<h4 class="date">2022-06-09</h4>
+<h4 class="date">2022-06-13</h4>
 
 
 <div id="TOC">
@@ -343,7 +343,7 @@ p{
 the metaumbrella package. In Section 1, we present details on the
 calculations performed by the package to conduct the main analyses
 (meta-analytic models, assessment of publication bias and excess of
-statistical significance). In the Section 2, we present the calculations
+statistical significance). In Section 2, we present the calculations
 performed by the package to adapt to various user inputs and to convert
 effect sizes from one to another.</p>
 </div>
@@ -355,17 +355,17 @@ calculations</h1>
 measures</h2>
 <p>The metaumbrella package allows to work with different effect size
 measures. For studies comparing means, users can work with standardized
-mean difference (SMD), Hedges’ g (G), or mean difference (MD). It is
-worth noting that, based on the published literature, SMD can
-alternatively be used to describe a Cohen’s d or a Hedges’ g measure
-<span class="citation">(Higgins et al. 2019)</span>. For the sake of
-clarity, we use SMD to refer only to a Cohen’s d. For studies comparing
-frequencies, users can work with odds ratio or its logarithm (OR), or
-risk ratio or its logarithm (RR). For studies comparing incidence and
-hazard rates, users can work with hazard ratio or its logarithm (HR),
-and incident rate ratio or its logarithm (IRR). For correlational
-studies, users can work with raw Pearson’s correlation coefficients (R)
-or Fisher’s z (Z).</p>
+mean difference (SMD), Hedges’ g (G), mean difference (MD) or
+standardized mean change (SMC). It is worth noting that, based on the
+published literature, SMD can alternatively be used to describe a
+Cohen’s d or a Hedges’ g measure <span class="citation">(Higgins et al.
+2019)</span>. For the sake of clarity, we use SMD to refer only to a
+Cohen’s d. For studies comparing frequencies, users can work with odds
+ratio or its logarithm (OR), or risk ratio or its logarithm (RR). For
+studies comparing incidence and hazard rates, users can work with hazard
+ratio or its logarithm (HR), and incident rate ratio or its logarithm
+(IRR). For correlationnal studies, users can work with raw Pearson’s
+correlation coefficients (R) or Fisher’s z (Z).</p>
 </div>
 <div id="meta-analytic-models" class="section level2" number="1.2">
 <h2><span class="header-section-number">1.2</span> Meta-analytic
@@ -406,15 +406,14 @@ studies, <span class="math inline">\(\beta_i\)</span> the between-study
 error for the <span class="math inline">\(i\)</span>-th study, <span class="math inline">\(\epsilon_i\)</span> a within-study error in the
 <span class="math inline">\(i\)</span>-th study.</p>
 <p>By default, the between-study variance is estimated using a
-restricted likelihood maximum estimator, but four other estimators
+restricted maximum likelihood estimator, but four other estimators
 (DerSimonian-Laird, maximum-likelihood estimator, Paule-Mandel estimator
 or Hartung-Knapp-Sidik-Jonkman) are available. To fit the meta-analyses,
 the <em>umbrella()</em> function relies on the <em>metagen()</em>
 function from the R <em>meta</em> package <span class="citation">(Balduzzi, Rucker, and Schwarzer 2019)</span>.</p>
 <p>Afterwards, the <em>umbrella()</em> function extracts several
 meta-analytic statistics (the overall pooled estimate and its 95%
-confidence interval and <span class="math inline">\(p-value\)</span>,
-three heterogeneity indicators: <span class="math inline">\(tau^2\)</span>, <span class="math inline">\(I^2\)</span> and <span class="math inline">\(Q\)</span> statistics), calculates the 95%
+confidence interval and p-value, three heterogeneity indicators: <span class="math inline">\(tau^2\)</span>, <span class="math inline">\(I^2\)</span> and <span class="math inline">\(Q\)</span> statistics), calculates the 95%
 prediction interval and estimates whether the largest study included in
 the meta-analysis has a significant effect.</p>
 </div>
@@ -516,7 +515,9 @@ statistical significance. The original approach described by <span class="citati
 <em>esb.test()</em> functions). The new tests proposed by <span class="citation">Stanley et al. (2021)</span> are also available (using
 the <em>method.esb = “TESS”</em>, <em>method.esb = “PSST”</em> or or
 <em>method.esb = “TESSPSST”</em> arguments in the <em>umbrella()</em>
-and <em>esb.test()</em> functions).</p>
+and <em>esb.test()</em> functions). For these tests, <strong>G</strong>
+and <strong>MD</strong> are systematically converted into a
+<strong>SMD</strong> prior to calculations.</p>
 <div id="original-ioannidis-and-trikalinos-test" class="section level3" number="1.5.1">
 <h3><span class="header-section-number">1.5.1</span> Original Ioannidis
 and Trikalinos test</h3>
@@ -532,9 +533,10 @@ size measure.</p>
 <ul>
 <li><p><strong>SMD and SMC.</strong> To estimate the power of studies
 reporting SMD or SMC, the <em>esb.test()</em> function starts by
-dividing the best approximation of the true SMD by the standard error of
-each study. This allows to estimate, for each study, a t-value (<span class="math inline">\(t = \frac{true_d}{se}\)</span>) that is then used
-to estimate the power according to standard formulas <span class="citation">(Cohen 1988)</span>. Note that if the returned
+dividing the best approximation of the true SMD or SMC by the standard
+error of each study. This allows to estimate, for each study, a t-value
+(<span class="math inline">\(t = \frac{true_d}{se}\)</span>) that is
+then used to estimate the power according to standard formulas <span class="citation">(Cohen 1988)</span>. Note that if the returned
 estimated power is larger than 1, the <em>esb.test()</em> function uses
 1.</p></li>
 <li><p><strong>OR.</strong> Prior to calculation, if any number of
@@ -617,12 +619,11 @@ empirically to match the statistical power of the study (which could
 differ depending on factors such as the inclusion of one or other
 covariate in the study analysis). Specifically, it uses the
 <em>optim()</em> function to find the ratio associated with 50% power to
-detect the HR reported in the study with the <span class="math inline">\(p-value\)</span> reported in the study.
-Afterwards, it calls the <em>powerCT.default0()</em> function from the
-powerSurvEpi package <span class="citation">(Qiu et al. 2021)</span> to
-estimate the power to detect the best approximation of the true HR with
-the estimated ratio and <span class="math inline">\(p\)</span>~value =
-0.05.</p></li>
+detect the HR reported in the study with the p-value reported in the
+study. Afterwards, it calls the <em>powerCT.default0()</em> function
+from the powerSurvEpi package <span class="citation">(Qiu et al.
+2021)</span> to estimate the power to detect the best approximation of
+the true HR with the estimated ratio and <span class="math inline">\(p\)</span>~value = 0.05.</p></li>
 <li><p><strong>R and Z.</strong> The <em>esb.test()</em> function starts
 by converting all Z values into R values and then uses the standard
 formula implemented in the <em>pwr.r.test()</em> function of the pwr
@@ -753,7 +754,7 @@ quantify the differences in pre-post changes between one experimental
 and one control group on some quantitative, normally distributed
 dependent variable. SMC is obtained by the following formulas <span class="math display">\[\begin{equation} \label{eq:smc}
   sd\_change\_cases \quad = \quad \sqrt(sd\_pre\_cases^2 + sd\_cases^2 -
-2*cor*sd\_pre_cases * sd\_cases)
+2*cor*sd\_pre\_cases * sd\_cases)
   \end{equation}\]</span> <span class="math display">\[\begin{equation}
   sd\_change\_controls \quad = \quad \sqrt(sd\_pre\_controls^2 +
 sd\_controls^2 - 2*cor*sd\_pre\_controls *
@@ -763,7 +764,7 @@ sd\_controls^2 - 2*cor*sd\_pre\_controls *
 mean\_pre\_cases}{sd\_change\_cases} * J
   \end{equation}\]</span> <span class="math display">\[\begin{equation}
   smc\_controls \quad = \quad \frac{mean\_controls -
-mean\_pre_controls}{sd\_change\_controls} * J
+mean\_pre\_controls}{sd\_change\_controls} * J
   \end{equation}\]</span> <span class="math display">\[\begin{equation}
   SMC \quad = \quad smc\_cases - smc\_controls
   \end{equation}\]</span> where <span class="math inline">\(mean\_cases\)</span> and <span class="math inline">\(mean\_controls\)</span> are equal to the means of
@@ -798,7 +799,7 @@ n\_cases\_nexp)}{(n\_controls\_exp \:/\: n\_controls\_nexp)}
 the exposed and non-exposed groups, <span class="math inline">\(n\_cases\_exp\)</span> and <span class="math inline">\(n\_controls\_exp\)</span> to are the numbers of
 cases and controls in the exposed group and <span class="math inline">\(n\_cases\_nexp\)</span> and <span class="math inline">\(n\_controls\_nexp\)</span> are the numbers of
 cases and controls in the non-exposed group. Note that if any of the
-<span class="math inline">\(n\_cases\_exp\)</span>, <span class="math inline">\(n\_cases\_nexp\)</span>, <span class="math inline">\(n\_controls\_exp\)</span> or <span class="math inline">\(n\_controls\_nexp\)</span> is equal to zero, <span class="math inline">\(0.5\)</span> is added to the four values <span class="citation">Weber et al. (2020)</span>}. That said, studies with no
+<span class="math inline">\(n\_cases\_exp\)</span>, <span class="math inline">\(n\_cases\_nexp\)</span>, <span class="math inline">\(n\_controls\_exp\)</span> or <span class="math inline">\(n\_controls\_nexp\)</span> is equal to zero, <span class="math inline">\(0.5\)</span> is added to the four values <span class="citation">(Weber et al. 2020)</span>. That said, studies with no
 participants exposed to the risk factor or with 0 cases are eliminated
 because they provide no information.</p></li>
 <li><p><strong>IRR.</strong> This effect size measure is used to compare
@@ -826,14 +827,26 @@ information.</p>
 <h3><span class="header-section-number">2.2.1</span> Using raw
 information</h3>
 <ul>
-<li><p><strong>SMD, MD, G.</strong> For SMD and G, their variance is
+<li><p><strong>SMD, G.</strong> For SMD and G, their variance is
 estimated as follows <span class="math display">\[\begin{equation}
 \label{eq:varsmd}
   var_{SMD} \quad = \quad \frac{1}{n\_cases} + \frac{1}{n\_controls}
   \end{equation}\]</span> <span class="math display">\[\begin{equation}
 \label{eq:varg}
   var_G \quad = \quad var_{SMD} + (1 - (df - 2) / (df * J^2)) * G^2
-  \end{equation}\]</span> For MD, users must enter the variance or any
+  \end{equation}\]</span></p></li>
+<li><p><strong>SMC</strong> For SMC, the variance is estimated as <span class="math display">\[\begin{equation} \label{eq:varsmccasess}
+  var_{SMCcases} \quad = \quad \frac{1}{n\_cases} +
+\frac{smc\_cases^2}{2 * n\_cases}
+  \end{equation}\]</span> <span class="math display">\[\begin{equation}
+\label{eq:varsmccontrols}
+  var_{SMCcontrols} \quad = \quad \frac{1}{n\_controls} +
+\frac{smc\_controls^2}{2 * n\_controls}
+  \end{equation}\]</span> <span class="math display">\[\begin{equation}
+\label{eq:varmc}
+  var_{SMC} \quad = var_{SMCcases} + var_{SMCcontrols}
+  \end{equation}\]</span></p></li>
+<li><p><strong>MD</strong> For MD, users must enter the variance or any
 information to estimate it (i.e., the standard error or the 95%
 CI).</p></li>
 <li><p><strong>OR, RR.</strong> The standard formulas allowing to
@@ -881,8 +894,8 @@ percent CI</h3>
 standard error of the effect size, nor the raw information allowing to
 estimate it, this information is obtained from the 95% CI.</p>
 <ul>
-<li><p><strong>SMD, MD, G.</strong> The variance of these effect size
-measures is converted from the 95% CI using the formula <span class="math display">\[\begin{equation} \label{eq:varcismd}
+<li><p><strong>SMD, MD, SMC, G.</strong> The variance of these effect
+size measures is converted from the 95% CI using the formula <span class="math display">\[\begin{equation} \label{eq:varcismd}
 var_{differences} \quad = \quad (\frac{upper\: bound\: 95\% CI - lower\:
 bound \:95\%\: CI}{2 * qt(0.975, df)})^2
 \end{equation}\]</span> where <span class="math inline">\(qt(x,

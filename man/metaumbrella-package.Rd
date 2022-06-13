@@ -49,7 +49,7 @@ The name of these variables (in bold) cannot be changed.
 Importantly, all rows in the dataset with the same \code{factor} value will be pooled together in a meta-analysis.
 \item \bold{author} and \bold{year}: character variables identifying the name and the year of publication of each individual study that is included in a meta-analysis.
 For a given factor, all rows with the same author and year values will be identified as having some type of dependence (see below).
-\item \bold{measure}: a character variable describing the type of effect size measure used to quantify the effect of the factor and it must be either "SMD", "MD", "G", "OR", "logOR", "RR", "logRR", "HR", "logHR", "IRR" or "logIRR".
+\item \bold{measure}: a character variable describing the type of effect size measure used to quantify the effect of the factor and it must be either "SMD", "MD", "G", "SMC", "R", "Z", "OR", "logOR", "RR", "logRR", "HR", "logHR", "IRR" or "logIRR".
 Note here that if a study reports the numbers of cases and controls in exposed and non-exposed groups but does not report an effect size value (i.e., the value of an OR or RR), we recommend specifying "OR" for case-control studies while "RR" for cohort studies.
 }
 }
@@ -220,7 +220,7 @@ Studies not sharing their non-exposed group should have a \code{NA} (or a unique
 When several studies in the same factor share a same control group, they should be identified as such by having the same \code{shared_control} value.
 Identifying studies sharing the same control group allows to adjust calculations (the size of the shared sample is divided by the number of studies sharing the sample).
 Studies not sharing their control group should have a \code{NA} (or a unique) value in the \code{shared_controls} column.
-\item \bold{pre_post_cor}: The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. If your umbrella review includes pre-post controlled studies, you should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.
+\item \bold{pre_post_cor}: The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. You should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.
 \item \bold{reverse_es}: Whether users want to reverse the effect size of a study. All rows with a \code{"reverse"} value in this column will have the direction of their effect size flipped (e.g., an OR of 0.5 will be expressed as 2). Note that the reverse_es column has an action on both the direction of the value of an effect size and on the information used to calculate an effect size
 (e.g., if the means and SDs of experimental and control groups are reported, the mean and SD of the experimental group are used as the mean and SD of the control group and vice-versa).
 This feature is particularly useful to facilitate the presentation of the results when several meta-analyses report the same effects in opposite direction.

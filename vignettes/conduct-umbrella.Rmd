@@ -6,7 +6,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Conducting umbrella reviews with metaumbrella: an introduction}
+  %\VignetteIndexEntry{Vignette 2: conduct an umbrella review with metaumbrella}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -105,7 +105,7 @@ estimates the statistical significance of the largest study included in each met
 assesses publication bias using the Egger's test.
 </li>
 <li>
-assesses excess significance bias using the Ioannidis' test.
+assesses excess of significance bias
 </li>
 <li>
 performs a jackknife leave-one-out meta-analysis.
@@ -186,7 +186,7 @@ strat.grd <- add.evidence(umb.SMD, criteria = "GRADE")
 <li> <b>rob</b>: a percentage of participants included in studies at low risk of bias. Note that that the approach to determining whether a study is at low risk of bias is left to the user. If the percentage of participants included in studies at low risk of bias is strictly superior to the threshold value indicated in this rob criteria, the class for which this value is indicated can be reached.</li>
 <li> <b>amstar</b>: an AMSTAR rating on the methodological quality of the meta-analysis. If the AMSTAR value of the meta-analysis is strictly superior to the threshold value indicated in this amstar criteria, the class for which this value is indicated can be reached.</li>
 <li> <b>egger_p</b>: a p-value of an Egger's test for publication bias. If the p-value of the Egger's test is strictly superior to the threshold value indicated in this egger_p criteria, the class for which this value is indicated can be reached.</li>
-<li> <b>esb_p</b>: a p-value of an Ioannidis' test for the excess of significance bias (ESB). If the p-value of the Ioannidis' test is strictly superior to the threshold value indicated in this esb_p criteria, the class for which this value is indicated can be reached.</li>
+<li> <b>esb_p</b>: a p-value of a test for excess of significance bias (ESB). If the p-value of the test is strictly superior to the threshold value indicated in this esb_p criteria, the class for which this value is indicated can be reached.</li>
 <li> <b>JK_p</b>: the largest p-value obtained in the jackknife meta-analysis (JK). If the largest p-value obtained in the jackknife meta-analysis is strictly lower to the threshold value indicated in JK_p, the class for which this value is indicated can be reached.</li>
 <li> <b>pi</b>: a "notnull" value indicates that the user requests the 95% prediction interval of the meta-analysis to exclude the null value to achieve the class for which it is indicated.</li>
 <li> <b>largest_CI</b>: a "notnull" value indicates that the user requests the 95% confidence interval of the largest study included in the meta-analysis to exclude the null value to achieve the class for which it is indicated.</li>
