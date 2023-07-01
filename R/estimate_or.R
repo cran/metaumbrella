@@ -10,8 +10,8 @@
   zero = which(n_cases_exp == 0 | n_cases_nexp == 0 | n_controls_exp == 0 | n_controls_nexp == 0)
   n_cases_exp[zero] = n_cases_exp[zero] + 0.5
   n_cases_nexp[zero] = n_cases_nexp[zero] + 0.5
-  n_controls_exp[zero] = n_cases_exp[zero] + 0.5
-  n_controls_nexp[zero] = n_cases_nexp[zero] + 0.5
+  n_controls_exp[zero] = n_controls_exp[zero] + 0.5
+  n_controls_nexp[zero] = n_controls_nexp[zero] + 0.5
   returned_df = data.frame(
     value = (n_cases_exp / n_cases_nexp) / (n_controls_exp / n_controls_nexp),
     se = sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp)

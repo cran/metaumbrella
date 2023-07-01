@@ -119,7 +119,7 @@
 
   # remove all rows that should be discarded from analyses
     if (any(x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE", TRUE))) {
-      removed_rows <- which(x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE"))
+      removed_rows <- which(x$discard %in% c("yes", "Yes", "remove", "removed", "TRUE", TRUE))
       status <- ifelse(status == "ERROR", "ERROR", "WARNING")
       error_msgs <- append(error_msgs, paste0("Some rows of the original dataset have been removed based on the 'discard' column inputs: rows = ", paste(removed_rows, collapse = ", "), " (only a warning, not an error)."))
       column_errors = column_errors[-removed_rows]

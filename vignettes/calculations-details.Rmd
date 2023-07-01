@@ -49,7 +49,7 @@ p{
 
 # Introduction{-}
 
-This supplementary materials is designed to complement the manual of the metaumbrella package. In Section 1, we present details on the calculations performed by the package to conduct the main analyses (meta-analytic models, assessment of publication bias and excess of statistical significance). In Section 2, we present the calculations performed by the package to adapt to various user inputs and to convert effect sizes from one to another.
+This supplementary materials is designed to complement the manual of the metaumbrella package. In Section 1, we present details on the calculations performed by the package to conduct the main analyses (meta-analytic models, assessment of small-study effects and excess of statistical significance). In Section 2, we present the calculations performed by the package to adapt to various user inputs and to convert effect sizes from one to another.
 
 
 # Umbrella calculations
@@ -88,15 +88,15 @@ Afterwards, the *umbrella()* function extracts several meta-analytic statistics 
 
 A core assumption of standard meta-analytic models is that all effect sizes come from independent participants and experiments. However, this assumption is frequently violated as some form of dependence often arises between effect sizes [@Jackson:2011]. The metaumbrella package distinguishes three forms of dependence and proposes a solution to handle each of them. First, dependence can be observed when effect sizes are nested within a larger factor. For example, this situation occurs when several effect sizes originate from either multiple independent studies reported in the same paper or from multiple independent studies reported in different papers, but conducted by the same research laboratory. We name this type of dependence $hierarchical$ dependence hereafter. Second, dependence can be observed when effect sizes are generated from the same participants. For example, this situation occurs when several effect sizes are derived from the same participants who have completed multiple outcomes at a unique time-point or who have completed the same outcome at multiple time-points. We name this type of dependence $multivariate$ dependence hereafter. Finally, dependence may be observed when effect sizes are generated from the partly same participants. This situation occurs when several effect sizes of a meta-analysis originate from studies that compare independent experimental or exposed groups to a unique control or non-exposed group. We name this type of dependence $partial$ dependence hereafter.
 
-When $hierarchal$ dependence is present in the data, a combined effect size across dependent studies is computed [@Borenstein:2009]. More precisely, all dependent effect sizes nested within a larger factor are resumed to a unique effect size by performing a fixed-effect meta-analysis. The effect size and the variance of this independent effect size are equal to the pooled effect size and its variance in the fixed-effect meta-analysis. The sample size associated with this unique effect size is equal to the sum of the sample size of each independent subgroup.
+When $hierarchical$ dependence is present in the data, a combined effect size across dependent studies is computed [@Borenstein:2009]. More precisely, all dependent effect sizes nested within a larger factor are resumed to a unique effect size by performing a fixed-effect meta-analysis. The effect size and the variance of this independent effect size are equal to the pooled effect size and its variance in the fixed-effect meta-analysis. The sample size associated with this unique effect size is equal to the sum of the sample size of each independent subgroup.
 
 When $multivariate$ dependence is present in the data, a combined effect size across outcomes or time-points derived from the same units is computed. More precisely, all dependent effect sizes derived from the same units are resumed to a unique effect size by estimating the non-weighted mean of all effect sizes [@Borenstein:2009]. The correlation between these effect sizes (that can be specified by the user) is used to calculate the variance of this combined effect size, as derived from standard formula [@Borenstein:2009]. The sample size associated with this unique effect size is equal to the largest sample size that completed an outcome or time-point.
 
 When $partial$ dependence is present in the data, the shared group is split into several independent subgroups of smaller sample size, as described in the Cochrane Handbook [@cochrane:2019]. More precisely, the number of participants in each independent subgroup is obtained by dividing the total number of participants in a shared group by the number of non-shared groups. These corrected sample sizes are used to re-estimate the effect sizes and their variance.
 
-## Publication bias
+## Small-study effects
 
-To assess the presence of publication bias, the approach described by @Egger:1997 and @Sterne:2005 is used. This approach proposes to conduct a weighted linear regression in which the effect sizes of the individual studies are regressed against their precision (their standard error). If an association between the effect sizes and their precision is found, this can be interpreted as an indication of publication bias.
+To assess the presence of small-study effects, the approach described by @Egger:1997 and @Sterne:2005 is used. This approach proposes to conduct a weighted linear regression in which the effect sizes of the individual studies are regressed against their precision (their standard error). If an association between the effect sizes and their precision is found, this can be interpreted as an indication of small-study effects.
 
 \begin{equation} \label{eq:egger}
 es_i \quad = \quad \beta_0 + \beta_1 * SE_i
@@ -109,7 +109,7 @@ When the effect size is a ratio (OR, RR, HR, or IRR), the logarithm of the effec
 \log{(es_i)} \quad = \quad \beta_0 + \beta_1 * SE_i
 \end{equation}
 
-No publication bias assessment is conducted if the meta-analysis includes less than three studies.
+No small-study effects assessment is conducted if the meta-analysis includes less than three studies.
 
 ## Test for excess statistical significance
 
@@ -367,7 +367,7 @@ where $qnorm(x, \mu, SD)$ returns the value of the inverse cumulative density fu
 
 In three instances, the metaumbrella package performs conversions between effect size measures.
 
-* When the input effect size measure is G and/or MD, they are first automatically converted into an SMD to have all mean comparisons on the same scale. The Ioannidis' test for excess significance bias is performed on these SMD values. However, SMD values are automatically converted into G before running meta-analytic calculations and Egger's test for publication bias.
+* When the input effect size measure is G and/or MD, they are first automatically converted into an SMD to have all mean comparisons on the same scale. The Ioannidis' test for excess significance bias is performed on these SMD values. However, SMD values are automatically converted into G before running meta-analytic calculations and Egger's test for small-study effects.
 
     * To convert the MD into an SMD, the variance of the MD or any information allowing to estimate it (the standard error or the 95\% CI) is required. Then, the variance of the MD is used to obtain the pooled standard deviation of the MD, which then allows to calculate the SMD
     \begin{equation} \label{eq:mdtosmd}

@@ -418,42 +418,46 @@ test_that("TESS/PSST", {
 
     umb.PSST = umbrella(df, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
     umb.TESS = umbrella(df, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
+    umb.TESSPSST = umbrella(df, true_effect = "UWLS", method.esb = "TESSPSST", verbose = FALSE)
     STAN = TESS_PESS(d = df$value, sed = df$se, tau2 = umb.PSST[[1]]$heterogeneity$tau, measure = "R")
 
     expect_equal(umb.PSST[[1]]$esb$p.value, STAN$PSST_Sig, tolerance = tol_large)
     expect_equal(umb.TESS[[1]]$esb$p.value, STAN$TESS_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value.TESS, STAN$TESS_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value.PSST, STAN$PSST_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value, min(STAN$TESS_Sig, STAN$PSST_Sig), tolerance = tol_large)
 
     # SMD ---------------------------------------------
     df = subset(df.SMD, factor == "Pharmacological")
-    umb.PSST = umbrella(df, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
-    umb.TESS = umbrella(df, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
     df$se = sqrt(1/df$n_cases + 1/df$n_controls)
     df2=df
+    umb.PSST = umbrella(df2, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
+    umb.TESS = umbrella(df2, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
+    umb.TESSPSST = umbrella(df2, true_effect = "UWLS", method.esb = "TESSPSST", verbose = FALSE)
     STAN = TESS_PESS(d = df2$value, sed = df2$se,
                      n_cases = df2$n_cases, n_controls = df2$n_controls,
                      tau2 = umb.PSST[[1]]$heterogeneity$tau, measure = "SMD")
 
     expect_equal(umb.PSST[[1]]$esb$p.value, STAN$PSST_Sig, tolerance = tol_large)
     expect_equal(umb.TESS[[1]]$esb$p.value, STAN$TESS_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value.TESS, STAN$TESS_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value.PSST, STAN$PSST_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value, min(STAN$TESS_Sig, STAN$PSST_Sig), tolerance = tol_large)
 
     # OR ---------------------------------------------
     df = subset(df.OR, factor == "ADHD")
-    umb.PSST = umbrella(df, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
-    umb.TESS = umbrella(df, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
     df$se = with(df, sqrt(1 / n_cases_exp + 1 / n_cases_nexp + 1 / n_controls_exp + 1 / n_controls_nexp))
     df2=df
+    umb.PSST = umbrella(df2, true_effect = "UWLS", method.esb = "PSST", verbose = FALSE)
+    umb.TESS = umbrella(df2, true_effect = "UWLS", method.esb = "TESS", verbose = FALSE)
+    umb.TESSPSST = umbrella(df2, true_effect = "UWLS", method.esb = "TESSPSST", verbose = FALSE)
     STAN = TESS_PESS(d = log(df2$value), sed = df2$se,
                      n_cases = df2$n_cases,
                      tau2 = umb.PSST[[1]]$heterogeneity$tau, measure = "OR")
 
     expect_equal(umb.PSST[[1]]$esb$p.value, STAN$PSST_Sig, tolerance = tol_large)
     expect_equal(umb.TESS[[1]]$esb$p.value, STAN$TESS_Sig, tolerance = tol_large)
-
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value.TESS, STAN$TESS_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value.PSST, STAN$PSST_Sig, tolerance = tol_large)
+    expect_equal(umb.TESSPSST[[1]]$esb$p.value, min(STAN$TESS_Sig, STAN$PSST_Sig), tolerance = tol_large)
 })
-# x=df; input = "dataframe"; n_cases = NULL; n_controls = NULL; measure = "SMD";
-# method.esb = "TESSPSST"; true_effect = "UWLS"; seed = NA; tau2 = NA
-
-
-# d = df2$value; sed = df2$se;
-# n_cases = df2$n_cases; n_controls = df2$n_controls;
-# tau2 = umb.PSST[[1]]$heterogeneity$tau; measure = "SMD"

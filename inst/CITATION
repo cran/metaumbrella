@@ -1,11 +1,19 @@
 citHeader("To cite metaumbrella in publications, please use:")
 
-citEntry(
-  entry    = "Manual",
-  title    = "{metaumbrella}: An {R} Package for Conducting Umbrella Reviews",
-  author   = personList(c(as.person("Corentin J Gosling"), as.person("Aleix Solanes"), as.person("Paolo Fusar-Poli"), as.person("Joaquim Radua"))),
-  year     = "2022",
-  url      = "https://CRAN.R-project.org/package=metaumbrella/",
+bibentry(
+  bibtype  = "Article",
+  title    = "metaumbrella: the first comprehensive suite to perform data analysis in umbrella reviews with stratification of the evidence",
+  author   = c(
+        person(given = "Corentin J", family= "Gosling",  role = c("aut", "cre"), email = "cgosling@parisnanterre.fr"),
+        person(given = "Aleix",
+               family= "Solanes", role = "aut", email = "al.solanes@gmail.com"),
+        person(given = "Paolo",
+               family= "Fusar-Poli",  role = "aut", email = "Paolo.fusar-poli@kcl.ac.uk"),
+        person(given = "Joaquim",
+               family= "Radua",  role = "aut", email = "radua@clinic.cat")),
+  journal = "BMJ Mental Health",
+  year     = "2023",
+  url      = "https://mentalhealth.bmj.com/content/26/1/e300534",
   textVersion = paste(
- "Corentin J Gosling, Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella: An R Package for Conducting Umbrella Reviews. R package version 1.0.5. https://CRAN.R-project.org/package=metaumbrella/")
+ "Gosling CJ, Solanes A, Fusar-Poli P, Radua J. metaumbrella: the first comprehensive suite to perform data analysis in umbrella reviews with stratification of the evidence. BMJ Ment Health. 2023;26(1):e300534. doi:10.1136/bmjment-2022-300534")
 )

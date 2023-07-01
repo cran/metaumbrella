@@ -126,7 +126,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
   x <- attr(checkings, "data")
 
   if (attr(checkings, "status") == "ERRORS") {
-    stop("Data did not pass the checkings. Resolve formatting errors using the 'view.errors.umbrella()' function.")
+    stop("Data did not pass checks. Resolve formatting errors using the 'view.errors.umbrella()' function.")
   }
   # JAMOVI
   # if (attr(checkings, "status") == "ERRORS") {
@@ -191,7 +191,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
         se = x_i_ok$se
         z = coef / se
         p.value = ifelse(coef == 0, 1,
-                         .two_tail(ifelse(measure %in% c("SMD", "SMC", "Z"),
+                         .two_tail(ifelse(measure %in% c("SMD", "SMC"),
                                           pt(z, x$n_cases + x$n_controls - 2),
                                           pnorm(z))))
         ci_lo = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$ci_lo, log(x_i_ok$ci_lo))

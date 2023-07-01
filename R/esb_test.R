@@ -26,7 +26,7 @@
 #' Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method.esb} argument can be used to select the test.
 #' * If \code{"IT.binom"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a binomial exact test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
 #' * If \code{"IT.chisq"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a chi-square test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
-#' * If \code{"TESS"} is entered, the test of excess statistical significance (TESS) described by Stanley and colleagues (2021) is performed. This test asseses whether the proportion of excess statistical significance is larger than 5%. In this test, power calculations take into account between-study heterogeneity.
+#' * If \code{"TESS"} is entered, the test of excess statistical significance (TESS) described by Stanley and colleagues (2021) is performed. This test assesses whether the proportion of excess statistical significance is larger than 5%. In this test, power calculations take into account between-study heterogeneity.
 #' * If \code{"PSST"} is entered, the proportion of statistical significance test (PSST) described by Stanley and colleagues (2021) is performed. This is a test assessing whether the proportion of statistically significant studies is higher than what could have been expected given the mean statistical power. In this test, power calculations take into account between-study heterogeneity.
 #' * If \code{"TESSPSST"} is entered, the function combines results of both "PSST" and "TESS" analyses. "TESSPSST" assumes an excess of statistical significance if at least one of "TESS" and "PSST" is statistically significant.
 #'
@@ -246,7 +246,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     esb = switch (method.esb,
                   "IT.binom" = {
                     method.esb = "Original test for excess statistical significance (IT-IT.binom)"
-                    data.name <- paste0("A total of ", round(SS, 3), " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
+                    data.name <- paste0("A total of ", SS, " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
                     test = binom.test(SS, k, expected_mean_power, alternative = "greater")
                     list(
                       method = method.esb,
@@ -264,7 +264,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
                     method.esb = "Original test for excess statistical significance (IT-chisq)"
                     test = suppressWarnings(prop.test(SS, k, p = expected_mean_power, alternative = "greater", correct = FALSE))
                     p.value = test$p.value
-                    data.name <- paste0("A total of ", round(SS, 3), " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
+                    data.name <- paste0("A total of ", SS, " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
                     attr(p.value, "names") <- NULL
                     list(
                       method = method.esb,
@@ -305,7 +305,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
                     method.esb <- "New methods for excess statistical significance (PSST)"
                     z_PSST = (SS/k - Esig/k) / sqrt(Esig/k * (1 - Esig/k) / k)
                     p.value = 1 - pnorm(z_PSST)
-                    data.name <- paste0("A total of ", round(SS, 3), " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
+                    data.name <- paste0("A total of ", SS, " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
                     estimate <- z_PSST
                     attr(estimate, "names") <- "z-statistics";
                     attr(p.value, "names") <- NULL
@@ -331,7 +331,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
                     p_TESS = 1 - pnorm(z_TESS)
                     p.value = min(p_PSST, p_TESS)
                     estimate <- max(z_TESS, z_PSST)
-                    data.name <- paste0("The proportion of excess statistical significance is equal to: ", round(ESS, 3)*100, "% // A total of ", round(SS, 3), " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
+                    data.name <- paste0("The proportion of excess statistical significance is equal to: ", round(ESS, 3)*100, "% // A total of ", SS, " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
                     attr(estimate, "names") <- "z-statistics"
                     attr(p.value, "names") <- NULL
                     list(

@@ -9,8 +9,6 @@
 (\>=3)](https://img.shields.io/badge/license-GPL-red)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![CRAN
 Version](https://www.r-pkg.org/badges/version/metaumbrella)](https://cran.r-project.org/package=metaumbrella)
-[![Monthly
-Downloads](https://cranlogs.r-pkg.org/badges/metaumbrella)](https://cranlogs.r-pkg.org/badges/metaumbrella)
 [![Total
 Downloads](https://cranlogs.r-pkg.org/badges/grand-total/metaumbrella)](https://cranlogs.r-pkg.org/badges/grand-total/metaumbrella)
 <!-- badges: end -->
@@ -44,7 +42,7 @@ analysis).
 
 Second, the `add.evidence()` function stratifies the evidence generated
 by the umbrella() function according to a set of pre-specified
-classifications (the classification proposed by Prof. Ioannidis or an
+classifications (the classification proposed by Prof. Ioannidis or an
 algorithmic version of GRADE classification), or according to a
 personalized classification that the users may specify manually. This
 feature allows users to rely on already developed criteria or to develop
@@ -68,11 +66,16 @@ install.packages("metaumbrella")
 The metaumbrella package was written by Corentin J Gosling, Aleix
 Solanes, Paolo Fusar-Poli and Joaquim Radua. It is licensed under the
 GNU General Public License. <br>You can use metaumbrella for free… but
-please cite our work ;-) <br> <b>Citation:</b> <em>Corentin J Gosling,
-Aleix Solanes, Paolo Fusar-Poli and Joaquim Radua (2022). metaumbrella:
-An R Package for Conducting Umbrella Reviews. R package version 1.0.5.
-<https://CRAN.R-project.org/package=metaumbrella/></em><br> To obtain a
-bibtex version of this citation in R, type
+please cite our work ;-) <br><br> <b>Citation AMA:</b> Gosling CJ,
+Solanes A, Fusar-Poli P, Radua J. metaumbrella: the first comprehensive
+suite to perform data analysis in umbrella reviews with stratification
+of the evidence. BMJ Ment Health. 2023;26(1):e300534.<br><br>
+<b>Citation APA:</b> Gosling, C.J., Solanes, A., Fusar-Poli, P., &
+Radua, J. (2023). metaumbrella: the first comprehensive suite to perform
+data analysis in umbrella reviews with stratification of the evidence.
+BMJ mental health, 26(1), e300534.<br><br>
+
+To obtain a bibtex version of this citation in R, type
 
 ``` r
 citation(package = "metaumbrella")

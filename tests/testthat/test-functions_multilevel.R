@@ -3,7 +3,8 @@ tol_large = 1e-10
 # Multiple groups / outcomes: effect size estimates
 test_that("agg.data correctly aggregates studies with multiple effect size estimates: SMD", {
   skip_on_cran()
-  df <- df.SMD;   df$factor <- "Pharma"; df$amstar <- 7
+  df <- df.SMD;
+  df$factor <- "Pharma"; df$amstar <- 7
 
   df$author[c(2,3, 5,6,7, 15,16,17)] <- c(df$author[1], df$author[1],
                                           df$author[4], df$author[4], df$author[4],
@@ -25,17 +26,17 @@ test_that("agg.data correctly aggregates studies with multiple effect size estim
 
   df.agg.mfr <- metafor::escalc(yi = value, sei = se, data = df.format)
 
-  df.agg.subgroups <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "groups"),
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" & !is.na(df.agg.mfr$multiple_es), ],
                                                 cluster = author,
                                                 struct = "ID",
                                                 weighted = TRUE)
 
-  df.agg.outcomes <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "outcomes"),
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" & !is.na(df.agg.mfr$multiple_es), ],
                                                cluster = author,
                                                struct = "CS",
                                                weighted = FALSE,
                                                rho = 0.5)
-  df.mfr <- rbind(subset(df.agg.mfr, is.na(multiple_es)),
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
                   df.agg.subgroups,
                   df.agg.outcomes)
 
@@ -60,18 +61,18 @@ test_that("agg.data correctly aggregates studies with multiple effect size estim
 
   df.agg.mfr <- metafor::escalc(yi = log(value), sei = se, data = df.format)
 
-  df.agg.subgroups <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "groups"),
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" & !is.na(df.agg.mfr$multiple_es), ],
                                                 cluster = paste0(author, year),
                                                 struct = "ID",
                                                 weighted = TRUE)
 
-  df.agg.outcomes <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "outcomes"),
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" & !is.na(df.agg.mfr$multiple_es), ],
                                                cluster = paste0(author, year),
                                                struct = "CS",
                                                weighted = FALSE,
                                                rho = 0.5)
 
-  df.mfr <- rbind(subset(df.agg.mfr, is.na(multiple_es)),
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
                   df.agg.subgroups,
                   df.agg.outcomes)
 
@@ -94,17 +95,17 @@ test_that("agg.data correctly aggregates studies with multiple effect size estim
 
   df.agg.mfr <- metafor::escalc(yi = log(value), sei = se, data = df.format)
 
-  df.agg.subgroups <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "groups"),
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" & !is.na(df.agg.mfr$multiple_es), ],
                                                 cluster = author,
                                                 struct = "ID",
                                                 weighted = TRUE)
 
-  df.agg.outcomes <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "outcomes"),
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" & !is.na(df.agg.mfr$multiple_es), ],
                                                cluster = author,
                                                struct = "CS",
                                                weighted = FALSE,
                                                rho = 0.5)
-  df.mfr <- rbind(subset(df.agg.mfr, is.na(multiple_es)),
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
                   df.agg.subgroups,
                   df.agg.outcomes)
 
@@ -139,17 +140,17 @@ test_that("agg.data correctly aggregates studies with multiple effect size estim
 
   df.agg.mfr <- metafor::escalc(yi = log(value), sei = se, data = df.format)
 
-  df.agg.subgroups <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "groups"),
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" & !is.na(df.agg.mfr$multiple_es), ],
                                                 cluster = author,
                                                 struct = "ID",
                                                 weighted = TRUE)
 
-  df.agg.outcomes <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "outcomes"),
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" & !is.na(df.agg.mfr$multiple_es), ],
                                                cluster = author,
                                                struct = "CS",
                                                weighted = FALSE,
                                                rho = 0.5)
-  df.mfr <- rbind(subset(df.agg.mfr, is.na(multiple_es)),
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
                   df.agg.subgroups,
                   df.agg.outcomes)
 
@@ -174,17 +175,17 @@ df$n_controls = with(df, n_controls_exp + n_controls_nexp)
 
   df.agg.mfr <- metafor::escalc(yi = log(value), sei = se, data = df.format)
 
-  df.agg.subgroups <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "groups"),
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" & !is.na(df.agg.mfr$multiple_es), ],
                                                 cluster = author,
                                                 struct = "ID",
                                                 weighted = TRUE)
 
-  df.agg.outcomes <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "outcomes"),
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" & !is.na(df.agg.mfr$multiple_es), ],
                                                cluster = author,
                                                struct = "CS",
                                                weighted = FALSE,
                                                rho = 0.5)
-  df.mfr <- rbind(subset(df.agg.mfr, is.na(multiple_es)),
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
                   df.agg.subgroups,
                   df.agg.outcomes)
 
@@ -216,17 +217,17 @@ test_that("agg.data correctly aggregates studies with multiple effect size estim
 
   df.agg.mfr <- metafor::escalc(yi = value, sei = se, data = df)
 
-  df.agg.subgroups <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "groups"),
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" & !is.na(df.agg.mfr$multiple_es), ],
                                                 cluster = author,
                                                 struct = "ID",
                                                 weighted = TRUE)
 
-  df.agg.outcomes <- metafor::aggregate.escalc(subset(df.agg.mfr, multiple_es == "outcomes"),
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" & !is.na(df.agg.mfr$multiple_es), ],
                                                cluster = author,
                                                struct = "CS",
                                                weighted = FALSE,
                                                rho = 0.5)
-  df.mfr <- rbind(subset(df.agg.mfr, is.na(multiple_es)),
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
                   df.agg.subgroups,
                   df.agg.outcomes)
 

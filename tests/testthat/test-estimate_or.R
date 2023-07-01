@@ -17,6 +17,26 @@ test_that(".estimate_or_from_n() correctly estimates Odds Ratio and standard err
   expect_equal(df$value, OR_mfr, tolerance = 1e-15)
   expect_equal(df$se, se_mfr, tolerance = 1e-15)
 })
+test_that(".estimate_or_from_n() correctly estimates Odds Ratio and standard error with 0 cells", {
+
+  df <- df.OR
+  df$n_cases_exp[c(2,6,9)] = 0
+  df$value <- with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
+                                           n_controls_exp, n_controls_nexp)$value)
+  df$se <- with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp,
+                                        n_controls_exp, n_controls_nexp)$se)
+
+  df.OR.mfr <- metafor::escalc(measure = "OR",
+                               ai = n_cases_exp, bi = n_cases_nexp,
+                               ci = n_controls_exp, di = n_controls_nexp,
+                               data = df, to="only0", add=0.5)
+
+  OR_mfr <- exp(as.numeric(as.character(df.OR.mfr$yi)))
+  se_mfr <- sqrt(df.OR.mfr$vi)
+
+  expect_equal(df$value, OR_mfr, tolerance = 1e-15)
+  expect_equal(df$se, se_mfr, tolerance = 1e-15)
+})
 
 test_that(".estimate_se_from_or() correctly estimates standard error from Odds Ratio and sample size in each group", {
 

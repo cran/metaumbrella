@@ -12,7 +12,7 @@
 
 <meta name="author" content="Corentin J. Goslinga, Aleix Solanesa, Paolo Fusar-Poli &amp; Joaquim Radua" />
 
-<meta name="date" content="2022-06-13" />
+<meta name="date" content="2023-07-01" />
 
 <title>Vignette 4: Details on calculations made by metaumbrella</title>
 
@@ -31,38 +31,38 @@ document.addEventListener('DOMContentLoaded', function(e) {
 </script>
 
 <style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
-    </style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
 
 
 
 
 
 <style type="text/css">
-/* for pandoc --citeproc since 2.11 */
+
 div.csl-bib-body { }
 div.csl-entry {
-  clear: both;
+clear: both;
 }
 .hanging div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
+margin-left:2em;
+text-indent:-2em;
 }
 div.csl-left-margin {
-  min-width:2em;
-  float:left;
+min-width:2em;
+float:left;
 }
 div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
+margin-left:2em;
+padding-left:1em;
 }
 div.csl-indent {
-  margin-left: 2em;
+margin-left: 2em;
 }
 </style>
 
@@ -262,7 +262,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 metaumbrella</h1>
 <h4 class="author">Corentin J. Gosling<sup>a</sup>, Aleix
 Solanes<sup>a</sup>, Paolo Fusar-Poli &amp; Joaquim Radua</h4>
-<h4 class="date">2022-06-13</h4>
+<h4 class="date">2023-07-01</h4>
 
 
 <div id="TOC">
@@ -275,7 +275,7 @@ Umbrella calculations</a>
 <li><a href="#meta-analytic-models" id="toc-meta-analytic-models"><span class="toc-section-number">1.2</span> Meta-analytic models</a></li>
 <li><a href="#non-independence-of-effect-sizes" id="toc-non-independence-of-effect-sizes"><span class="toc-section-number">1.3</span> Non-independence of effect
 sizes</a></li>
-<li><a href="#publication-bias" id="toc-publication-bias"><span class="toc-section-number">1.4</span> Publication bias</a></li>
+<li><a href="#small-study-effects" id="toc-small-study-effects"><span class="toc-section-number">1.4</span> Small-study effects</a></li>
 <li><a href="#test-for-excess-statistical-significance" id="toc-test-for-excess-statistical-significance"><span class="toc-section-number">1.5</span> Test for excess statistical
 significance</a>
 <ul>
@@ -307,34 +307,28 @@ size estimates</a></li>
 </div>
 
 <style type="text/css">
-
 *{
-  font-family: "Gill Sans", sans-serif;
+font-family: "Gill Sans", sans-serif;
 }
-
 h1.title {
-  font-weight: 700;
-  font-size: 2.2rem;
-  padding-top: 0rem;
-  margin-top: 0rem;
-  border-top: none;
+font-weight: 700;
+font-size: 2.2rem;
+padding-top: 0rem;
+margin-top: 0rem;
+border-top: none;
 }
-
 #TOC {
-  width: 100%;
+width: 100%;
 }
-
 h1{
-  font-weight: 550;
-  font-size: 1.9rem;
-  border-top: 1px solid black;
-  margin-top: 3rem;
-  padding-top: 2rem;
+font-weight: 550;
+font-size: 1.9rem;
+border-top: 1px solid black;
+margin-top: 3rem;
+padding-top: 2rem;
 }
-
-
 p{
-  line-height: 1.4rem;
+line-height: 1.4rem;
 }
 </style>
 <div id="introduction" class="section level1 unnumbered">
@@ -342,7 +336,7 @@ p{
 <p>This supplementary materials is designed to complement the manual of
 the metaumbrella package. In Section 1, we present details on the
 calculations performed by the package to conduct the main analyses
-(meta-analytic models, assessment of publication bias and excess of
+(meta-analytic models, assessment of small-study effects and excess of
 statistical significance). In Section 2, we present the calculations
 performed by the package to adapt to various user inputs and to convert
 effect sizes from one to another.</p>
@@ -443,7 +437,7 @@ generated from the partly same participants. This situation occurs when
 several effect sizes of a meta-analysis originate from studies that
 compare independent experimental or exposed groups to a unique control
 or non-exposed group. We name this type of dependence <span class="math inline">\(partial\)</span> dependence hereafter.</p>
-<p>When <span class="math inline">\(hierarchal\)</span> dependence is
+<p>When <span class="math inline">\(hierarchical\)</span> dependence is
 present in the data, a combined effect size across dependent studies is
 computed <span class="citation">(Borenstein et al. 2009)</span>. More
 precisely, all dependent effect sizes nested within a larger factor are
@@ -474,15 +468,16 @@ dividing the total number of participants in a shared group by the
 number of non-shared groups. These corrected sample sizes are used to
 re-estimate the effect sizes and their variance.</p>
 </div>
-<div id="publication-bias" class="section level2" number="1.4">
-<h2><span class="header-section-number">1.4</span> Publication bias</h2>
-<p>To assess the presence of publication bias, the approach described by
-<span class="citation">Egger et al. (1997)</span> and <span class="citation">Sterne and Egger (2005)</span> is used. This approach
+<div id="small-study-effects" class="section level2" number="1.4">
+<h2><span class="header-section-number">1.4</span> Small-study
+effects</h2>
+<p>To assess the presence of small-study effects, the approach described
+by <span class="citation">Egger et al. (1997)</span> and <span class="citation">Sterne and Egger (2005)</span> is used. This approach
 proposes to conduct a weighted linear regression in which the effect
 sizes of the individual studies are regressed against their precision
 (their standard error). If an association between the effect sizes and
 their precision is found, this can be interpreted as an indication of
-publication bias.</p>
+small-study effects.</p>
 <p><span class="math display">\[\begin{equation} \label{eq:egger}
 es_i \quad = \quad \beta_0 + \beta_1 * SE_i
 \end{equation}\]</span> where <span class="math inline">\(es_i\)</span>
@@ -493,7 +488,7 @@ weighted by the inverse of the variance of the effect sizes (<span class="math i
 of the effect size is used: <span class="math display">\[\begin{equation} \label{eq:logegger}
 \log{(es_i)} \quad = \quad \beta_0 + \beta_1 * SE_i
 \end{equation}\]</span></p>
-<p>No publication bias assessment is conducted if the meta-analysis
+<p>No small-study effects assessment is conducted if the meta-analysis
 includes less than three studies.</p>
 </div>
 <div id="test-for-excess-statistical-significance" class="section level2" number="1.5">
@@ -931,7 +926,7 @@ automatically converted into an SMD to have all mean comparisons on the
 same scale. The Ioannidis’ test for excess significance bias is
 performed on these SMD values. However, SMD values are automatically
 converted into G before running meta-analytic calculations and Egger’s
-test for publication bias.</p>
+test for small-study effects.</p>
 <ul>
 <li><p>To convert the MD into an SMD, the variance of the MD or any
 information allowing to estimate it (the standard error or the 95% CI)

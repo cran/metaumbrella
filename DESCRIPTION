@@ -1,15 +1,19 @@
 Package: metaumbrella
 Type: Package
 Title: Umbrella Review Package for R
-Version: 1.0.5
+Version: 1.0.6
 Author: Corentin J Gosling [aut, cre],
   Aleix Solanes [aut],
   Paolo Fusar-Poli [aut],
   Joaquim Radua [aut]
-Authors@R: c(person("Corentin J", "Gosling", email = "cgosling@parisnanterre.fr", role = c("aut", "cre")),
-            person("Aleix", "Solanes", email = "al.solanes@gmail.com", role = c("aut")),
-            person("Paolo", "Fusar-Poli", email = "Paolo.fusar-poli@kcl.ac.uk", role = c("aut")),
-            person("Joaquim", "Radua", email = "radua@clinic.cat", role = c("aut")))      
+Authors@R: c(
+        person(given = "Corentin J", family= "Gosling",  role = c("aut", "cre"), email = "cgosling@parisnanterre.fr"),
+        person(given = "Aleix",
+               family= "Solanes", role = "aut", email = "al.solanes@gmail.com"),
+        person(given = "Paolo",
+               family= "Fusar-Poli",  role = "aut", email = "Paolo.fusar-poli@kcl.ac.uk"),
+        person(given = "Joaquim",
+               family= "Radua",  role = "aut", email = "radua@clinic.cat"))
 Maintainer: Corentin J Gosling <cgosling@parisnanterre.fr>
 Description: A comprehensive range of facilities to perform umbrella reviews with stratification of the evidence in R. The package accomplishes this aim by building on three core functions that: (i) automatically perform all required calculations in an umbrella review (including but not limited to meta-analyses), (ii) stratify evidence according to various classification criteria, and (iii) generate a visual representation of the results. Note that if you are not familiar with R, the core features of this package are available from a web browser (<https://www.metaumbrella.org/>).
 License: GPL-3
@@ -24,6 +28,6 @@ RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 Language: en-US
 NeedsCompilation: no
-Packaged: 2022-06-12 22:05:53 UTC; Corentin Gosling
+Packaged: 2023-07-01 15:38:01 UTC; Corentin Gosling
 Repository: CRAN
-Date/Publication: 2022-06-13 06:50:09 UTC
+Date/Publication: 2023-07-01 16:20:02 UTC

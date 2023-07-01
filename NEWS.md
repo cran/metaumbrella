@@ -1,3 +1,6 @@
+# metaumbrella 1.0.6
+- Added a groove() function to visualize overlap of primary studies (inspired by the work of Pérez-Bracchiglione et al. 2022)
+
 # metaumbrella 1.0.5
 - Fixed some bugs preventing to use all functions in the app and jamovi module
 

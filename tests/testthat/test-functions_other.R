@@ -352,7 +352,7 @@ test_that(".or_to_d", {
 })
 
 ## R to SMD
-test_that("correctly converts: R to SMD", {
+test_that("correctly detects: R to SMD", {
   df.full.smd <- subset(df.SMD, factor == "Surgical")
   df.SMD.R <- subset(df.SMD, factor == "Surgical")
   df.5 <- df.full.smd[1:5,]
@@ -372,13 +372,9 @@ test_that("correctly converts: R to SMD", {
 
   df.SMD.R <- subset(df.SMD.R, select = -c(mean_cases, mean_controls, ci_lo, ci_up, sd_cases, sd_controls, se))
 
-  umb.SMD.R <- .quiet(umbrella(df.SMD.R, seed = 4321))
-  umb.full.smd <- .quiet(umbrella(df.full.smd, seed = 4321))
-  expect_equal(umb.SMD.R[[1]]$x$value[1:5], umb.full.smd[[1]]$x$value[1:5], tolerance = 1e-1)
-  expect_equal(umb.SMD.R[[1]]$x$se[1:5], umb.full.smd[[1]]$x$se[1:5], tolerance = 1e-1)
-  expect_equal(umb.SMD.R[[1]]$ma_results, umb.full.smd[[1]]$ma_results, tolerance = 5e-2)
-  expect_equal(umb.SMD.R[[1]]$egger$p.value, umb.full.smd[[1]]$egger$p.value, tolerance = 5e-2)
-  expect_equal(umb.SMD.R[[1]]$esb$p.value, umb.full.smd[[1]]$esb$p.value, tolerance = 1e-5)
+  expect_error(.quiet(umbrella(df.SMD.R, seed = 4321)),
+               "Different measures ( Z, SMD ) for the same factor: Surgical . Please, provide an unique effect size for this factor (or a combination of effect size measures accepted for a same factor: see the manual for the list of possible combination).",
+               fixed = TRUE)
 })
 
 ## RR to OR: full information
@@ -553,3 +549,52 @@ test_that("IRR to SMD", {
   expect_equal(check, TRUE)
 
 })
+### OVERLAP -------------
+# test_that("IRR to SMD", {
+#   skip_on_cran()
+#   library(tidyverse)
+#   dat = .quiet(df.radua2019 %>%
+#     rowwise() %>%
+#     group_by(factor) %>%
+#     mutate(studyid = paste(author, year)) %>%
+#     summarise(stud = unique(studyid)))
+#
+#   dat_age = subset(dat, factor=="Age")
+#   dat_cum = subset(dat, factor=="Cumulative trauma")
+#   dat_ethn = subset(dat, factor=="Ethnic minority")
+#   dat_fem = subset(dat, factor=="Female")
+#   dat_low = subset(dat, factor=="Low education")
+#   dat_ses = subset(dat, factor=="Low SES")
+#   dat_psy = subset(dat, factor=="Psychotic disorder")
+#
+#   ov = overlap.prim(umbrella(df.radua2019, mult.level=TRUE, verbose=FALSE))
+#
+#   expect_equal(sum(dat_age$stud %in% dat_cum$stud) / length(dat_age$stud),
+#                as.numeric(as.character(ov$`Cumulative trauma`[1])))
+#   expect_equal(round(sum(dat_age$stud %in% dat_ethn$stud) / length(dat_age$stud),3),
+#                as.numeric(as.character(ov$`Ethnic minority`[1])))
+#   expect_equal(round(sum(dat_age$stud %in% dat_fem$stud) / length(dat_age$stud),3),
+#                as.numeric(as.character(ov$`Female`[1])))
+#   expect_equal(round(sum(dat_age$stud %in% dat_low$stud) / length(dat_age$stud),3),
+#                as.numeric(as.character(ov$`Low education`[1])))
+#   expect_equal(round(sum(dat_age$stud %in% dat_ses$stud) / length(dat_age$stud),3),
+#                as.numeric(as.character(ov$`Low SES`[1])))
+#   expect_equal(round(sum(dat_age$stud %in% dat_psy$stud) / length(dat_age$stud),3),
+#                as.numeric(as.character(ov$`Psychotic disorder`[1])))
+#
+#
+#   expect_equal(sum(dat_cum$stud %in% dat_age$stud) / length(dat_cum$stud),
+#                as.numeric(as.character(ov$`Age`[2])))
+#   expect_equal(round(sum(dat_ethn$stud %in% dat_age$stud) / length(dat_ethn$stud),3),
+#                as.numeric(as.character(ov$`Age`[3])))
+#   expect_equal(round(sum(dat_fem$stud %in% dat_age$stud) / length(dat_fem$stud),3),
+#                as.numeric(as.character(ov$`Age`[4])))
+#   expect_equal(round(sum(dat_low$stud %in% dat_age$stud) / length(dat_low$stud),3),
+#                as.numeric(as.character(ov$`Age`[5])))
+#   expect_equal(round(sum(dat_ses$stud %in% dat_age$stud) / length(dat_ses$stud),3),
+#                as.numeric(as.character(ov$`Age`[6])))
+#   expect_equal(round(sum(dat_psy$stud %in% dat_age$stud) / length(dat_psy$stud),3),
+#                as.numeric(as.character(ov$`Age`[7])))
+#
+# })
+

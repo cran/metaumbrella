@@ -630,54 +630,6 @@
   return(x)
 }
 
-#' convert a Z to a SMD
-#'
-#' @param x a well formatted dataframe
-#'
-#' @noRd
-.convert_Z_to_SMD <- function(x){
-
-  for (i in which(x[, "measure"] == "Z")) {
-
-    x_raw_i = x[i, ]
-
-    # users report z + se
-    if (!is.na(x_raw_i$se)) {
-      x_raw_i$ci_lo = (x_raw_i$value - qnorm(0.975) * x_raw_i$se)
-      x_raw_i$ci_up = (x_raw_i$value + qnorm(0.975) * x_raw_i$se)
-      ci_lo = .z_to_r(x_raw_i$ci_lo)
-      ci_up = .z_to_r(x_raw_i$ci_up)
-
-      r = .z_to_r(x_raw_i$value)
-      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
-
-      # users report z + 95% CI
-    } else if (!is.na(x_raw_i$ci_lo) & !is.na(x_raw_i$ci_up)) {
-      tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
-      ci_lo = .z_to_r(tmp$ci_lo)
-      ci_up = .z_to_r(tmp$ci_up)
-
-      r = .z_to_r(tmp$value)
-      se_r = (ci_up - ci_lo) / (2 * qnorm(0.975))
-
-    # users report z
-    } else {
-      r = .z_to_r(x_raw_i$value)
-      se_r = sqrt((1 - r^2)^2 / (x_raw_i$n_sample - 1))
-    }
-
-    x[i, "value"] = .r_to_d(r)
-    x[i, "se"] = sqrt(4 * (se_r^2) / ((1 - r^2)^3))
-    x[i, "ci_lo"] = .r_to_d(ci_lo)
-    x[i, "ci_up"] = .r_to_d(ci_up)
-    x[i, "n_cases"] = round(x[i, "n_sample"] / 2)
-    x[i, "n_controls"] = round(x[i, "n_sample"] / 2)
-    x[i, "situation"] = paste0(as.character(x[i, "situation"]), "ES_CI")
-    x[i, "measure"] = "SMD"
-  }
-  return(x)
-}
-
 #' convert a SMC to an SMD
 #'
 #' @param x a well formatted dataframe
@@ -706,8 +658,8 @@
     } else if (!is.na(x_raw_i$value) & !is.na(x_raw_i$ci_lo) & !is.na(x_raw_i$ci_up)) {
         tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
         value_i = tmp$value
-        ci_lo_i = value_i - se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
-        ci_up_i = value_i + se_i * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2)
+        ci_lo_i = tmp$ci_lo
+        ci_up_i = tmp$ci_up
         se_i = (ci_up_i - ci_lo_i) / (2 * qt(0.975, x_raw_i$n_cases + x_raw_i$n_controls - 2))
      } else {
         if (is.na(x_raw_i$pre_post_cor) & is.na(pre_post_cor) & is.na(x_raw_i$value) & is.na(x_raw_i$se) & is.na(x_raw_i$ci_lo) & is.na(x_raw_i$ci_up)) {
@@ -768,7 +720,7 @@
 NULL
 
 utils::globalVariables(c("duplicate", "multiple_es", "shared_controls", "aggregate", "row_index",
-                         "ci_lo", "ci_up", "shared_nexp",
+                         "ci_lo", "ci_up", "shared_nexp", "tail",
                          ".get_file_extension", "check_sensitivity", "tk_choose.dir",
                          "tk_choose.files", "tk_select.list", "excel_sheets", ".read.excel", ".get_filename_without_extension",
                          ".write_errors_file"))

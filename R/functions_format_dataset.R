@@ -126,17 +126,10 @@
         if (verbose) message(paste0("I converted Risk Ratio to Odds Ratio for factor: ", unique(x_i$factor)))
       }
 
-      # we convert all Z to SMD and then to OR
-      if (any(measure == "Z")) {
-        x_i = .convert_Z_to_SMD(x_i)
-        x_i = .convert_SMD_to_OR(x_i)
-        if (verbose) message(paste0("I converted Z to Odds Ratio for factor: ", unique(x_i$factor)))
-      }
-
       measure = "OR"
 
     # Users report SMD, which is used as the target measure
-    } else if (any(measure %in% c("SMD", "SMC")) & all(measure != "IRR")) {
+    } else if (!all(measure %in% c("SMD", "IRR", "Z"))) {
 
       # we convert all HR to OR
       if (any(measure == "HR")) {
@@ -152,11 +145,6 @@
       if (any(measure == "OR")) {
         x_i = .convert_OR_to_SMD(x_i)
         if (verbose) message(paste("I converted Odds Ratio to a SMD for factor: ", unique(x_i$factor)))
-      }
-      # we convert all Z to SMD
-      if (any(measure == "Z")) {
-        x_i = .convert_Z_to_SMD(x_i)
-        if (verbose) message(paste("I converted Fisher's Z to a SMD for factor: ", unique(x_i$factor)))
       }
       # we convert all SMC to SMD
       if (any(measure == "SMC")) {
@@ -787,6 +775,7 @@
                                           ifelse(is.na(x_raw_i$rob) & all(is.na(x_i$rob)), NA_real_, NA_real_))))
     x_i_ok = rbind(x_i_ok,
                    data.frame(row_index = x_raw_i$row_index,
+                              meta_review = x_raw_i$meta_review,
                               author = x_raw_i$author,
                               year = x_raw_i$year,
                               multiple_es = x_raw_i$multiple_es,
