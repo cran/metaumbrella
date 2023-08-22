@@ -1,3 +1,6 @@
+# metaumbrella 1.0.7
+- Fixed an issue that could appear when a meta-analysis presented multiple outcomes with a correlation as effect size measure
+
 # metaumbrella 1.0.6
 - Added a groove() function to visualize overlap of primary studies (inspired by the work of Pérez-Bracchiglione et al. 2022)
 

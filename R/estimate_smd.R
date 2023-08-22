@@ -89,15 +89,27 @@
   df = n_cases + n_controls - 2
   J = .d_j(df)
   d = g / J
+
   if (is.null(se)) {
     se_ok = sqrt(1 / n_cases + 1 / n_controls)
   } else {
     se_ok = suppressWarnings(sqrt(se^2 - (1 - (df - 2) / (df * J^2)) * g^2))
-    if (is.nan(se_ok)) {
-      se_ok = sqrt(1 / n_cases + 1 / n_controls)
-      message("- An error occured when converting the standard error of G to SMD. The standard error of the SMD was assumed to be equal to 'sqrt(1/n_cases + 1/n_controls)'.\n")
-    }
   }
+
+  if (any(is.nan(se_ok))) {
+    ind_pb = which(is.nan(se_ok))
+    se_ok = sqrt(1 / n_cases[ind_pb] + 1 / n_controls[ind_pb])
+    message("- An error occured when converting the standard error of G to SMD. The standard error of the SMD was assumed to be equal to 'sqrt(1/n_cases + 1/n_controls)'.\n")
+  }
+  # if (is.null(se)) {
+  #   se_ok = sqrt(1 / n_cases + 1 / n_controls)
+  # } else {
+  #   se_ok = suppressWarnings(sqrt(se^2 - (1 - (df - 2) / (df * J^2)) * g^2))
+  #   if (is.nan(se_ok)) {
+  #     se_ok = sqrt(1 / n_cases + 1 / n_controls)
+  #     message("- An error occured when converting the standard error of G to SMD. The standard error of the SMD was assumed to be equal to 'sqrt(1/n_cases + 1/n_controls)'.\n")
+  #   }
+  # }
   return(data.frame(value = d, se = se_ok))
 }
 

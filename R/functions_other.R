@@ -320,10 +320,11 @@
   largest_index_transit = which(x$time == max(x$time))
   # if there is equality in the time we take the study with the lowest ES
   if (length(largest_index_transit) > 1) {
-    largest_index = which.min(abs(log(x[largest_index_transit, ]$value)))
-      largest = data.frame(ci_lo = x[largest_index_transit, ]$ci_lo[largest_index],
-                           ci_up = x[largest_index_transit, ]$ci_up[largest_index],
-                           value = x[largest_index_transit, ]$value[largest_index])
+    largest_index = largest_index_transit[which.min(abs(log(x[largest_index_transit,]$value)))]
+    # if there is equality in the sum_N we take the study with the lowest ES
+    largest = data.frame(ci_lo = x[largest_index,]$ci_lo,
+                         ci_up = x[largest_index,]$ci_up,
+                         value = x[largest_index,]$value)
   } else {
     largest_index = largest_index_transit
     # there is only one maximum value for time
@@ -349,11 +350,12 @@
 .largest_or_rr_hr <- function(x, return = "ci") {
   largest_index_transit = which(x$sum_N == max(x$sum_N))
   if (length(largest_index_transit) > 1) {
-    largest_index = which.min(abs(log(x[largest_index_transit,]$value)))
+
+    largest_index = largest_index_transit[which.min(abs(log(x[largest_index_transit,]$value)))]
     # if there is equality in the sum_N we take the study with the lowest ES
-    largest = data.frame(ci_lo = x[largest_index_transit,]$ci_lo[largest_index],
-                         ci_up = x[largest_index_transit,]$ci_up[largest_index],
-                         value = x[largest_index_transit,]$value[largest_index])
+    largest = data.frame(ci_lo = x[largest_index,]$ci_lo,
+                         ci_up = x[largest_index,]$ci_up,
+                         value = x[largest_index,]$value)
   } else {
     # there is only one maximum value for sum_N
     largest_index = largest_index_transit
@@ -379,14 +381,14 @@
 .largest_smd <- function(x, return = "ci") {
   largest_index_transit = which(x$sum_N == max(x$sum_N))
   if (length(largest_index_transit) > 1) {
-    largest_index = which.min(abs(x[largest_index_transit,]$value))
+    largest_index = largest_index_transit[which.min(abs(x[largest_index_transit,]$value))]
+
     # if there is equality in the sum_N we take the study with the lowest ES
-    largest = data.frame(ci_lo = x[largest_index_transit, ]$ci_lo[largest_index],
-                         ci_up = x[largest_index_transit, ]$ci_up[largest_index],
-                         value = x[largest_index_transit, ]$value[largest_index],
-                         n_cases = x[largest_index_transit, ]$n_cases[largest_index],
-                         n_controls = x[largest_index_transit, ]$n_controls[largest_index],
-                         se = x[largest_index_transit, ]$se[largest_index])
+    largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
+                         ci_up = x[largest_index, ]$ci_up,
+                         value = x[largest_index, ]$value,
+                         n_sample = x[largest_index, ]$n_sample,
+                         se = x[largest_index, ]$se)
   } else {
     # there is only one maximum value for sum_N
     largest_index = largest_index_transit
@@ -417,14 +419,14 @@
   largest_index_transit = which(x$sum_N == max(x$sum_N))
 
   if (length(largest_index_transit) > 1) {
-    largest_index = which.min(abs(x[largest_index_transit,]$value))
+    largest_index = largest_index_transit[which.min(abs(x[largest_index_transit,]$value))]
 
     # if there is equality in the sum_N we take the study with the lowest ES
-    largest = data.frame(ci_lo = x[largest_index_transit, ]$ci_lo[largest_index],
-                         ci_up = x[largest_index_transit, ]$ci_up[largest_index],
-                         value = x[largest_index_transit, ]$value[largest_index],
-                         n_sample = x[largest_index_transit, ]$n_sample[largest_index],
-                         se = x[largest_index_transit, ]$se[largest_index])
+    largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
+                         ci_up = x[largest_index, ]$ci_up,
+                         value = x[largest_index, ]$value,
+                         n_sample = x[largest_index, ]$n_sample,
+                         se = x[largest_index, ]$se)
   } else {
     # there is only one maximum value for sum_N
     largest_index = largest_index_transit

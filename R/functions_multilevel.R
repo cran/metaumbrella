@@ -6,14 +6,14 @@
 #' @noRd
 .unique_es_subgroups <- function(x, measure) {
   weights = 1/(x$se^2)
-  if (measure == "SMD") {
+  if (measure %in% c("SMD", "Z")) {
      value_list = x$value
   } else {
     value_list = log(x$value)
   }
   mean_value = sum(weights * value_list) / sum(weights)
   se = sqrt(1 / sum(weights))
-  value = ifelse(measure == "SMD", mean_value, exp(mean_value))
+  value = ifelse(measure %in% c("SMD", "Z"), mean_value, exp(mean_value))
   ci_lo = ifelse(measure == "SMD", mean_value - qt(0.975, x$n_cases + x$n_controls - 2) * se, exp(mean_value - qnorm(0.975) * se))
   ci_up = ifelse(measure == "SMD", mean_value + qt(0.975, x$n_cases + x$n_controls - 2) * se, exp(mean_value + qnorm(0.975) * se))
   return(data.frame(
@@ -43,7 +43,7 @@
   prod_se_r[lower.tri(prod_se_r)] <- 0
   # set the lower part of the matrix equal to 0
   diag(prod_se_r) <- 0
-  mean_value <- ifelse(measure == "SMD", mean(x$value), exp(mean(log(x$value))))
+  mean_value <- ifelse(measure %in% c("SMD", "Z"), mean(x$value), exp(mean(log(x$value))))
   var = (1 / nrow(x))^2 * (sum(var_es) + 2 * sum(prod_se_r) )
   se = sqrt(var)
   ci_lo = ifelse(measure == "SMD", mean_value - qt(0.975, x$n_cases + x$n_controls - 2) * se, exp(log(mean_value) - qnorm(0.975) * se))
@@ -133,6 +133,8 @@
     N_max =  .largest_or_rr_hr(x, return = "nrow")
   } else if (measure == "SMD") {
     N_max = .largest_smd(x, return = "nrow")
+  } else if (measure == "Z") {
+    N_max = .largest_z(x, return = "nrow")
   }
 
   n_cases = x$n_cases[N_max]
@@ -140,7 +142,7 @@
   n_exp = n_nexp = NA # we do not need this information except for RR
   sum_N = sum(n_cases, n_controls, na.rm = TRUE) # NA for IRR
 
-  if (measure %in% c("SMD", "HR")) {
+  if (measure %in% c("SMD", "HR", "Z")) {
     n_cases_exp = n_controls_exp = n_cases_nexp = n_controls_nexp = time = time_exp = time_nexp = NA
   } else if (measure == "OR") {
     convert_2x2_or = .estimate_n_from_or_and_n_cases(value, se^2, n_cases, n_controls)

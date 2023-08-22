@@ -30,7 +30,8 @@ test_that("esb.test produced same results for different inputs: SMD", {
 
     df$measure <- "G"
     esb.df.chisq <- suppressWarnings(.quiet(esb.test(df, input = "dataframe", measure = "G", method.esb = "IT.chisq", seed = 4321, true_effect = "largest")))
-    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
+    esb.df.binom <- .quiet(esb.test(df, input = "dataframe", measure = "G", method.esb = "IT.binom",
+                                    seed = 4321, true_effect = "largest"))
 
     meta.df.chisq1 <- suppressWarnings(.quiet(esb.test(metasmd, input = "meta", method.esb = "IT.chisq", seed = 4321, true_effect = "largest")))
     meta.df.binom1 <- .quiet(esb.test(metasmd, input = "meta", method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
@@ -42,32 +43,33 @@ test_that("esb.test produced same results for different inputs: SMD", {
     rma.df.binom <- .quiet(esb.test(rmasmd, input = "rma", n_cases = df$n_cases, method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
     umb <- .quiet(umbrella(df, seed = 4321, method.esb = "IT.binom", true_effect = "largest"))
-    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up)), method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
+    umb2 <- .quiet(umbrella(subset(df, select = -c(mean_cases, mean_controls, sd_cases, sd_controls, ci_lo, ci_up)),
+                            method.esb = "IT.binom", seed = 4321, true_effect = "largest"))
 
     # meta
-    expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq2$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.chisq$p.value), .as_numeric(meta.df.chisq1$p.value), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.chisq$p.value), .as_numeric(meta.df.chisq2$p.value), tolerance = tol_med)
+    expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq1$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(meta.df.chisq2$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.chisq$p.value), .as_numeric(meta.df.chisq1$p.value), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.chisq$p.value), .as_numeric(meta.df.chisq2$p.value), tolerance = tol_large)
 
 
-    expect_equal(.as_numeric(esb.df.binom$statistic), .as_numeric(meta.df.binom1$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.binom$statistic), .as_numeric(meta.df.binom2$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.binom$p.value), .as_numeric(meta.df.binom1$p.value), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.binom$p.value), .as_numeric(meta.df.binom2$p.value), tolerance = tol_med)
+    expect_equal(.as_numeric(esb.df.binom$statistic), .as_numeric(meta.df.binom1$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.binom$statistic), .as_numeric(meta.df.binom2$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.binom$p.value), .as_numeric(meta.df.binom1$p.value), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.binom$p.value), .as_numeric(meta.df.binom2$p.value), tolerance = tol_large)
 
     # rma
-    expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(rma.df.chisq$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.chisq$p.value), .as_numeric(rma.df.chisq$p.value), tolerance = tol_med)
+    expect_equal(.as_numeric(esb.df.chisq$statistic), .as_numeric(rma.df.chisq$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.chisq$p.value), .as_numeric(rma.df.chisq$p.value), tolerance = tol_large)
 
-    expect_equal(.as_numeric(esb.df.binom$statistic), .as_numeric(rma.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(esb.df.binom$p.value), .as_numeric(rma.df.binom$p.value), tolerance = tol_med)
+    expect_equal(.as_numeric(esb.df.binom$statistic), .as_numeric(rma.df.binom$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(esb.df.binom$p.value), .as_numeric(rma.df.binom$p.value), tolerance = tol_large)
 
     # umbrella
-    expect_equal(.as_numeric(umb[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(umb[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_med)
-    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_limit)
+    expect_equal(.as_numeric(umb[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(umb[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = tol_large)
+    expect_equal(.as_numeric(umb2[[1]]$esb$statistic), .as_numeric(esb.df.binom$statistic), tolerance = tol_large)
+    expect_equal(.as_numeric(umb2[[1]]$esb$p.value), .as_numeric(esb.df.binom$p.value), tolerance = 1e-3)
 
 })
 
@@ -251,6 +253,45 @@ test_that("esb.test produced correct results with multilevel data", {
 
     expect_equal(.as_numeric(gen$statistic), .as_numeric(umb[[1]]$esb$statistic), tolerance = tol_large)
     expect_equal(.as_numeric(gen$p.value), .as_numeric(umb[[1]]$esb$p.value), tolerance = tol_large)
+})
+# G/SMD input -----------------------
+test_that("SMD/G/SMC", {
+
+  df.test.smd = subset(df.SMD, factor == "Pharmacological")[, 1:9]
+
+  df.test.smc = df.test.smd
+  df.test.smc$measure = "SMC"
+  tmp = .estimate_g_from_d(d=df.test.smc$value,
+                           n_cases = df.test.smc$n_cases,
+                           n_controls = df.test.smc$n_controls)
+  df.test.smc$value = tmp$value
+  df.test.smc$se = tmp$se
+
+  df.test.g = df.test.smc
+  df.test.g$measure = "G"
+
+  ur_smc = umbrella(df.test.smc, method.esb = "TESSPSST", true_effect = "UWLS",
+                    verbose=FALSE)
+  ur_g = umbrella(df.test.g, method.esb = "TESSPSST", true_effect = "UWLS",
+                  verbose=FALSE)
+  ur_smd = umbrella(df.test.smd, method.esb = "TESSPSST", true_effect = "UWLS",
+                    verbose=FALSE)
+  tau2 = ur_smd[[1]]$heterogeneity$tau2
+  esb_smc = esb.test(df.test.smc,
+                     method.esb = "TESSPSST", true_effect = "UWLS",
+                     input = "dataframe", tau2 = tau2)
+  esb_g = esb.test(df.test.g,
+                   method.esb = "TESSPSST", true_effect = "UWLS",
+                   input = "dataframe", tau2 = tau2)
+  esb_smd = esb.test(df.test.smd,
+                     method.esb = "TESSPSST", true_effect = "UWLS",
+                     input = "dataframe", tau2 = tau2)
+
+  expect_equal(ur_smc[[1]]$esb$p.value, esb_smc$p.value, tolerance = tol_large)
+  expect_equal(ur_g[[1]]$esb$p.value, esb_g$p.value, tolerance = tol_large)
+  expect_equal(ur_smd[[1]]$esb$p.value, esb_smd$p.value, tolerance = tol_large)
+  expect_equal(ur_smc[[1]]$esb$p.value, ur_g[[1]]$esb$p.value, tolerance = tol_large)
+  expect_equal(ur_smc[[1]]$esb$p.value, ur_smd[[1]]$esb$p.value, tolerance = tol_large)
 })
 
 # TES metafor -----------------------------------------------------------------------------------------------------

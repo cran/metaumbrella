@@ -143,31 +143,40 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
         measure = attr(x, "measure")
       }
 
-      for (i in which(x$measure == "G")) {
-        G_i = x[i, "value"]
-        se_g_i = x[i, "se"]
-        x[i, "value"] = .estimate_d_from_g(g = G_i, n_cases = x[i, "n_cases"], n_controls = x[i, "n_controls"], se = se_g_i)$value
-        x[i, "se"] = .estimate_d_from_g(g = G_i, n_cases = x[i, "n_cases"], n_controls = x[i, "n_controls"], se = se_g_i)$se
-        x[i, "ci_lo"] = x[i, "value"] - x[i, "se"] * qt(0.975, x[i, "n_cases"] + x[i, "n_controls"] - 2)
-        x[i, "ci_up"] = x[i, "value"] + x[i, "se"] * qt(0.975, x[i, "n_cases"] + x[i, "n_controls"] - 2)
-        x[i, "measure"] = "SMD"
+      if (measure %in% c("SMC", "SMD")) {
+        G = x[, "value"]
+        se_g = x[, "se"]
+        x[, "value"] = .estimate_d_from_g(g = G,
+                                          n_cases = x[, "n_cases"],
+                                          n_controls = x[, "n_controls"],
+                                          se = se_g)$value
+        x[, "se"] = .estimate_d_from_g(g = G,
+                                       n_cases = x[, "n_cases"],
+                                       n_controls = x[, "n_controls"],
+                                       se = se_g)$se
+        x[, "ci_lo"] = x[, "value"] - x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
+        x[, "ci_up"] = x[, "value"] + x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
+        x[, "measure"] = "SMD"
+        measure = "SMD"
       }
       #### called from umbrella() --------
     } else if (input == "other") {
 
-      for (i in which(x$measure == "G")) {
-        G_i = x[i, "value"]
-        se_g_i = x[i, "se"]
-        x[i, "value"] = .estimate_d_from_g(g = G_i, n_cases = x[i, "n_cases"], n_controls = x[i, "n_controls"], se = se_g_i)$value
-        x[i, "se"] = .estimate_d_from_g(g = G_i, n_cases = x[i, "n_cases"], n_controls = x[i, "n_controls"], se = se_g_i)$se
-        x[i, "ci_lo"] = x[i, "value"] - x[i, "se"] * qt(0.975, x[i, "n_cases"] + x[i, "n_controls"] - 2)
-        x[i, "ci_up"] = x[i, "value"] + x[i, "se"] * qt(0.975, x[i, "n_cases"] + x[i, "n_controls"] - 2)
-        x[i, "measure"] = "SMD"
+      if (measure %in% c("SMC", "SMD")) {
+        G = x[, "value"]
+        se_g = x[, "se"]
+        x[, "value"] = .estimate_d_from_g(g = G, n_cases = x[, "n_cases"], n_controls = x[, "n_controls"], se = se_g)$value
+        x[, "se"] = .estimate_d_from_g(g = G, n_cases = x[, "n_cases"], n_controls = x[, "n_controls"], se = se_g)$se
+        x[, "ci_lo"] = x[, "value"] - x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
+        x[, "ci_up"] = x[, "value"] + x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
+        x[, "measure"] = "SMD"
+        measure = "SMD"
       }
-    }
+   }
 
-  if (!(measure %in% c("SMD", "SMC", "HR", "IRR", "OR", "RR", "Z"))) {
-    stop("The measure should be one of 'SMD', 'SMC', 'Z', 'R', 'OR', 'HR', 'IRR', 'RR'")
+
+  if (!(measure %in% c("SMD", "G", "SMC", "HR", "IRR", "OR", "RR", "Z"))) {
+    stop("The measure should be one of 'SMD',  'G'', 'SMC', 'Z', 'R', 'OR', 'HR', 'IRR', 'RR'")
   }
 
   # Estimate p.values
@@ -178,12 +187,15 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     value_i = ifelse(measure %in% c("HR", "IRR", "OR", "RR"),
                      log(x$value[i]),
                      x$value[i])
-    x$p.value[i] = ifelse(value_i == 0,
-                          1,
-                          .two_tail(ifelse(measure %in% c("HR", "IRR", "OR", "RR", "Z"),
-                                           pnorm(value_i / x$se[i]),
-                                           pt(value_i / x$se[i], x$n_cases[i] + x$n_controls[i] - 2)
-                          )))
+    x$p.value[i] = ifelse(
+      value_i == 0,
+      1,
+      .two_tail(ifelse(measure %in% c("HR", "IRR", "OR", "RR", "Z"),
+                       pnorm(value_i / x$se[i]),
+                       pt(value_i / x$se[i], x$n_cases[i] + x$n_controls[i] - 2)
+                       )
+                )
+      )
   }
 
   x$signif = is.na(x$p.value) | x$p.value < 0.05 # is.na for NSUEs
@@ -228,7 +240,8 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
   } else {
     for (i in 1:k) {
       x$power[i] = switch (measure,
-                           "SMD"=, "SMC" = .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i], true_d = true_value, se = x$se[i]),
+                           "SMD"= .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i], true_d = true_value, se = x$se[i]),
+                           "SMC" = .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i], true_d = true_value, se = x$se[i]),
                            "Z" =  pwr::pwr.r.test(n = x$n_sample[i], r = .z_to_r(true_value), alternative = "two.sided")$power,
                            "HR" = .power_hr(x[i, ], true_value),
                            "IRR" = .power_irr(x[i, ], true_value),

@@ -42,7 +42,7 @@ analysis).
 
 Second, the `add.evidence()` function stratifies the evidence generated
 by the umbrella() function according to a set of pre-specified
-classifications (the classification proposed by Prof. Ioannidis or an
+classifications (the classification proposed by Prof. Ioannidis or an
 algorithmic version of GRADE classification), or according to a
 personalized classification that the users may specify manually. This
 feature allows users to rely on already developed criteria or to develop

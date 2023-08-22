@@ -373,7 +373,7 @@ test_that("correctly detects: R to SMD", {
   df.SMD.R <- subset(df.SMD.R, select = -c(mean_cases, mean_controls, ci_lo, ci_up, sd_cases, sd_controls, se))
 
   expect_error(.quiet(umbrella(df.SMD.R, seed = 4321)),
-               "Different measures ( Z, SMD ) for the same factor: Surgical . Please, provide an unique effect size for this factor (or a combination of effect size measures accepted for a same factor: see the manual for the list of possible combination).",
+               "Different measures (Z, SMD)",
                fixed = TRUE)
 })
 

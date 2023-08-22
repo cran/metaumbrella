@@ -277,8 +277,9 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       if (n_studies < 3) {
         egger = data.frame(statistic = NA, p.value = NA)
       } else {
+        # for future updates
         if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) {
-          # for future updates
+
           mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD")
           egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
 
@@ -301,7 +302,9 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       } else if (true_effect == "UWLS") {
         true_value = "UWLS"
       } else if (true_effect == "pooled") {
-        true_value = ifelse(measure %in% c("SMD", "SMC", "Z"), .as_numeric(ma_results$coef), exp(.as_numeric(ma_results$coef)))
+        true_value = ifelse(measure %in% c("SMD", "SMC", "Z"),
+                            .as_numeric(ma_results$coef),
+                            exp(.as_numeric(ma_results$coef)))
       } else if (is.numeric(true_effect)) {
         true_value = true_effect
       } else {
@@ -311,7 +314,10 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       if (n_studies < 3) {
         esb = data.frame(p.value = NA)
       } else {
-        esb = esb.test(x_i_ok, method.esb = method.esb, measure = measure, input = "other", true_effect = true_value, seed = seed, tau2 = tau2)
+        esb = esb.test(x_i_ok, method.esb = method.esb,
+                       measure = measure,
+                       input = "other", true_effect = true_value,
+                       seed = seed, tau2 = tau2)
       }
 
       # risk of bias

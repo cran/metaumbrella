@@ -127,17 +127,20 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
       value = round(x_i$ma_results$value, digits)
       ci_lo = round(x_i$ma_results$ci_lo, digits); ci_up = round(x_i$ma_results$ci_up, digits)
       pi_lo = round(x_i$ma_results$pi_lo, digits); pi_up = round(x_i$ma_results$pi_up, digits)
-      largest_ci_lo = round(x_i$largest$ci_lo, digits); largest_ci_up = round(x_i$largest$ci_up, digits)
+      largest_ci_lo = round(x_i$largest$ci_lo, digits)
+      largest_ci_up = round(x_i$largest$ci_up, digits)
     } else if (measure %in% c("OR", "RR", "HR", "IRR")) {
       value = round(exp(x_i$ma_results$value), digits)
       ci_lo = round(exp(x_i$ma_results$ci_lo), digits);  ci_up = round(exp(x_i$ma_results$ci_up), digits)
       pi_lo = round(exp(x_i$ma_results$pi_lo), digits); pi_up = round(exp(x_i$ma_results$pi_up), digits)
-      largest_ci_lo = round(exp(x_i$largest$ci_lo), digits); largest_ci_up = round(exp(x_i$largest$ci_up), digits)
+      largest_ci_lo = round(exp(x_i$largest$ci_lo), digits)
+      largest_ci_up = round(exp(x_i$largest$ci_up), digits)
     } else if (measure == "Z") {
       value = round(.z_to_r(x_i$ma_results$value), digits)
       ci_lo = round(.z_to_r(x_i$ma_results$ci_lo), digits);  ci_up = round(.z_to_r(x_i$ma_results$ci_up), digits)
       pi_lo = round(.z_to_r(x_i$ma_results$pi_lo), digits); pi_up = round(.z_to_r(x_i$ma_results$pi_up), digits)
-      largest_ci_lo = round(.z_to_r(x_i$largest$ci_lo), digits); largest_ci_up = round(.z_to_r(x_i$largest$ci_up), digits)
+      largest_ci_lo = round(.z_to_r(x_i$largest$ci_lo), digits)
+      largest_ci_up = round(.z_to_r(x_i$largest$ci_up), digits)
     }
 
     value_CI =  paste0("[", ci_lo, ", ", ci_up, "]")

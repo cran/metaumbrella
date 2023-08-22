@@ -113,7 +113,7 @@
   if (length(measure) > 1) {
 
     # Users report no SMD/SMC => OR is the target measure
-    if (all(!measure  %in% c("SMD", "SMC")) & all(measure != "IRR")) {
+    if (all(!measure %in% c("SMD", "SMC")) & all(!measure %in% c("Z", "IRR"))) {
 
       # we convert all HR to OR
       if (any(measure == "HR")) {
@@ -129,7 +129,7 @@
       measure = "OR"
 
     # Users report SMD, which is used as the target measure
-    } else if (!all(measure %in% c("SMD", "IRR", "Z"))) {
+    } else if (any(measure %in% c("SMD", "SMC")) & !any(measure %in% c("IRR", "Z"))) {
 
       # we convert all HR to OR
       if (any(measure == "HR")) {
@@ -155,8 +155,9 @@
       measure = "SMD"
 
     } else {
-      stop(paste("Different measures (", paste(unique(x_i$measure), collapse = ", ") , ") for the same factor:", unique(x_i$factor),
-                 ". Please, provide an unique effect size for this factor (or a combination of effect size measures accepted for a same factor: see the manual for the list of possible combination)."))
+      stop(paste0("Different measures (", paste(unique(x_i$measure), collapse = ", ") ,
+                  ") for the same factor: '", unique(x_i$factor),
+                 "'. Please, provide an unique effect size for this factor (or a combination of effect size measures accepted for a same factor: see the manual for the list of possible combination)."))
     }
   }
   # ------------------------------------------
@@ -379,6 +380,11 @@
           ###########################################
         } else if (grepl("ES_SE", x_raw_i$situation, fixed = TRUE)) {
 
+          # value_i = .estimate_g_from_d(d = x_raw_i$value, n_cases = n_cases_i, n_controls = n_controls_i, se = x_raw_i$se)$value
+          # se_i = .estimate_g_from_d(d = x_raw_i$value, n_cases = n_cases_i, n_controls = n_controls_i, se = x_raw_i$se)$se
+          # ci_lo_i = value_i - se_i * qt(0.975, n_cases_i + n_controls_i - 2)
+          # ci_up_i = value_i + se_i * qt(0.975, n_cases_i + n_controls_i - 2)
+
           value_i = x_raw_i$value
           se_i = x_raw_i$se
           ci_lo_i = value_i - se_i * qt(0.975, n_cases_i + n_controls_i - 2)
@@ -396,6 +402,11 @@
         } else if (grepl("ES_CI", x_raw_i$situation, fixed = TRUE)) {
 
           tmp = .improve_ci(x_raw_i$value, x_raw_i$ci_lo, x_raw_i$ci_up, FALSE)
+          # value_i = tmp$value * .d_j(n_cases_i + n_controls_i - 2)
+          # ci_lo_i = tmp$ci_lo * .d_j(n_cases_i + n_controls_i - 2)
+          # ci_up_i = tmp$ci_up * .d_j(n_cases_i + n_controls_i - 2)
+          # se_i = (ci_up_i - ci_lo_i) / (2 * qt(0.975, n_cases_i + n_controls_i - 2))
+
           value_i = tmp$value
           ci_lo_i = tmp$ci_lo
           ci_up_i = tmp$ci_up

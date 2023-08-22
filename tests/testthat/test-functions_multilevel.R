@@ -257,6 +257,74 @@ test_that("agg.data correctly aggregates studies with multiple effect size estim
   expect_equal(umb$p.value, mfr$pval, tolerance = tol_large)
 })
 
+## MULT GROUPS - R
+test_that("correct aggregation multiple groups", {
+  df <- subset(df.R, factor == "Gestational_hypertension")
+  df$author[c(2,3, 5,6,7, 15,16,17)] <- c(df$author[1], df$author[1],
+                                          df$author[4], df$author[4], df$author[4],
+                                          df$author[14], df$author[14], df$author[14])
+
+  df$year[c(2,3, 5,6,7, 15,16,17)] <- c(df$year[1], df$year[1],
+                                        df$year[4], df$year[4], df$year[4],
+                                        df$year[14], df$year[14], df$year[14])
+
+  df$multiple_es <- NA ; df$multiple_es[c(1,2,3, 4,5,6,7)] <- "groups"
+  df$multiple_es[c(14,15,16,17)] <- "outcomes"
+
+  df$measure = "Z"
+  R = with(df, .estimate_z_from_r(r=value, n_sample=n_sample))
+  df$value = R$value
+  df$se = R$se
+
+  df.agg.mfr <- metafor::escalc(yi = value, sei = se, data = df)
+
+  df.agg.subgroups <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="groups" &
+                                                             !is.na(df.agg.mfr$multiple_es), ],
+                                                cluster = author,
+                                                struct = "ID",
+                                                weighted = TRUE)
+
+  df.agg.outcomes <- metafor::aggregate.escalc(df.agg.mfr[df.agg.mfr$multiple_es=="outcomes" &
+                                                            !is.na(df.agg.mfr$multiple_es), ],
+                                               cluster = author,
+                                               struct = "CS",
+                                               weighted = FALSE,
+                                               rho = 0.5)
+  df.mfr <- rbind(df.agg.mfr[is.na(df.agg.mfr$multiple_es), ],
+                  df.agg.subgroups,
+                  df.agg.outcomes)
+
+  ########## test MA means/SD SMD
+  umb <- umbrella(df, mult.level = TRUE, verbose = FALSE)[[1]]$ma_results
+  mfr <- metafor::rma(yi = yi, vi = vi, data = df.mfr, method = "REML")
+
+  expect_equal(umb$value, as.numeric(as.character(mfr$beta)), tolerance = tol_large)
+  expect_equal(umb$p.value, mfr$pval, tolerance = tol_large)
+})
+
+## MULT OUTCOMES - OR
+test_that("correct aggregation multiple outcomes", {
+  df <- subset(df.OR.multi, meta_review == "el-Abood")
+
+  umb <- umbrella(df, mult.level = TRUE, method.var = "REML", verbose = FALSE)[[1]]$ma_results
+
+  OR = with(df, .estimate_or_from_n(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
+
+  df$value = OR$value
+  df$se = OR$se
+
+  df.agg.mfr <- metafor::escalc(yi = log(value), sei = se, data = df)
+
+  df.agg <- metafor::aggregate.escalc(x = df.agg.mfr, cluster = paste(df.agg.mfr$author, df.agg.mfr$year),
+                                      struct = "CS",
+                                      weighted = FALSE,
+                                      rho = 0.5)
+
+  mfr <- metafor::rma(yi = yi, vi = vi, data = df.agg, method = "REML")
+
+  expect_equal(umb$value, as.numeric(as.character(mfr$beta)), tolerance = tol_large)
+  expect_equal(umb$p.value, mfr$pval, tolerance = tol_large)
+})
 
 ## MULT GROUPS - OR
 test_that("correct aggregation multiple groups", {
