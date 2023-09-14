@@ -37,11 +37,25 @@ test_that("publication bias correclty performs egger's test", {
 
   umb <- umbrella(df.or2, method.var = "REML")
   expect_equal(umb[[1]]$egger$p.value, res_rma2$pval)
+
+
+  df.R$factor = "A"
+  umb = umbrella(df.R)
+
+
+  rma_r <- metafor::rma(ri = df.R$value,
+                           ni = df.R$n_sample,
+                           measure = "ZCOR")
+
+  res_rma_r <- metafor::regtest(rma_r, model="lm", predictor="sei")
+  expect_equal(umb[[1]]$egger$p.value, res_rma_r$pval)
+
 })
 
 test_that("publication bias for different inputs", {
 
-  df1 <- df2 <- subset(df.SMD, factor == "Pharmacological", select = -c(mean_cases, mean_controls, ci_lo, ci_up))
+  df1 <- df2 <- subset(df.SMD, factor == "Pharmacological",
+                       select = -c(mean_cases, mean_controls, ci_lo, ci_up))
 
   G = .estimate_g_from_d(df2$value, df2$n_cases, df2$n_controls)$value
   se = .estimate_g_from_d(df2$value, df2$n_cases, df2$n_controls)$se

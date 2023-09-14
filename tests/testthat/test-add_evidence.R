@@ -279,6 +279,21 @@ test_that("'Personalized criteria produced appropriate error messages: 18", {
                                                         class_I = c(I2 = 4)))$Class)), "II")
 })
 
+test_that("df.R", {
+  df.R$factor = "A"
+  df.R$value = runif(nrow(df.R), 0.4, 0.6)
+  res = summary(add.evidence(umbrella(df.R), criteria = "Ioannidis"))
+  expect_true(res$Class=="IV")
+  df.R$n_cases = 1000
+  res2 = summary(add.evidence(umbrella(df.R), criteria = "Ioannidis"))
+  expect_true(res2$Class=="I")
+
+  expect_true(all(res2[-c(which(colnames(res2) %in% c("Class", "n_cases")))] ==
+                    res[-c(which(colnames(res)  %in% c("Class", "n_cases")))]))
+
+
+})
+
 #
 # x <- umb
 # criteria = "Personalized"

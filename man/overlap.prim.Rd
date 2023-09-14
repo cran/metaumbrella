@@ -21,7 +21,7 @@ overlap.prim(
 
 \item{cut_off}{a vector of 3 cut-off values used only if the 'presentation' argument is set as '+'.}
 
-\item{enhanced}{a logical variable indicating whether you want a description of the rows/columns returned by this function.}
+\item{enhanced}{a logical variable indicating whether you want a narrative description of the information stored in the rows/columns returned by this function.}
 }
 \value{
 This function returns a dataframe with 1 row/column per factor or meta-review.
@@ -33,7 +33,7 @@ This function allows to estimate the primary study overlap across reviews
 \examples{
 overlap.prim(umbrella(df.radua2019[sample(x = 1:250, size = 50), ],
                        mult.level=TRUE, verbose = FALSE),
-             presentation = "\%", cut_off = c(.05,.15,.25))
+             presentation = "+", cut_off = c(.05,.15,.25))
 }
 \references{
 Pérez-Bracchiglione, J., Meza, N., Bangdiwala, S. I., Niño de Guzmán, E., Urrútia, G., Bonfill, X., & Madrid, E. (2022). Graphical Representation of Overlap for OVErviews: GROOVE tool. Research synthesis methods, 13(3), 381–388. https://doi.org/10.1002/jrsm.1557

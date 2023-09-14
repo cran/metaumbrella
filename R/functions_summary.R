@@ -197,8 +197,10 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
                       "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$ma_results$pi_lo)), digits), ", ", round(.or_to_d(exp(x_i$ma_results$pi_up)), digits), "]"))
 
       PI_eOR = switch(as.character(measure),
-                     "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$ma_results$pi_lo), digits), ", ", round(.d_to_or(x_i$ma_results$pi_up), digits), "]"),
-                     "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$ma_results$pi_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$ma_results$pi_up)), digits), "]"),
+                     "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$ma_results$pi_lo), digits), ", ",
+                                                   round(.d_to_or(x_i$ma_results$pi_up), digits), "]"),
+                     "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$ma_results$pi_lo)), digits), ", ",
+                                       round(.d_to_or(.z_to_d(x_i$ma_results$pi_up)), digits), "]"),
                      "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", pi_lo, ", ", pi_up, "]"))
 
     }
@@ -226,14 +228,18 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     largest_sign = factor(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), levels = c(FALSE, TRUE), labels = c("null", "notnull"))
 
     largest_CI_eOR = switch(as.character(measure),
-                            "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$largest$ci_lo), digits), ", ", round(.d_to_or(x_i$largest$ci_up), digits), "]"),
-                            "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$largest$ci_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$largest$ci_up)), digits), "]"),
+                            "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$largest$ci_lo), digits), ", ",
+                                                          round(.d_to_or(x_i$largest$ci_up), digits), "]"),
+                            "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$largest$ci_lo)), digits), ", ",
+                                              round(.d_to_or(.z_to_d(x_i$largest$ci_up)), digits), "]"),
                             "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", largest_ci_lo, ", ", largest_ci_up, "]"))
 
     largest_CI_eG = switch(as.character(measure),
                    "SMD" =, "SMC" = paste0("[", largest_ci_lo, ", ", largest_ci_up, "]"),
-                   "Z" = paste0("[", round(.z_to_d(x_i$largest$ci_lo), digits), ", ", round(.z_to_d(x_i$largest$ci_up), digits), "]"),
-                   "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$largest$ci_lo)), digits), ", ", round(.or_to_d(exp(x_i$largest$ci_up)), digits), "]"))
+                   "Z" = paste0("[", round(.z_to_d(x_i$largest$ci_lo), digits), ", ",
+                                     round(.z_to_d(x_i$largest$ci_up), digits), "]"),
+                   "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$largest$ci_lo)), digits), ", ",
+                                                                  round(.or_to_d(exp(x_i$largest$ci_up)), digits), "]"))
 
     # JK
     JK_p = ifelse(x_i$n$studies == 1, "only 1 study",

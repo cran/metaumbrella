@@ -157,7 +157,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
 
       # create an object storing information on sample sizes
       n <- data.frame(studies = n_studies,
-                      cases = ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_cases, na.rm = TRUE)),
+                      cases = sum(x_i_ok$n_cases, na.rm = TRUE), #ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_cases, na.rm = TRUE)),
                       controls = ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_controls, na.rm = TRUE)),
                       total_n = ifelse(measure == "Z",
                                        sum(x_i_ok$n_sample),
@@ -242,7 +242,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       ma_results = data.frame(value = coef, z, p.value, ci_lo, ci_up, pi_lo, pi_up)
       rownames(ma_results) = switch(as.character(measure),
                                 "SMD" = "Bias-corrected SMD",
-                                "Z" = "Fisher's Z",
+                                "Z" = "Standardized mean change",
                                 "SMC" = "SMC",
                                 "OR" = "log (OR)",
                                 "RR" = "log (RR)",

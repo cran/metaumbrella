@@ -21,6 +21,7 @@
 #' * \bold{Class III:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-3} and class I-II criteria not met.
 #' * \bold{Class IV:} p-value of the meta-analysis < 0.05 and class I-III criteria not met.
 #' * \bold{Class ns:} p-value of the meta-analysis >= 0.05.
+#' To apply this classification with R and Z effect size measures, you should indicate both the 'n_sample' AND the 'n_cases'.
 #'
 #' ## \bold{"GRADE" classification}
 #' This classification allows to stratify evidence according to four ordinal classes: "High", "Moderate", "Low", "Very low".
@@ -32,6 +33,7 @@
 #' * \bold{Limitations:} a proportion of participants included in studies at low risk of bias inferior to 75% leads to a downgrading of 1 class. A proportion inferior to 50% leads to a downgrading of 2 classes.
 #' * \bold{Publication bias:} a p-value of an Egger's test < .10 leads to a downgrading of 1 class.
 #' * \bold{Inconsistency:} an \eqn{I^2} value >= 0.5 leads to a downgrading of 1 class.
+#' This classification is not available for R and Z effect size measures.
 #'
 #' ## \bold{"Personalized" classification}
 #' Because the "Ioannidis" and "GRADE" classifications do not necessarily provide a rating system that perfectly matches the requirements of your umbrella review, the \code{add.evidence()} function offers the possibility to use a "Personalized" criteria to stratify the evidence according to 13 criteria. This Personalized criteria proposes to stratify the evidence in 5 ordinal classes: "Class I", "Class II", "Class III", "Class IV" and "Class V". "Class I" is the highest class that could be achieved and "Class V" is the lowest.\cr

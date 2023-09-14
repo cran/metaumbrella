@@ -7,6 +7,9 @@
   attr(x, "criteria") = "GRADE"
   for (name in names(x)) {
     x_i = x[[name]]
+    if (x_i$measure == "Z") {
+      stop("The GRADE criteria cannot be applied with R and Z effect size measures.")
+    }
     y_i = 4
 
     # criteria 1 - RoB
@@ -65,7 +68,7 @@
   for (name in names(x)) {
     x_i = x[[name]]
     p.value <- x_i$ma_results$p.value
-    if (is.na(p.value)) { # in OR meta function needs exposed, if no exposed then NA returned
+    if (is.na(p.value)) {
       warning("Error calculating evidence in ", rownames(x_i$data))
     }
     if (is.na(p.value) || p.value >= 0.05) {

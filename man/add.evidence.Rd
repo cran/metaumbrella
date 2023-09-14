@@ -56,6 +56,7 @@ The criteria for each class are the following:
 \item \bold{Class III:} number of cases > 1000, p-value of the meta-analysis < \eqn{10^-3} and class I-II criteria not met.
 \item \bold{Class IV:} p-value of the meta-analysis < 0.05 and class I-III criteria not met.
 \item \bold{Class ns:} p-value of the meta-analysis >= 0.05.
+To apply this classification with R and Z effect size measures, you should indicate both the 'n_sample' AND the 'n_cases'.
 }
 }
 
@@ -71,6 +72,7 @@ A number of participants giving a lower power than 0.8 to detect a SMD = 0.50, l
 \item \bold{Limitations:} a proportion of participants included in studies at low risk of bias inferior to 75\% leads to a downgrading of 1 class. A proportion inferior to 50\% leads to a downgrading of 2 classes.
 \item \bold{Publication bias:} a p-value of an Egger's test < .10 leads to a downgrading of 1 class.
 \item \bold{Inconsistency:} an \eqn{I^2} value >= 0.5 leads to a downgrading of 1 class.
+This classification is not available for R and Z effect size measures.
 }
 }
 

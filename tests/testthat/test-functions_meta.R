@@ -156,8 +156,8 @@ test_that(".meta_gen correctly estimates the pooled effect size for z values fro
   umb <- suppressWarnings(umbrella(df, method.var = "REML")[[1]]$ma_results)
 
   z_mfr <- metafor::escalc(ri = df$value,
-                               ni = df$n_sample,
-                               measure = "ZCOR")
+                           ni = df$n_sample,
+                           measure = "ZCOR")
 
   meta <- metafor::rma.uni(yi = .as_numeric(z_mfr$yi), sei = sqrt(z_mfr$vi), method = "REML")
 

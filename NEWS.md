@@ -1,3 +1,6 @@
+# metaumbrella 1.0.8
+- The add_evidence function can now stratify the evidence according to Ioannidis criteria for R and Z measures if users enter the number of cases
+
 # metaumbrella 1.0.7
 - Fixed an issue that could appear when a meta-analysis presented multiple outcomes with a correlation as effect size measure
 
