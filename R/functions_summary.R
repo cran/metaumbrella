@@ -256,18 +256,27 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     # Power
     power = if (measure == "IRR") {
       paste0(
-        "Low es = ", round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.2), digits)*100, "; Med. es = ",
-        round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.5), digits)*100, "; Large es = ",
+        "Low es = ",
+        round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.2), digits)*100,
+        "; Med. es = ",
+        round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.5), digits)*100,
+        "; Large es = ",
         round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.8), digits)*100)
     } else if (measure == "Z") {
       paste0(
-        "Low es = ", round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.2), digits)*100, "; Med. es = ",
-        round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100, "; Large es = ",
+        "Low es = ",
+        round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.2), digits)*100,
+        "; Med. es = ",
+        round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100,
+        "; Large es = ",
         round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.8), digits)*100)
     } else {
       paste0(
-        "Low es = ", round(.power_d(x_i$n$cases, x_i$n$controls, 0.2), digits)*100, "; Med. es = ",
-        round(.power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100, "; Large es = ",
+        "Low es = ",
+        round(.power_d(x_i$n$cases, x_i$n$controls, 0.2), digits)*100,
+        "; Med. es = ",
+        round(.power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100,
+        "; Large es = ",
         round(.power_d(x_i$n$cases, x_i$n$controls, 0.8), digits)*100)
     }
 
@@ -313,7 +322,9 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
                   eOR,
                   eOR_CI,
                   p_value,
+                  n_studies,
                   n_cases,
+                  n_controls,
                   PI_eG, PI_eOR,
                   PI_sign,
                   I2,
@@ -381,6 +392,7 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
                   eOR_CI,
                   p_value,
                   n_studies,
+                  n_cases,
                   total_n,
                   I2,
                   egger_p,

@@ -722,7 +722,7 @@
 NULL
 
 utils::globalVariables(c("duplicate", "multiple_es", "shared_controls", "aggregate", "row_index",
-                         "ci_lo", "ci_up", "shared_nexp", "tail",
+                         "es", "ci_lo", "ci_up", "shared_nexp", "tail",
                          ".get_file_extension", "check_sensitivity", "tk_choose.dir",
                          "tk_choose.files", "tk_select.list", "excel_sheets", ".read.excel", ".get_filename_without_extension",
                          ".write_errors_file"))

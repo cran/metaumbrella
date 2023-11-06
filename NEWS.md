@@ -1,3 +1,6 @@
+# metaumbrella 1.0.9
+- Redesign of the forest.umbrella function (now a wrapper of the amazing forest.meta function from the meta package). This also allows to plot R as effect size measures, and to correct some bugs that could appear when using "eOR" in v1.0.8.
+
 # metaumbrella 1.0.8
 - The add_evidence function can now stratify the evidence according to Ioannidis criteria for R and Z measures if users enter the number of cases
 

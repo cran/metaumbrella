@@ -288,10 +288,10 @@ test_that("df.R", {
   res2 = summary(add.evidence(umbrella(df.R), criteria = "Ioannidis"))
   expect_true(res2$Class=="I")
 
-  expect_true(all(res2[-c(which(colnames(res2) %in% c("Class", "n_cases")))] ==
-                    res[-c(which(colnames(res)  %in% c("Class", "n_cases")))]))
-
-
+  expect_true(
+    all(
+      res2[, -c(which(colnames(res2) %in% c("Class","n_controls", "n_cases")))] ==
+        res[, -c(which(colnames(res)  %in% c("Class", "n_controls", "n_cases")))]))
 })
 
 #

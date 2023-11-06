@@ -310,13 +310,13 @@ A visual description of the results can be obtained using the `forest()` functio
 ```{r, eval = FALSE}
 forest(strat.io,
        measure = "eOR",
-       main_title = "umbrella review of risk factors \nfor neurodevelopmental disorders")
+       smlab = "umbrella review of risk \nfactors for NDD")
 ```
 
-```{r, fig.width = 7, fig.height = 7.2, echo=FALSE, warning=FALSE}
+```{r, fig.width = 8, fig.height = 7.2, echo=FALSE, warning=FALSE}
 metaumbrella:::.quiet(forest(strat.io,
        measure = "eOR",
-       main_title = "umbrella review of risk factors \nfor neurodevelopmental disorders"))
+       smlab = "umbrella review of risk \nfactors for NDD"))
 ```
 
 # Example 2: "GRADE" classification
@@ -413,13 +413,13 @@ A visual description of the results can be obtained using the `forest()` functio
 ```{r,eval = FALSE}
 forest(strat.grade,
        measure = "eOR",
-       main_title = "umbrella review of adverse events\n of SSRI treatment.")
+       smlab = "umbrella review of adverse events\n of SSRI treatment.")
 ```
 
-```{r,echo = FALSE, fig.width = 7, fig.height = 7}
+```{r,echo = FALSE, fig.width = 8, fig.height = 7}
 metaumbrella:::.quiet(forest(strat.grade,
        measure = "eOR",
-       main_title = "umbrella review of adverse events\n of SSRI treatment."))
+       smlab = "umbrella review of adverse events\n of SSRI treatment."))
 ```
 
 # Example 3: "Personalized" classification
@@ -720,13 +720,13 @@ A visual description of the results can be obtained using the `forest()` functio
 ```{r,eval = FALSE}
 forest(strat.pers1,
        measure = "eG",
-       main_title = "Umbrella review of pharmacological and surgical\n treatments on a numeric outcome.")
+       smlab = "Umbrella review of interventions\n on a numeric outcome.")
 ```
 
-```{r, echo = FALSE, fig.width = 7, fig.height = 7.2}
+```{r, echo = FALSE, fig.width = 8, fig.height = 7.2}
 metaumbrella:::.quiet(forest(strat.pers1,
        measure = "eG",
-       main_title = "Umbrella review of pharmacological and surgical\n treatments on a numeric outcome."))
+       smlab = "Umbrella review of interventions\n on a numeric outcome."))
 ```
 
 # Example 4: "Personalized" classification with multilevel data
@@ -1119,7 +1119,7 @@ A visual description of the results can be obtained using the `forest()` functio
 forest(strat.pers2, measure = "eOR")
 ```
 
-```{r, echo = FALSE, fig.width = 7, fig.height = 7.2}
-metaumbrella:::.quiet(forest(strat.pers2,  measure = "eOR"))
+```{r, echo = FALSE, fig.width = 8, fig.height = 7.2}
+metaumbrella:::.quiet(forest(strat.pers2))
 ```
 

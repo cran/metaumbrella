@@ -2,12 +2,12 @@
 % Please edit documentation in R/functions_forest_plot.R
 \name{forest}
 \alias{forest}
-\title{Forest plots for objects of class \dQuote{umbrella}}
+\title{Forest plots for objects of class \dQuote{umbrella} or \dQuote{data.frame}}
 \usage{
 forest(x, ...)
 }
 \arguments{
-\item{x}{an object of class \dQuote{umbrella}}
+\item{x}{an object of class \dQuote{umbrella} or \dQuote{data.frame}}
 
 \item{...}{additional arguments that can be passed to this function}
 }
@@ -22,7 +22,7 @@ In addition to the plot, the function returns a list including:
 Draw a forest plot of the factors included in an umbrella review.
 }
 \details{
-For now, this function simply applies the \code{\link{forest.umbrella}()} function on an object of class \dQuote{umbrella}.
+For now, this function simply applies the \code{\link{forest.umbrella}()} function.
 }
 \examples{
 forest(umbrella(df.SMD))

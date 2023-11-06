@@ -81,12 +81,12 @@ DT::datatable(summary(strat.io), options = list(
 ## ---- eval = FALSE------------------------------------------------------------
 #  forest(strat.io,
 #         measure = "eOR",
-#         main_title = "umbrella review of risk factors \nfor neurodevelopmental disorders")
+#         smlab = "umbrella review of risk \nfactors for NDD")
 
-## ---- fig.width = 7, fig.height = 7.2, echo=FALSE, warning=FALSE--------------
+## ---- fig.width = 8, fig.height = 7.2, echo=FALSE, warning=FALSE--------------
 metaumbrella:::.quiet(forest(strat.io,
        measure = "eOR",
-       main_title = "umbrella review of risk factors \nfor neurodevelopmental disorders"))
+       smlab = "umbrella review of risk \nfactors for NDD"))
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  df.RR
@@ -143,12 +143,12 @@ DT::datatable(summary(strat.grade), options = list(
 ## ----eval = FALSE-------------------------------------------------------------
 #  forest(strat.grade,
 #         measure = "eOR",
-#         main_title = "umbrella review of adverse events\n of SSRI treatment.")
+#         smlab = "umbrella review of adverse events\n of SSRI treatment.")
 
-## ----echo = FALSE, fig.width = 7, fig.height = 7------------------------------
+## ----echo = FALSE, fig.width = 8, fig.height = 7------------------------------
 metaumbrella:::.quiet(forest(strat.grade,
        measure = "eOR",
-       main_title = "umbrella review of adverse events\n of SSRI treatment."))
+       smlab = "umbrella review of adverse events\n of SSRI treatment."))
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  df.SMD
@@ -229,12 +229,12 @@ DT::datatable(summary(strat.pers1), options = list(
 ## ----eval = FALSE-------------------------------------------------------------
 #  forest(strat.pers1,
 #         measure = "eG",
-#         main_title = "Umbrella review of pharmacological and surgical\n treatments on a numeric outcome.")
+#         smlab = "Umbrella review of interventions\n on a numeric outcome.")
 
-## ---- echo = FALSE, fig.width = 7, fig.height = 7.2---------------------------
+## ---- echo = FALSE, fig.width = 8, fig.height = 7.2---------------------------
 metaumbrella:::.quiet(forest(strat.pers1,
        measure = "eG",
-       main_title = "Umbrella review of pharmacological and surgical\n treatments on a numeric outcome."))
+       smlab = "Umbrella review of interventions\n on a numeric outcome."))
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  df.OR.multi
@@ -359,6 +359,6 @@ DT::datatable(summary(strat.pers2), options = list(
 ## ----eval = FALSE-------------------------------------------------------------
 #  forest(strat.pers2, measure = "eOR")
 
-## ---- echo = FALSE, fig.width = 7, fig.height = 7.2---------------------------
-metaumbrella:::.quiet(forest(strat.pers2,  measure = "eOR"))
+## ---- echo = FALSE, fig.width = 8, fig.height = 7.2---------------------------
+metaumbrella:::.quiet(forest(strat.pers2))
 
