@@ -82,8 +82,7 @@
 #' ### perform an excess significance bias on a meta object
 #' meta <- meta::metagen(TE = G$value, seTE = G$se,
 #'                       sm = "SMD",
-#'                       n.e = df$n_cases,
-#'                       n.c = df$n_controls,
+#'                       n.e = n_cases, n.c = n_controls,
 #'                       data = df)
 #'
 #' esb.meta <- esb.test(meta, input = "meta", method.esb = "IT.binom")
@@ -107,7 +106,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
   #### RMA -------
   if (input == "rma") {
 
-      if (!("rma" %in% class(x))) { stop("The object passed to esb.test should be a 'rma' object when 'input = rma'") }
+      if (!inherits(x, "rma")) { stop("The object passed to esb.test should be a 'rma' object when 'input = rma'") }
 
       measure = ifelse(x$measure %in% c("SMD", "OR"),
                        x$measure,
@@ -120,7 +119,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     #### meta --------
     } else if (input == "meta") {
 
-      if (!("meta" %in% class(x))) { stop("The object passed to esb.test should be a 'meta' object when 'input = meta'") }
+      if (!inherits(x, "meta")) { stop("The object passed to esb.test should be a 'meta' object when 'input = meta'") }
 
       measure = ifelse(x$sm %in% c("SMD", "OR"),
                        x$sm,
