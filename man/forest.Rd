@@ -3,9 +3,6 @@
 \name{forest}
 \alias{forest}
 \title{Forest plots for objects of class \dQuote{umbrella} or \dQuote{data.frame}}
-\usage{
-forest(x, ...)
-}
 \arguments{
 \item{x}{an object of class \dQuote{umbrella} or \dQuote{data.frame}}
 
@@ -14,8 +11,8 @@ forest(x, ...)
 \value{
 In addition to the plot, the function returns a list including:
 \itemize{
-\item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot. See the vignette dedicated to the forest plots for a concrete example.
-\item the optimal width and height of the plot, useful when calling the function \code{pdf()} or \code{png()}.
+  \item a dataset with the factors, their class and their effect size. Particularly useful when adding a column via the 'add_columns' argument to obtain the ordering of the factors in the plot. See the vignette dedicated to the forest plots for a concrete example.
+  \item the optimal width and height of the plot, useful when calling the function \code{pdf()} or \code{png()}.
 }
 }
 \description{

@@ -107,8 +107,7 @@ esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma", method.esb = "IT.b
 ### perform an excess significance bias on a meta object
 meta <- meta::metagen(TE = G$value, seTE = G$se,
                       sm = "SMD",
-                      n.e = df$n_cases,
-                      n.c = df$n_controls,
+                      n.e = n_cases, n.c = n_controls,
                       data = df)
 
 esb.meta <- esb.test(meta, input = "meta", method.esb = "IT.binom")
