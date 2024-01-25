@@ -90,7 +90,12 @@ umb <- umbrella(df.OR)
 
 ### generate a forest plot of each factor included in the umbrella review
 forest(umb)
+
+\dontrun{
+forest(umbrella(df.SMD))
+}
 }
 \references{
 Balduzzi S, Rucker G, Schwarzer G (2019). How to perform a meta-analysis with R: a practical tutorial. \emph{Evidence-Based Mental Health}, 153–160.
 }
+\keyword{hplot}

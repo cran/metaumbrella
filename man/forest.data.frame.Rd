@@ -84,4 +84,5 @@ You can thus add any other arguments available in the forest.meta function but n
 The function allows to have a visualization of the results of an umbrella review.
 Various parameters, such as the type of effect size displayed, the restriction to some classes or the color of the dots, allows to simplify the visualization.
 }
+\keyword{hplot}
 \keyword{internal}

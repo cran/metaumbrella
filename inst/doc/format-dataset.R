@@ -1,11 +1,11 @@
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 library(metaumbrella)
 library(DT)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  df.train
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 DT::datatable(df.train, options = list(  
     scrollX = TRUE,
     dom = c('pt'),
@@ -37,7 +37,7 @@ df.train$meta_review[df.train$factor %in% c("risk_factor_5")] <- "De Martino (20
 ## -----------------------------------------------------------------------------
 errors <- view.errors.umbrella(df.train)
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 d <- view.errors.umbrella(df.train, return = "data")
 DT::datatable(d, options = list(  
     scrollX = TRUE,
@@ -57,7 +57,7 @@ df.train[is.na(df.train$measure), ]$measure <- "SMD"
 ## -----------------------------------------------------------------------------
 errors <- view.errors.umbrella(df.train)
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 d <- view.errors.umbrella(df.train, return = "data")
 DT::datatable(d, options = list(  
     scrollX = TRUE,
@@ -86,7 +86,7 @@ names(df.train)[names(df.train) == "number_of_controls"] <- "n_controls"
 ## -----------------------------------------------------------------------------
 errors <- view.errors.umbrella(df.train)
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 d <- view.errors.umbrella(df.train, return = "data")
 DT::datatable(d[d$column_errors != "", ], options = list(  
     scrollX = TRUE,
@@ -109,7 +109,7 @@ names(df.train)[names(df.train) == "time_disease_free"] <- "time"
 ## -----------------------------------------------------------------------------
 errors <- view.errors.umbrella(df.train)
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 d <- view.errors.umbrella(df.train, return = "data")
 DT::datatable(d, options = list(  
     scrollX = TRUE,
@@ -145,16 +145,16 @@ errors <- view.errors.umbrella(df.train)
 ## -----------------------------------------------------------------------------
 umb <- umbrella(df.train, mult.level = TRUE, method.var = "REML")
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  forest(umb)
 
-## ---- echo = FALSE, fig.height=7, fig.width=7---------------------------------
+## ----echo = FALSE, fig.height=7, fig.width=7----------------------------------
 metaumbrella:::.quiet(forest(umb))
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  df.train
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 DT::datatable(df.train, options = list(  
     scrollX = TRUE,
     dom = c('pt'),
@@ -172,11 +172,11 @@ df.train$reverse_es <- NA
 
 df.train[df.train$factor %in% c("risk_factor_1", "risk_factor_3"), ]$reverse_es <- "reverse"
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  umb <- umbrella(df.train, mult.level = TRUE)
 #  forest(umb)
 
-## ---- echo = FALSE, fig.height=7, fig.width=7---------------------------------
+## ----echo = FALSE, fig.height=7, fig.width=7----------------------------------
 umb <- metaumbrella:::.quiet(umbrella(df.train, mult.level = TRUE))
 metaumbrella:::.quiet(forest(umb))
 
@@ -184,12 +184,12 @@ metaumbrella:::.quiet(forest(umb))
 df.train$shared_nexp <- NA
 df.train$shared_nexp[22:23] <- "el-Neman"
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  umb <- umbrella(df.train, mult.level = TRUE)
 #  evid <- add.evidence(umb, "GRADE")
 #  forest(umb)
 
-## ---- echo = FALSE, fig.height=7, fig.width=7---------------------------------
+## ----echo = FALSE, fig.height=7, fig.width=7----------------------------------
 umb <- metaumbrella:::.quiet(umbrella(df.train, mult.level = TRUE))
 metaumbrella:::.quiet(forest(umb))
 

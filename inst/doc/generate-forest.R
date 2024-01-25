@@ -1,19 +1,19 @@
-## ---- echo = FALSE, warning = FALSE, results = 'hide'-------------------------
+## ----echo = FALSE, warning = FALSE, results = 'hide'--------------------------
 library(metaumbrella)
 library(DT)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # perform the calculations
 #  umb <- umbrella(df.OR, verbose = FALSE)
 #  
 #  # plot the results
 #  forest(umb)
 
-## ---- echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 6----------------
+## ----echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 6-----------------
 umb <- metaumbrella:::.quiet(umbrella(df.OR))
 metaumbrella:::.quiet(forest(umb))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  forest(umb,
 #         measure = "OR", # display eOR instead of eG,
 #         rightlab = "OR + 95% CI",
@@ -21,7 +21,7 @@ metaumbrella:::.quiet(forest(umb))
 #         smlab = "Umbrella review of \nrisk factors for NDD" # title of the plot
 #         )
 
-## ---- echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 7----------------
+## ----echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 7-----------------
 metaumbrella:::.quiet(forest(umb,
        measure = "OR", # display eOR instead of eG,
        rightlab = "OR + 95% CI",
@@ -29,7 +29,7 @@ metaumbrella:::.quiet(forest(umb,
       smlab = "Umbrella review of \nrisk factors for NDD" # title of the plot
       )) 
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  forest(umb,
 #         measure = "OR", # display eOR instead of eG,
 #         rightlab = "OR + 95% CI",
@@ -39,7 +39,7 @@ metaumbrella:::.quiet(forest(umb,
 #         )
 #  
 
-## ---- echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 7----------------
+## ----echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 7-----------------
 metaumbrella:::.quiet(forest(umb,
        measure = "OR", # display eOR instead of eG,
        rightlab = "OR + 95% CI",
@@ -48,7 +48,7 @@ metaumbrella:::.quiet(forest(umb,
        smlab = "Umbrella review of \nrisk factors for NDD" # title of the plot
        ) )
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # perform the calculations
 #  umb <- union.umbrella(umbrella(df.SMD), umbrella(df.HR))
 #  
@@ -62,7 +62,7 @@ metaumbrella:::.quiet(forest(umb,
 #  # plot the results
 #  forest(strat.prso)
 
-## ---- echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6------------
+## ----echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6-------------
 umb <- metaumbrella:::.quiet(union.umbrella(umbrella(df.SMD), umbrella(df.HR)))
 strat.prso <- metaumbrella:::.quiet(add.evidence(umb, criteria = "Personalized",
                            class_I = c(n_studies = 10, total_n = 3000, egger_p = .10, esb_p = .05),
@@ -71,7 +71,7 @@ strat.prso <- metaumbrella:::.quiet(add.evidence(umb, criteria = "Personalized",
                            class_IV = c(n_studies = 10, total_n = 500, egger_p = .10)))
 metaumbrella:::.quiet(forest(strat.prso))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  forest(strat.prso,
 #         leftcols = c("Factor", "Class", "n_studies", "total_n", "tau2",
 #                      "effect.ci"),
@@ -81,7 +81,7 @@ metaumbrella:::.quiet(forest(strat.prso))
 #      )
 #  
 
-## ---- echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6------------
+## ----echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6-------------
 metaumbrella:::.quiet(forest(
   strat.prso,
   leftcols = c("Factor", "Class", "n_studies", "total_n", "tau2",
@@ -91,7 +91,7 @@ metaumbrella:::.quiet(forest(
           rightcols = FALSE,
     ))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # perform the calculations
 #  umb <- union.umbrella(union.umbrella(
 #          union.umbrella(union.umbrella(
@@ -103,7 +103,7 @@ metaumbrella:::.quiet(forest(
 #  
 #  forest(strat.prso)
 
-## ---- echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 8----------------
+## ----echo=FALSE, warning=FALSE, fig.width = 8, fig.height = 8-----------------
 umb <- metaumbrella:::.quiet(union.umbrella(union.umbrella(
         union.umbrella(
           union.umbrella(umbrella(df.SMD), umbrella(df.OR)),
@@ -113,21 +113,21 @@ strat.prso <- metaumbrella:::.quiet(add.evidence(umb, criteria = "Ioannidis"))
 
 metaumbrella:::.quiet(forest(strat.prso))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  forest(strat.prso,
 #         layout = "RevMan5")
 
-## ---- echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6------------
+## ----echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6-------------
 metaumbrella:::.quiet(forest(strat.prso,
        layout = "RevMan5"))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  forest(strat.prso,
 #         layout = "RevMan5",
 #         subgroup = "Class",
 #         subgroup.name = "Class")
 
-## ---- echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6------------
+## ----echo = FALSE, warning = FALSE, fig.width = 8, fig.height = 6-------------
 metaumbrella:::.quiet(forest(strat.prso,
        layout = "RevMan5",
        subgroup = "Class",

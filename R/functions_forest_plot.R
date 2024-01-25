@@ -5,9 +5,9 @@
 #' @param x an object of class \dQuote{umbrella} or \dQuote{data.frame}
 #' @param ... additional arguments that can be passed to this function
 #'
-#' @export forest
+#' @name forest
 #'
-#' @md
+#' @rdname forest
 #'
 #' @details
 #' For now, this function simply applies the \code{\link{forest.umbrella}()} function.
@@ -19,14 +19,16 @@
 #'   \item the optimal width and height of the plot, useful when calling the function \code{pdf()} or \code{png()}.
 #'}
 #'
+#' @importFrom meta forest
+#' @export forest
+#'
 #' @seealso
 #' \code{\link{forest.umbrella}()}
 #'
 #' @examples
 #' forest(umbrella(df.SMD))
-forest <- function (x, ...) {
-  UseMethod("forest")
-}
+
+NULL
 
 
 #' Forest plots for \dQuote{data.frame} objects
@@ -66,12 +68,10 @@ forest <- function (x, ...) {
 #' Return a forest plot of the pooled effect sizes, along with additional information
 #'
 #' @exportS3Method
-#'
-#' @keywords internal
-#'
 #' @export forest.data.frame
 #'
-#' @noMd
+#' @keywords hplot internal
+
 forest.data.frame <- function (x,
                                layout = "meta",
                                measure = "auto",
@@ -101,7 +101,7 @@ forest.data.frame <- function (x,
   } else {
     dat = x
   }
-  if ("I2" %in% colnames(dat)) dat$I2 = dat$I2/100
+  if ("I2" %in% colnames(dat)) dat$I2 = suppressWarnings(as.numeric(as.character(dat$I2))/100)
 
   if (!measure %in% c("SMD", "eSMD", "eG", "OR", "eOR", "raw", "auto")) {
     stop("The 'measure' argument must be either 'auto', 'eOR', 'eG' or 'raw'")
@@ -139,21 +139,20 @@ forest.data.frame <- function (x,
     }
   }
 
-  if (!is.null(subgroup)) {
-    res = meta::metagen(TE = es,
-                        lower = ci_lo, upper = ci_up,
-                        digits = digits,
-                        sm = ifelse(measure == "eOR", "OR", "SMD"),
-                        data = dat,
-                        # split
-                        subgroup = dat[, subgroup])
-  } else {
-    res = meta::metagen(TE = es,
-                        lower = ci_lo, upper = ci_up,
-                        # digits = digits,
-                        sm = ifelse(measure == "eOR", "OR", "SMD"),
-                        data = dat)
-  }
+  if (!is.null(subgroup))
+    res = metagen(TE = es,
+                  lower = ci_lo, upper = ci_up,
+                  digits = digits,
+                  sm = ifelse(measure == "eOR", "OR", "SMD"),
+                  data = dat,
+                  # split
+                  subgroup = dat[, subgroup])
+  else
+    res = metagen(TE = es,
+                  lower = ci_lo, upper = ci_up,
+                  # digits = digits,
+                  sm = ifelse(measure == "eOR", "OR", "SMD"),
+                  data = dat)
 
 
   if (is.null(leftcols) & is.null(leftlabs)) {
@@ -192,7 +191,7 @@ forest.data.frame <- function (x,
                               "Equivalent\n Standardized Mean Difference (eG)",
                               "Effect size value")), xlab)
 
-  suppressWarnings(meta::forest.meta(
+  suppressWarnings(forest(
     res,
     digits = digits,
     layout = layout,
@@ -219,6 +218,8 @@ forest.data.frame <- function (x,
     ...))
 
 }
+
+
 #' Forest plots for \dQuote{umbrella} objects
 #'
 #' Draw a forest plot of the factors included in an umbrella review.
@@ -255,14 +256,13 @@ forest.data.frame <- function (x,
 #' @return
 #' Return a forest plot of the pooled effect sizes, along with additional information
 #'
-#' @exportS3Method
-#'
-#' @export forest.umbrella
-#'
-#' @md
-#'
 #' @references
 #' Balduzzi S, Rucker G, Schwarzer G (2019). How to perform a meta-analysis with R: a practical tutorial. \emph{Evidence-Based Mental Health}, 153–160.
+#'
+#' @exportS3Method
+#' @export forest.umbrella
+#'
+#' @keywords hplot
 #'
 #' @examples
 #' ### perform an umbrella review
@@ -270,6 +270,11 @@ forest.data.frame <- function (x,
 #'
 #' ### generate a forest plot of each factor included in the umbrella review
 #' forest(umb)
+#'
+#' \dontrun{
+#' forest(umbrella(df.SMD))
+#' }
+
 forest.umbrella <- function (x,
                              layout = "meta",
                              measure = "auto",
@@ -299,7 +304,7 @@ forest.umbrella <- function (x,
   } else {
     dat = x
   }
-  if ("I2" %in% colnames(dat)) dat$I2 = dat$I2/100
+  if ("I2" %in% colnames(dat)) dat$I2 = suppressWarnings(as.numeric(as.character(dat$I2))/100)
 
   if (!measure %in% c("SMD", "eSMD", "eG", "OR", "eOR", "raw", "auto")) {
     stop("The 'measure' argument must be either 'auto', 'eOR', 'eG' or 'raw'")
@@ -337,21 +342,20 @@ forest.umbrella <- function (x,
     }
   }
 
-  if (!is.null(subgroup)) {
-    res = meta::metagen(TE = es,
-                        lower = ci_lo, upper = ci_up,
-                        digits = digits,
-                        sm = ifelse(measure == "eOR", "OR", "SMD"),
-                        data = dat,
-                        # split
-                        subgroup = dat[, subgroup])
-  } else {
-    res = meta::metagen(TE = es,
-                        lower = ci_lo, upper = ci_up,
-                        # digits = digits,
-                        sm = ifelse(measure == "eOR", "OR", "SMD"),
-                        data = dat)
-  }
+  if (!is.null(subgroup))
+    res = metagen(TE = es,
+                  lower = ci_lo, upper = ci_up,
+                  digits = digits,
+                  sm = ifelse(measure == "eOR", "OR", "SMD"),
+                  data = dat,
+                  # split
+                  subgroup = dat[, subgroup])
+  else
+    res = metagen(TE = es,
+                  lower = ci_lo, upper = ci_up,
+                  # digits = digits,
+                  sm = ifelse(measure == "eOR", "OR", "SMD"),
+                  data = dat)
 
 
   if (is.null(leftcols) & is.null(leftlabs)) {
@@ -390,7 +394,7 @@ forest.umbrella <- function (x,
                          "Equivalent\n Standardized Mean Difference (eG)",
                          "Effect size value")), xlab)
 
-  suppressWarnings(meta::forest.meta(
+  suppressWarnings(forest(
     res,
     digits = digits,
     layout = layout,

@@ -1,19 +1,19 @@
-## ---- echo = FALSE, warning = FALSE, results = 'hide'-------------------------
+## ----echo = FALSE, warning = FALSE, results = 'hide'--------------------------
 library(metaumbrella)
 library(DT)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb <- umbrella(df.SMD)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb <- umbrella(df.SMD)
 #  strat.io <- add.evidence(umb.SMD, criteria = "Ioannidis")
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb <- umbrella(df.SMD)
 #  strat.grd <- add.evidence(umb.SMD, criteria = "GRADE")
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb <- umbrella(df.SMD)
 #  strat.prso <- add.evidence(umb, criteria = "Personalized",
 #                           class_I = c(total_n = 600, I2 = 25, rob = 75),
@@ -21,15 +21,15 @@ library(DT)
 #                           class_III = c(total_n = 200, I2 = 75, rob = 25),
 #                           class_IV = c(total_n = 100))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb <- umbrella(df.SMD)
 #  strat.io <- add.evidence(umb.SMD, criteria = "Ioannidis")
 #  forest(strat.io)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  df.OR
 
-## ---- echo=FALSE, warning=FALSE-----------------------------------------------
+## ----echo=FALSE, warning=FALSE------------------------------------------------
 DT::datatable(df.OR, options = list(  
     scrollX = TRUE,
     dom = c('pt'),
@@ -42,11 +42,11 @@ DT::datatable(df.OR, options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb.OR <- umbrella(df.OR)
 #  summary(umb.OR)
 
-## ---- echo=FALSE, warning=FALSE-----------------------------------------------
+## ----echo=FALSE, warning=FALSE------------------------------------------------
 umb.OR <- metaumbrella:::.quiet(umbrella(df.OR))
 
 DT::datatable(summary(umb.OR), options = list(
@@ -60,11 +60,11 @@ DT::datatable(summary(umb.OR), options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  strat.io <- add.evidence(umb.OR, criteria = "Ioannidis")
 #  summary(strat.io)
 
-## ---- echo=FALSE, message=FALSE-----------------------------------------------
+## ----echo=FALSE, message=FALSE------------------------------------------------
 strat.io <- metaumbrella:::.quiet(add.evidence(umb.OR, criteria = "Ioannidis"))
 
 DT::datatable(summary(strat.io), options = list(
@@ -78,20 +78,20 @@ DT::datatable(summary(strat.io), options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  forest(strat.io,
 #         measure = "eOR",
 #         smlab = "umbrella review of risk \nfactors for NDD")
 
-## ---- fig.width = 8, fig.height = 7.2, echo=FALSE, warning=FALSE--------------
+## ----fig.width = 8, fig.height = 7.2, echo=FALSE, warning=FALSE---------------
 metaumbrella:::.quiet(forest(strat.io,
        measure = "eOR",
        smlab = "umbrella review of risk \nfactors for NDD"))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  df.RR
 
-## ---- echo=FALSE, warning=FALSE-----------------------------------------------
+## ----echo=FALSE, warning=FALSE------------------------------------------------
 DT::datatable(df.RR, options = list(  
     scrollX = TRUE,
     dom = c('pt'),
@@ -104,11 +104,11 @@ DT::datatable(df.RR, options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb.RR <- umbrella(df.RR)
 #  summary(umb.RR)
 
-## ---- echo=FALSE, message=FALSE, warning=FALSE--------------------------------
+## ----echo=FALSE, message=FALSE, warning=FALSE---------------------------------
 umb.RR <- metaumbrella:::.quiet(umbrella(df.RR))
 
 DT::datatable(summary(umb.RR), options = list(
@@ -122,11 +122,11 @@ DT::datatable(summary(umb.RR), options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  strat.grade <- add.evidence(umb.RR, criteria = "GRADE")
 #  summary(strat.grade)
 
-## ---- echo=FALSE, message=FALSE-----------------------------------------------
+## ----echo=FALSE, message=FALSE------------------------------------------------
 strat.grade <- metaumbrella:::.quiet(add.evidence(umb.RR, criteria = "GRADE"))
 
 DT::datatable(summary(strat.grade), options = list(
@@ -150,10 +150,10 @@ metaumbrella:::.quiet(forest(strat.grade,
        measure = "eOR",
        smlab = "umbrella review of adverse events\n of SSRI treatment."))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  df.SMD
 
-## ---- echo=FALSE, warning=FALSE-----------------------------------------------
+## ----echo=FALSE, warning=FALSE------------------------------------------------
 DT::datatable(df.SMD, options = list(  
     scrollX = TRUE,
     dom = c('pt'),
@@ -166,11 +166,11 @@ DT::datatable(df.SMD, options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  umb.SMD <- umbrella(df.SMD)
 #  summary(umb.SMD)
 
-## ---- echo=FALSE, message=FALSE-----------------------------------------------
+## ----echo=FALSE, message=FALSE------------------------------------------------
 umb.SMD <- metaumbrella:::.quiet(umbrella(df.SMD))
 
 DT::datatable(summary(umb.SMD), options = list(
@@ -184,31 +184,31 @@ DT::datatable(summary(umb.SMD), options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  strat.pers1 <- add.evidence(umb.SMD, criteria = "Personalized",
 #                              class_I = c(n_cases = 800),
 #                              class_II = c(n_cases = 500),
 #                              class_III = c(n_cases = 200),
 #                              class_IV = c(n_cases = 100))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  strat.pers1 <- add.evidence(umb.SMD, criteria = "Personalized",
 #                              class_I = c(n_cases = 800, esb_p = .10),
 #                              class_II = c(n_cases = 500, esb_p = .05),
 #                              class_III = c(n_cases = 200, esb_p = .01),
 #                              class_IV = c(n_cases = 100))
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  strat.pers1 <- add.evidence(umb.SMD, criteria = "Personalized",
 #                              class_I = c(n_cases = 800, esb_p = .10, rob = 80),
 #                              class_II = c(n_cases = 500, esb_p = .05, rob = 65),
 #                              class_III = c(n_cases = 200, esb_p = .01, rob = 50),
 #                              class_IV = c(n_cases = 100, rob = 35))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  summary(strat.pers1)
 
-## ---- echo=FALSE, message=FALSE-----------------------------------------------
+## ----echo=FALSE, message=FALSE------------------------------------------------
 strat.pers1 <- metaumbrella:::.quiet(add.evidence(umb.SMD, criteria = "Personalized",
                             class_I = c(n_cases = 800, esb_p = .10, rob = 80),
                             class_II = c(n_cases = 500, esb_p = .05, rob = 65),
@@ -231,15 +231,15 @@ DT::datatable(summary(strat.pers1), options = list(
 #         measure = "eG",
 #         smlab = "Umbrella review of interventions\n on a numeric outcome.")
 
-## ---- echo = FALSE, fig.width = 8, fig.height = 7.2---------------------------
+## ----echo = FALSE, fig.width = 8, fig.height = 7.2----------------------------
 metaumbrella:::.quiet(forest(strat.pers1,
        measure = "eG",
        smlab = "Umbrella review of interventions\n on a numeric outcome."))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  df.OR.multi
 
-## ---- echo=FALSE, warning=FALSE-----------------------------------------------
+## ----echo=FALSE, warning=FALSE------------------------------------------------
 DT::datatable(df.OR.multi, options = list(  
     scrollX = TRUE,
     dom = c('pt'),
@@ -252,7 +252,7 @@ DT::datatable(df.OR.multi, options = list(
                   list(className = 'dt-center', 
                                      targets = "_all"))))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  df.OR.multi$r <- NA # we initialize the r column in the dataset
 #  df.OR.multi[df.OR.multi$author == "Godebu", ]$r <- .30 # we indicate a mean correlation of .30 for the study of Godebu
 #  
@@ -274,7 +274,7 @@ DT::datatable(df.OR.multi, options = list(
 #  all(summary(umb.OR.multi_1) == summary(umb.OR.multi_2), na.rm = TRUE)
 #  
 
-## ---- echo=FALSE, message=FALSE-----------------------------------------------
+## ----echo=FALSE, message=FALSE------------------------------------------------
 df.OR.multi$r <- NA # we initialize the r column in the dataset
 df.OR.multi[df.OR.multi$author == "Godebu", ]$r <- .30 # we indicate a mean correlation of .30 for the study of Godebu
 
@@ -306,21 +306,21 @@ DT::datatable(summary(umb.OR.multi_2), options = list(
 
 paste0("all(summary(umb.OR.multi_1) == summary(umb.OR.multi_2), na.rm = TRUE) returns " , all(summary(umb.OR.multi_1) == summary(umb.OR.multi_2), na.rm = TRUE))
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  strat.pers2 <- add.evidence(umb.OR.multi_1, criteria = "Personalized",
 #                              class_I = c(I2 = 20),
 #                              class_II = c(I2 = 40),
 #                              class_III = c(I2 = 60),
 #                              class_IV = c(I2 = 80))
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  strat.pers2 <- add.evidence(umb.OR.multi_1, criteria = "Personalized",
 #                              class_I = c(I2 = 20, egger_p = .10),
 #                              class_II = c(I2 = 40, egger_p = .10),
 #                              class_III = c(I2 = 60, egger_p = .05),
 #                              class_IV = c(I2 = 80, egger_p = .05))
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  strat.pers2 <- add.evidence(umb.OR.multi_1, criteria = "Personalized",
 #                              class_I = c(I2 = 20, egger_p = .10, largest_CI = "notnull"),
 #                              class_II = c(I2 = 40, egger_p = .10, largest_CI = "notnull"),
@@ -328,17 +328,17 @@ paste0("all(summary(umb.OR.multi_1) == summary(umb.OR.multi_2), na.rm = TRUE) re
 #                              class_IV = c(I2 = 80, egger_p = .05))
 #  
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  strat.pers2 <- add.evidence(umb.OR.multi_1, criteria = "Personalized",
 #                              class_I = c(I2 = 20, egger_p = .10, largest_CI = "notnull", imprecision = 0.2),
 #                              class_II = c(I2 = 40, egger_p = .10, largest_CI = "notnull", imprecision = 0.4),
 #                              class_III = c(I2 = 60, egger_p = .05, largest_CI = "notnull", imprecision = 0.6),
 #                              class_IV = c(I2 = 80, egger_p = .05, imprecision = 0.8))
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  summary(strat.pers2)
 
-## ---- echo=FALSE, message=FALSE-----------------------------------------------
+## ----echo=FALSE, message=FALSE------------------------------------------------
 strat.pers2 <- metaumbrella:::.quiet(add.evidence(umb.OR.multi_1, criteria = "Personalized",
                             class_I = c(I2 = 20, egger_p = .10, largest_CI = "notnull", imprecision = 0.2),
                             class_II = c(I2 = 40, egger_p = .10, largest_CI = "notnull", imprecision = 0.4),
@@ -359,6 +359,6 @@ DT::datatable(summary(strat.pers2), options = list(
 ## ----eval = FALSE-------------------------------------------------------------
 #  forest(strat.pers2, measure = "eOR")
 
-## ---- echo = FALSE, fig.width = 8, fig.height = 7.2---------------------------
+## ----echo = FALSE, fig.width = 8, fig.height = 7.2----------------------------
 metaumbrella:::.quiet(forest(strat.pers2))
 
