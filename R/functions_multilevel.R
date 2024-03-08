@@ -224,36 +224,32 @@
 #' @noRd
 .agg_data <- function(x, r, measure) {
 
-  ##### 1) subset the dataframe to isolate studies with multiple outcomes -----
   x_mult_outcome <- subset(x, duplicate & multiple_es == "outcomes")
-  ## we insert corresponding values of r
   r_i <- which(is.na(x_mult_outcome$r))
   x_mult_outcome$r[r_i] <- r
-
-  x_mult_outcome_split <- split(x_mult_outcome, paste(x_mult_outcome$author, x_mult_outcome$year))
-
-  ##### 2) subset the dataframe to isolate studies with multiple groups
+  x_mult_outcome_split <- split(x_mult_outcome, paste(x_mult_outcome$author,
+                                                      x_mult_outcome$year))
   x_mult_group <- subset(x, duplicate & multiple_es == "groups")
-  x_mult_group_split <- split(x_mult_group, paste(x_mult_group$author, x_mult_group$year))
-
-  ##### 3) subset the dataframe to isolate studies without multiple ES
+  x_mult_group_split <- split(x_mult_group, paste(x_mult_group$author,
+                                                  x_mult_group$year))
   x_unique <- subset(x, !duplicate)
-
-  ##### 4) we create the corresponding datasets for each situation
-  df_group <- do.call(rbind, lapply(x_mult_group_split, .agg_subgroups, measure))
-  df_outcome <- do.call(rbind, lapply(x_mult_outcome_split, .agg_outcomes, measure))
-  df_unique <- x_unique[,c('row_index', 'author', 'year', 'multiple_es', 'duplicate',
-                           'value', 'se', 'ci_lo', 'ci_up', 'n_sample', 'n_cases', 'n_controls', 'mean_cases',
-                           'sd_cases', 'mean_controls', 'sd_controls',
-                           'mean_pre_cases', 'sd_pre_cases', 'mean_pre_controls','sd_pre_controls',
-                           'mean_change_cases', 'sd_change_cases', 'mean_change_controls', 'sd_change_controls', 'pre_post_cor',
-                           'sum_N', 'n_cases_exp', 'n_controls_exp', 'n_cases_nexp', 'n_controls_nexp',
-                           'n_exp', 'n_nexp', 'time', 'time_exp', 'time_nexp',
-                            'rob.recoded', 'shared_nexp',
-                           'shared_controls', 'thr', 'reverse_es', 'r')]
-
-  # 4) we return the merged datasets
+  df_group <- do.call(rbind, lapply(x_mult_group_split, .agg_subgroups,
+                                    measure))
+  df_outcome <- do.call(rbind, lapply(x_mult_outcome_split,
+                                      .agg_outcomes, measure))
+  df_unique <- x_unique[, c("row_index", "author", "year",
+                            "multiple_es", "duplicate", "value", "se", "ci_lo",
+                            "ci_up", "n_sample", "n_cases", "n_controls", "mean_cases",
+                            "sd_cases", "mean_controls", "sd_controls", "mean_pre_cases",
+                            "sd_pre_cases", "mean_pre_controls", "sd_pre_controls",
+                            "mean_change_cases", "sd_change_cases", "mean_change_controls",
+                            "sd_change_controls", "pre_post_cor", "sum_N", "n_cases_exp",
+                            "n_controls_exp", "n_cases_nexp", "n_controls_nexp",
+                            "n_exp", "n_nexp", "time", "time_exp", "time_nexp",
+                            "rob.recoded", "shared_nexp", "shared_controls", "thr",
+                            "reverse_es", "r")]
   return(data.frame(rbind(df_group, df_outcome, df_unique)))
+
 }
 
 #' Adjust sample size when several studies share a control/non exposed group

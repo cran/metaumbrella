@@ -52,8 +52,8 @@
   for (i in which(x_i[, "measure"] == "R")) {
     # r + se
     if (!is.na(x_i[i, "se"])) {
-      x_i[i, "ci_lo"] = (x_i[i, "value"] - qnorm(0.975) * x_i[i, "se"])
-      x_i[i, "ci_up"] = (x_i[i, "value"] + qnorm(0.975) * x_i[i, "se"])
+      x_i[i, "ci_lo"] = x_i[i, "value"] - qnorm(0.975) * x_i[i, "se"]
+      x_i[i, "ci_up"] = x_i[i, "value"] + qnorm(0.975) * x_i[i, "se"]
       x_i[i, "ci_lo"] = .estimate_z_from_r(n_sample = x_i[i, "n_sample"], r = x_i[i, "ci_lo"])$value
       x_i[i, "ci_up"] = .estimate_z_from_r(n_sample = x_i[i, "n_sample"], r = x_i[i, "ci_up"])$value
       x_i[i, "se"] = (x_i[i, "ci_up"] - x_i[i, "ci_lo"]) / (2 * qnorm(0.975))
@@ -844,10 +844,11 @@
       mean_controls_inv_i = x_i_ok$mean_cases[i]
       sd_cases_inv_i = x_i_ok$sd_controls[i]
       sd_controls_inv_i = x_i_ok$sd_cases[i]
-      n_cases_inv_i = x_i_ok$n_controls[i]
-      n_controls_inv_i = x_i_ok$n_cases[i]
+      n_cases_inv_i = x_i_ok$n_cases[i]
+      n_controls_inv_i = x_i_ok$n_controls[i]
 
-      x_i_ok$reverse_es[i] <- paste0("The effect size has been reversed. Initial value = ", x_i_ok$value[i], " [", x_i_ok$ci_lo[i], ", ", x_i_ok$ci_up[i], "]")
+      x_i_ok$reverse_es[i] <- paste0("The effect size has been reversed. Initial value = ",
+                                     x_i_ok$value[i], " [", x_i_ok$ci_lo[i], ", ", x_i_ok$ci_up[i], "]")
 
       x_i_ok$value[i] <- value_inv_i
       x_i_ok$ci_lo[i] <- cilo_inv_i
@@ -870,8 +871,8 @@
       n_cases_nexp_inv_i = x_i_ok$n_cases_exp[i]
       n_controls_exp_inv_i = x_i_ok$n_controls_nexp[i]
       n_controls_nexp_inv_i = x_i_ok$n_controls_exp[i]
-      time_exp_inv_i = x_i_ok$time_nexp[i]
-      time_nexp_inv_i = x_i_ok$time_exp[i]
+      time_exp_inv_i = x_i_ok$time_exp[i]
+      time_nexp_inv_i = x_i_ok$time_nexp[i]
 
       x_i_ok$reverse_es[i] = paste0("The effect size has been reversed. Initial value = ", x_i_ok$value[i], " [", x_i_ok$ci_lo[i], ", ", x_i_ok$ci_up[i], "]")
 
@@ -913,6 +914,8 @@
 
   # aggregate data and save original dataset if multilevel data are present
   if (REPEATED_STUDIES) {
+    # x_i_ok = x_i_ok_full
+    # x_i_ok_save=x_i_ok
     x_i_ok_full = x_i_ok
     x_i_ok = .agg_data(x_i_ok, r = r, measure = measure)
     rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)

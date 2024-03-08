@@ -68,3 +68,11 @@ test_that("publication bias for different inputs", {
   umb2 <- umbrella(df2, method.var = "REML")
   expect_equal(umb1[[1]]$egger$p.value, umb2[[1]]$egger$p.value)
 })
+
+test_that("github bug for 3-level MA", {
+  dat = structure(list(study = c("Enock 2014", "Enock 2014", "Pham 2016",  "Pham 2016", "Stolz 2018"), measure = c("SMD", "SMD", "SMD",  "SMD", "SMD"), factor = c("Weisel 2020", "Weisel 2020", "Weisel 2020",  "Weisel 2020", "Weisel 2020"), meta_review = c("Weisel 2020",  "Weisel 2020", "Weisel 2020", "Weisel 2020", "Weisel 2020"),  value = c(0.645, -0.008, 0.0276355552083566, -0.084, 0.694 ), se = c(0.226, 0.14, 0.249, 0.249, 0.228), rob = c("high",  "high", "unclear", "unclear", "low"), n_cases = c(53, 110,  32, 32, 42), n_controls = c(53, 110, 32, 32, 23), multiple_es = c("outcome",  "outcome", "outcome", "outcome", "outcome")), row.names = c(NA,  -5L), class = "data.frame")
+  x = dat
+  expect_no_error(umbrella(dat, mult.level=TRUE))
+})
+
+

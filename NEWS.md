@@ -1,3 +1,6 @@
+# metaumbrella 1.0.11
+- Correct some bugs, including an error that could appear in the Egger's test if 'outcome' instead of 'outcomes' was included in the mutiple_es colmun (github issue).
+
 # metaumbrella 1.0.10
 - Rework importation of the forest function from the meta package
 

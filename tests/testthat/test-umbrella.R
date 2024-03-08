@@ -13,8 +13,8 @@ test_that("mult.level creates message for multilevel studies", {
 
 test_that("error: mult.level = FALSE", {
   skip_on_cran()
-  df <- df.OR.multi
-  expect_error(.quiet(umbrella(df)), "Please, check that it is not a repeated entry. If not, indicate that you have multivariate data by specfying 'mult.level = TRUE' as an argument of the 'umbrella' function.")
+  expect_error(.quiet(umbrella(df.OR.multi)),
+               "Please, check that it is not a repeated entry. If not, indicate that you have multivariate data by specfying 'mult.level = TRUE' as an argument of the 'umbrella' function.")
 })
 
 ##########################

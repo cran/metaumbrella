@@ -46,15 +46,19 @@
   #### Multiple paper identification columns ----------------
 
   # if author year is mixed (name2009) then split it up
+  if ("study" %in% colnames(x) &
+      !"author" %in% colnames(x) &
+      !"year" %in% colnames(x)) {
+    x$author = x$year = NA
+    x <- .split_study_into_author_year(x)
+  }
+
   if (("study" %in% colnames(x)) && ("author" %in% colnames(x) || "year" %in% colnames(x))) {
     status <- "ERROR"
     error_msgs <- append(error_msgs,
                          paste0("There are both a column called 'study' and a column called 'author' or 'year'."))
   }
 
-  if ("study" %in% colnames(x)) {
-    x <- .split_study_into_author_year(x)
-  }
 
   #### Overall columns check ----------------
 
@@ -67,6 +71,7 @@
                              "n_sample", "n_exp", "n_nexp",
                              "n_cases", "n_controls",
                              "n_cases_exp", "n_cases_nexp", "n_controls_exp", "n_controls_nexp",
+                             "prop_cases", "prop_controls",
                              "mean_cases", "sd_cases", "mean_controls", "sd_controls",
                              "mean_pre_cases", "sd_pre_cases", "mean_pre_controls", "sd_pre_controls", "pre_post_cor",
                              "mean_change_cases", "sd_change_cases", "mean_change_controls", "sd_change_controls",
@@ -80,6 +85,7 @@
                                    "numeric", "numeric", "numeric",
                                    "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
+                                   "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric", "numeric",
                                    "numeric", "numeric", "numeric", "numeric",
@@ -93,6 +99,7 @@
                              "value", "var", "se", "ci_lo", "ci_up",
                              "n_sample", "n_exp", "n_nexp",
                              "n_cases_exp", "n_cases_nexp", "n_controls_exp", "n_controls_nexp",
+                             "prop_cases", "prop_controls",
                              "mean_cases", "sd_cases", "mean_controls", "sd_controls",
                              "mean_pre_cases", "sd_pre_cases", "mean_pre_controls", "sd_pre_controls", "pre_post_cor",
                              "mean_change_cases", "sd_change_cases", "mean_change_controls", "sd_change_controls",
@@ -107,6 +114,7 @@
                                    "numeric","numeric","numeric","numeric", "numeric",
                                    "numeric", "numeric", "numeric",
                                    "numeric","numeric","numeric","numeric",
+                                   "numeric", "numeric",
                                    "numeric","numeric","numeric","numeric",
                                    "numeric","numeric","numeric","numeric", "numeric",
                                    "numeric","numeric","numeric","numeric",
@@ -789,6 +797,9 @@
     ######################
     #### multiple_es #####
     ######################
+    x$multiple_es = tolower(x$multiple_es)
+    x$multiple_es[x$multiple_es=="outcome"] <- "outcomes"
+    x$multiple_es[x$multiple_es=="group"] <- "groups"
 
     if (length(unique(df_i$measure)) > 1 & any(df_i$measure == "IRR")) {
       status <- "ERROR"
@@ -1073,14 +1084,18 @@
         situation[i] <- paste0(situation[i], "_", "mean/SD")
       }
     } else if (x$measure[i] %in% c("SMC")) {
-      if (!is.na(x$mean_cases[i]) & !is.na(x$mean_controls[i]) & !is.na(x$sd_cases[i]) & !is.na(x$sd_controls[i]) &
-          !is.na(x$mean_pre_cases[i]) & !is.na(x$mean_pre_controls[i]) & !is.na(x$sd_pre_cases[i]) & !is.na(x$sd_pre_controls[i])) {
+      if (!is.na(x$mean_cases[i]) & !is.na(x$mean_controls[i]) &
+          !is.na(x$sd_cases[i]) & !is.na(x$sd_controls[i]) &
+          !is.na(x$mean_pre_cases[i]) & !is.na(x$mean_pre_controls[i]) &
+          !is.na(x$sd_pre_cases[i]) & !is.na(x$sd_pre_controls[i])) {
         situation[i] <- paste0(situation[i], "_", "mean/SD_pre/post")
-      } else if (!is.na(x$mean_change_cases[i]) & !is.na(x$mean_change_controls[i]) & !is.na(x$sd_change_cases[i]) & !is.na(x$sd_change_controls[i])) {
+      } else if (!is.na(x$mean_change_cases[i]) & !is.na(x$mean_change_controls[i]) &
+                 !is.na(x$sd_change_cases[i]) & !is.na(x$sd_change_controls[i])) {
         situation[i] <- paste0(situation[i], "_", "mean/SD_change")
       }
     } else if (x$measure[i] %in% c("OR", "RR", "HR", "logOR", "logRR", "logHR")) {
-      if (!is.na(x$n_cases_exp[i]) & !is.na(x$n_cases_nexp[i]) & !is.na(x$n_controls_exp[i]) & !is.na(x$n_controls_nexp[i])) {
+      if (!is.na(x$n_cases_exp[i]) & !is.na(x$n_cases_nexp[i]) &
+          !is.na(x$n_controls_exp[i]) & !is.na(x$n_controls_nexp[i])) {
         situation[i] <- paste0(situation[i], "_", "2x2")
       } else if (!is.na(x$n_cases[i]) & !is.na(x$n_controls[i])) {
         situation[i] <- paste0(situation[i], "_", "cases_controls")
@@ -1189,13 +1204,14 @@
 #' @noRd
 .split_study_into_author_year <- function(x){
   trim <- function (x) gsub("^\\s+|\\s+$", "", x)
-  for (i in 1:length(x[, 1])) {
+  for (i in 1:nrow(x)) {
     x[i, "author"] <- trim(gsub("[0-9]*", "", x$study[i])) # keep characters
     x[i, "year"] <- gsub("[^0-9]*", "", x$study[i]) # remove non-numeric
     if (!is.na(x[i, "year"]) && x[i, "year"] == "") {
       x[i, "year"] <- NA
     }
   }
+  x = subset(x, select = -c(study))
   return(x)
 }
 
