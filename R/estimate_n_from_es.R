@@ -30,6 +30,11 @@
   return(data.frame(n_cases_exp, time_exp, n_cases_nexp, time_nexp))
 }
 
+.estimate_n_from_irr_dataset <- function(irr, var, n_cases, time = NA, time_exp = NA, time_nexp = NA) {
+  result <- .estimate_n_from_irr(irr, var, n_cases, time)
+  return(result)
+}
+
 #' Estimate n value from OR and the number of cases and controls
 #'
 #' @param or OR
@@ -96,6 +101,8 @@
 
   return(data.frame(n_cases_exp, n_cases_nexp, n_controls_exp, n_controls_nexp))
 }
+
+
 
 #' Estimate the n, using the variance, the number of exposed and non-exposed subjects
 #'

@@ -254,7 +254,7 @@ DT::datatable(df.OR.multi, options = list(
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  df.OR.multi$r <- NA # we initialize the r column in the dataset
-#  df.OR.multi[df.OR.multi$author == "Godebu", ]$r <- .30 # we indicate a mean correlation of .30 for the study of Godebu
+#  df.OR.multi[df.OR.multi$author == "el-Hariri", ]$r <- .30 # we indicate a mean correlation of .30 for the study of Godebu
 #  
 #  # option 1: we specify - via the r argument of the umbrella function - that all studies with multiple outcomes
 #  # but no r values in the dataset are assigned with a correlation of .60.
@@ -263,7 +263,7 @@ DT::datatable(df.OR.multi, options = list(
 #  # option 2: we manually specify - via the r argument of the dataset - the correlation for other studies
 #  df.OR.multi[df.OR.multi$multiple_es == "outcomes" &
 #                !is.na(df.OR.multi$multiple_es) &
-#                !df.OR.multi$author %in% c("Godebu"), ]$r <- .60
+#                !df.OR.multi$author %in% c("el-Hariri"), ]$r <- .60
 #  # you no longer have to specify the r value in the umbrella function as it is already specified for all studies in the dataset
 #  umb.OR.multi_2 <- umbrella(df.OR.multi, mult.level = TRUE)
 #  
@@ -276,7 +276,7 @@ DT::datatable(df.OR.multi, options = list(
 
 ## ----echo=FALSE, message=FALSE------------------------------------------------
 df.OR.multi$r <- NA # we initialize the r column in the dataset
-df.OR.multi[df.OR.multi$author == "Godebu", ]$r <- .30 # we indicate a mean correlation of .30 for the study of Godebu
+df.OR.multi[df.OR.multi$author == "el-Hariri", ]$r <- .30 # we indicate a mean correlation of .30 for the study of el-Hariri
 
 # option 1: we specify - via the r argument of the umbrella function - that all studies with multiple outcomes
 # but no r values in the dataset are assigned with a correlation of .60.
@@ -285,7 +285,7 @@ umb.OR.multi_1 <- metaumbrella:::.quiet(umbrella(df.OR.multi, mult.level = TRUE,
 # option 2: we manually specify - via the r argument of the dataset - the correlation for other studies
 df.OR.multi[df.OR.multi$multiple_es == "outcomes" &
                 !is.na(df.OR.multi$multiple_es) &
-                !df.OR.multi$author %in% c("Godebu"), ]$r <- .60
+                !df.OR.multi$author %in% c("el-Hariri"), ]$r <- .60
 # you no longer have to specify the r value in the umbrella function as it is already specified for all studies in the dataset
 
 # you no longer have to specify the r value in the umbrella function as it is already specified for all studies in the dataset

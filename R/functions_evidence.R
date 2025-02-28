@@ -3,71 +3,260 @@
 #' @param x an umbrella object
 #'
 #' @noRd
-.add.evidence_GRADE = function (x) {
+.add.evidence_GRADE = function (x, eq_range_or, eq_range_g) {
   attr(x, "criteria") = "GRADE"
   for (name in names(x)) {
     x_i = x[[name]]
+
+    print(paste0("--Grading evidence for factor: ", name, "--"))
     if (x_i$measure == "Z") {
       stop("The GRADE criteria cannot be applied with R and Z effect size measures.")
     }
-    y_i = 4
 
-    # criteria 1 - RoB
-    if (is.na(x_i$riskofbias) || x_i$riskofbias < 50)  {# very serious limitations
-      y_i = y_i - 2
-    } else if (x_i$riskofbias < 75)  { # serious limitations
-        y_i = y_i - 1
+    rawdat = x_i$x
+    CI_lo = x_i$ma_results$ci_lo; CI_up = x_i$ma_results$ci_up
+    PI_lo = x_i$ma_results$pi_lo; PI_up = x_i$ma_results$pi_up
+    n_cases = x_i$n$cases; n_controls = x_i$n$controls
+    I2 = x_i$heterogeneity$i2
+    rob = x_i$overall_rob
+    indirectness = x_i$indirectness
+    perc_contradict = x_i$perc_contradict
+    n_studies = x_i$n$studies
+
+    egger_p_na = as.numeric(as.character(x_i$egger$p.value))
+    esb_p_na = as.numeric(as.character(x_i$esb$p.value))
+    report_na = as.numeric(as.character(x_i$report_rob))
+
+    if (nrow(rawdat) < 5) {
+      message(paste0("You called the GRADE evidence while the number of studies in ",
+                     name, " is very limited. This factor can reach the 'Moderate' GRADE at most."))
+
+    }
+    if (is.na(rob)) {
+      report_rob = 0
+      message(paste0("The GRADE evidence relies on the bias of individual studies,",
+                     " that is not reported for factor ", name, ". It is currently assumed ",
+                     " that your studies are at high risk of bias."))
+    }
+    if (is.na(egger_p_na) & is.na(esb_p_na) & is.na(report_na)) {
+      report_rob = 0
+      message(paste0("The GRADE evidence relies on the reporting bias, egger's test and esb test. ",
+                     " Because all this information is missing, for factor ", name, ", it is assumed ",
+                     " that your studies are at serious risk of publication bias."))
+    }
+    if (is.na(indirectness)) {
+      indirectness = "very serious"
+      message(paste0("The GRADE evidence relies on the indirectness,",
+                     " that is not reported for factor ", name, ". It is currently assumed ",
+                     " that your studies are at high risk of indirectness."))
     }
 
-    # criteria 2 - inconsistency
-    if (is.na(x_i$heterogeneity$i2) || x_i$heterogeneity$i2 >= 50) { # inconsistency
-      y_i = y_i - 1
-    }
 
-    # criteria 3 - power
     if (x_i$measure == "IRR") {
-      if (.power_d(x_i$n$cases / 2, x_i$n$cases / 2, 0.2) < 0.8) { # serious imprecision: ois for d = 0.2
-        y_i = y_i - 1
-        if (.power_d(x_i$n$cases / 2, x_i$n$cases / 2, 0.5) < 0.8) { # very serious imprecision: not even ois for d = 0.5
-          y_i = y_i - 1
-        }
-      }
-    } else if (x_i$measure == "R") {
-      if (.power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, 0.2) < 0.8) { # serious imprecision: ois for d = 0.2
-        y_i = y_i - 1
-        if (.power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, 0.5) < 0.8) { # very serious imprecision: not even ois for d = 0.5
-          y_i = y_i - 1
-        }
-      }
+      n_controls = n_cases/2; n_cases = n_cases/2
+    }
+
+    meas_G = ifelse(x_i$measure %in% c("G", "SMD", "SMC", "MC", "MD"), TRUE, FALSE)
+    meas_OR = ifelse(x_i$measure %in% c("logOR", "logRR", "logHR", "logIRR",
+                                        "OR", "RR", "HR", "IRR"), TRUE, FALSE)
+
+    if (meas_OR) {
+      CI_lo = exp(CI_lo); CI_up = exp(CI_up)
+      PI_lo = exp(PI_lo); PI_up = exp(PI_up)
+    }
+    if (!meas_G & !meas_OR) {
+      stop("The effect measure is not tolerated")
+    }
+
+    # ------------------------- #
+    # ---------- RoB ---------- #
+    # ------------------------- #
+    down_rob = ifelse(is.na(rob), 2,
+                      ifelse(rob >= 75, 0,
+                             ifelse(rob >= 50, 1, 2)))
+
+    # ----------------------------------- #
+    # ---------- Heterogeneity ---------- #
+    # ----------------------------------- #
+
+    down_het = NA
+
+    if (!is.na(CI_lo) & !is.na(CI_up) &
+        !is.na(PI_lo) & !is.na(PI_up)) {
+
+      low_ci_neg_range =
+        ((meas_G  & CI_lo < 0)  & CI_lo >= eq_range_g[1]) |
+        ((meas_OR & CI_lo < 1) & CI_lo >= eq_range_or[1])
+
+      low_pi_neg_range =
+        (meas_G  & PI_lo < 0 & PI_lo >= eq_range_g[1]) |
+        (meas_OR & PI_lo < 1 & PI_lo >= eq_range_or[1])
+
+      up_ci_pos_range =
+        (meas_G  & CI_up >= 0 & CI_up <= eq_range_g[2]) |
+        (meas_OR & CI_up >= 1 & CI_up <= eq_range_or[2])
+
+      up_pi_pos_range =
+        (meas_G  & PI_up >= 0 & PI_up <= eq_range_g[2]) |
+        (meas_OR & PI_up >= 1 & PI_up <= eq_range_or[2])
+
+      low_ci_pos = (meas_G  & CI_lo >= 0) |
+        (meas_OR & CI_lo >= 1)
+
+      low_pi_pos = (meas_G  & PI_lo >= 0) |
+        (meas_OR & PI_lo >= 1)
+
+      up_ci_neg = (meas_G  & CI_up < 0) |
+        (meas_OR & CI_up < 1)
+
+      up_pi_neg = (meas_G  & PI_up < 0) |
+        (meas_OR & PI_up < 1)
+
+
+      low_ci_out_range = (meas_G  & CI_lo < eq_range_g[1]) |
+        (meas_OR & CI_lo < eq_range_or[1])
+
+      low_pi_out_range = (meas_G  & PI_lo < eq_range_g[1]) |
+        (meas_OR & PI_lo < eq_range_or[1])
+
+      up_ci_out_range = (meas_G  & CI_up > eq_range_g[2]) |
+        (meas_OR & CI_up > eq_range_or[2])
+
+      up_pi_out_range = (meas_G  & PI_up > eq_range_g[2]) |
+        (meas_OR & PI_up > eq_range_or[2])
+
+      # Condition 1 - Row 8 CINeMA
+      down_het[((low_ci_neg_range & low_pi_out_range) &
+                  (up_ci_pos_range  & up_pi_out_range))] <- 2
+
+      # Condition 3 - Row 4 CINeMA (a)
+      down_het[is.na(down_het) &
+                 ((low_ci_pos & low_pi_out_range) |
+                    (up_ci_neg  & up_pi_out_range))] <- 2
+
+      # Condition 2 - Row 6 CINeMA
+      down_het[is.na(down_het) &
+                 ((low_ci_neg_range & low_pi_out_range) |
+                    (up_ci_pos_range  & up_pi_out_range))] <- 1
+
+      # Condition 4 - Row 4 CINeMA (b)
+      down_het[is.na(down_het) &
+                 ((low_ci_pos & low_pi_neg_range) |
+                    (up_ci_neg  & up_pi_pos_range))] <- 1
+
+      # Condition 5 - Row 1 CINeMA
+      down_het[is.na(down_het) &
+                 ((low_ci_pos & low_pi_pos) |
+                    (up_ci_neg  & up_pi_neg))] <- 0
+
+      # Condition 6 - Row 2 & 7 CINeMA
+      down_het[is.na(down_het) &
+                 ((low_ci_neg_range & low_pi_neg_range) |
+                    (up_ci_pos_range  & up_pi_pos_range))] <- 0
+
+      # Condition 7 - 5
+      down_het[is.na(down_het) &
+                 ((low_ci_out_range & low_pi_out_range) |
+                    (up_ci_out_range  & up_pi_out_range))] <- 0
+
     } else {
-      if (.power_d(x_i$n$cases, x_i$n$controls, 0.2) < 0.8) { # serious imprecision: ois for d = 0.2
-        y_i = y_i - 1
-        if (.power_d(x_i$n$cases, x_i$n$controls, 0.5) < 0.8) { # very serious imprecision: not even ois for d = 0.5
-          y_i = y_i - 1
-        }
-      }
+      down_het = NA
     }
-    # criteria 4 - small study effects
-    if (is.na(x_i$egger$p) || x_i$egger$p < 0.1) { # publication bias
-      y_i = y_i - 1
+
+    if (is.na(down_het)) {
+
+      I2 = as.numeric(as.character(I2))
+
+      down_het = ifelse(
+        is.na(I2),
+        ifelse(perc_contradict >= 0.10, 2, 0),
+        ifelse(
+          I2 >= 50 & perc_contradict >= 0.10, 2,
+          ifelse(I2 >= 30 & perc_contradict >= 0.10, 1, 0)
+        )
+      )
     }
-    if (y_i < 1) {
-      y_i = 1
-    }
-    x[[name]]$evidence = c('Very weak','Weak','Moderate','High')[y_i]
+
+    # ----------------------------- #
+    # ------- indirectness -------- #
+    # ----------------------------- #
+    down_ind = ifelse(is.na(indirectness) | indirectness == "very serious", 2,
+                      ifelse(indirectness == "serious", 1, 0))
+
+    # ------------------------- #
+    # ------ Imprecision ------ #
+    # ------------------------- #
+    cross_low_high =
+      (meas_G  & CI_lo <= 0    & CI_up >= 0.8) |
+      (meas_G  & CI_lo <= -0.8 & CI_up >= 0) |
+      (meas_OR & CI_lo <= 1    & CI_up >= 5) |
+      (meas_OR & CI_lo <= 0.2  & CI_up >= 1)
+
+    n_fail_detect_small_effects =
+      n_cases < 394 | n_controls < 394
+
+    n_fail_detect_large_effects =
+      n_cases < 64 | n_controls < 64
+
+    down_imp =
+      ifelse(cross_low_high & n_fail_detect_small_effects, 2,
+             ifelse(n_fail_detect_large_effects, 2,
+                    ifelse(cross_low_high | n_fail_detect_small_effects, 1, 0)))
+
+    # -------------------------- #
+    # ---- publication bias ---- #
+    # -------------------------- #
+    down_pubbias = ifelse(
+      (is.na(egger_p_na) & is.na(esb_p_na) & is.na(report_na)), NA,
+      ifelse(
+        (!is.na(egger_p_na) & egger_p_na <= 0.10) |
+          (!is.na(esb_p_na) & esb_p_na <= 0.10) |
+          (!is.na(report_na) & report_na < 50),
+        1, 0)
+    )
+
+
+    # print(paste0("RoB = ", down_rob))
+    # print(paste0("Het = ", down_het))
+    # print(paste0("Indi = ", down_ind))
+    # print(paste0("Impr = ", down_imp))
+    # print(paste0("Pub = ", down_pubbias))
+    # print(paste0("stud = ", n_studies >= 5))
+    down_rob[is.na(down_rob)] <- 2
+    down_het[is.na(down_het)] <- 2
+    down_ind[is.na(down_ind)] <- 2
+    down_imp[is.na(down_imp)] <- 2
+    down_pubbias[is.na(down_pubbias)] <- 1
+
+    down_grade = ifelse(
+      n_studies >= 5,
+      sum(down_rob, down_het, down_ind, down_imp,  down_pubbias),
+      sum(down_rob, down_het, down_ind, down_imp,  down_pubbias) + 1
+    )
+
+    evidence = ifelse(down_grade == 0, "High",
+                      ifelse(down_grade == 1, "Moderate",
+                             ifelse(down_grade == 2, "Weak", "Very weak")))
+
+    x[[name]]$evidence = evidence
   }
   return(x)
 }
+
 #' Internal function to calculate Ioannidis evidence
 #'
 #' @param x an umbrella object
 #'
 #' @noRd
-.add.evidence_Ioannidis = function (x) {
+.add.evidence_Ioannidis = function (x, verbose) {
   attr(x, "criteria") = "Ioannidis"
   for (name in names(x)) {
     x_i = x[[name]]
     p.value <- x_i$ma_results$p.value
+    if (is.na(x_i$n$cases)) {
+      x_i$n$cases <- 0
+      if (verbose) warning("The number of cases has been assumed to be equal to 0. You can manually set up the number of cases without affecting the meta-analytic calculations using the n_cases column.")
+    }
     if (is.na(p.value)) {
       warning("Error calculating evidence in ", rownames(x_i$data))
     }
@@ -125,21 +314,22 @@
       # extraction information from the umbrella object
       x_i = x[[name]]
       measure <- x_i$measure
-      total_n <- x_i$n$total_n
+      total_n <- ifelse(is.na(x_i$n$total_n), 0, x_i$n$total_n)
       n_studies <- x_i$n$studies
-      n_cases <- x_i$n$cases
+      n_cases <- ifelse(is.na(x_i$n$cases), 0, x_i$n$cases)
       p_value <- x_i$ma_results$p.value
       I2 <- x_i$heterogeneity$i2
-      riskofbias <- x_i$riskofbias
+      overall_rob <- x_i$overall_rob
       amstar <- x_i$amstar
       JK_p <- max(x_i$jk)
       egger_p <- x_i$egger$p.value
       esb_p <- x_i$esb$p.value
       pi <- ifelse(sign(x_i$ma_results$pi_lo) == sign(x_i$ma_results$pi_up), "notnull", "null")
-      largest_CI <- ifelse(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up) &&
-                           sign(x_i$largest$ci_lo) == - sign(x_i$ma_results$ci_lo) &&
-                           sign(x_i$largest$ci_up) == - sign(x_i$ma_results$ci_up), "opposite direction",
-                           ifelse(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), "notnull", "null"))
+      largest_CI <- ifelse(
+        sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up) &&
+          sign(x_i$largest$ci_lo) == - sign(x_i$ma_results$ci_lo) &&
+          sign(x_i$largest$ci_up) == - sign(x_i$ma_results$ci_up), "opposite direction",
+        ifelse(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), "notnull", "null"))
 
       if (any(duplicated(colnames(t(unlist(class_I))))) |
           any(duplicated(colnames(t(unlist(class_II))))) |
@@ -347,8 +537,8 @@
         }
       }
 
-      if (is.na(riskofbias)) {
-        riskofbias = -1
+      if (is.na(overall_rob)) {
+        overall_rob = -1
         if ("rob" %in% list.criteria.nom.user) {
           factors_limited = append(factors_limited, name)
           criteria_limited = append(criteria_limited, "rob")
@@ -394,13 +584,17 @@
       imprecision <- rep(NA, 4)
       for (i in which(!is.na(data_class$imprecision))) {
         imprecision[i] <- switch(measure,
-                                 "IRR" = .power_d(x_i$n$cases / 2, x_i$n$cases / 2, data_class$imprecision[i]),
-                                 "Z" = .power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, data_class$imprecision[i]),
+                                 "logIRR"=, "IRR" = .power_d(x_i$n$cases / 2, x_i$n$cases / 2, data_class$imprecision[i]),
+                                 "R"=, "Z" = .power_d(x_i$n$total_n / 2, x_i$n$total_n / 2, data_class$imprecision[i]),
+                                 "MD"=, "MC"=,
                                  "SMD"=,
                                  "SMC"=,
                                  "OR"=,
+                                 "logOR"=,
                                  "RR"=,
-                                 "HR"= .power_d(x_i$n$cases, x_i$n$controls, data_class$imprecision[i]))
+                                 "logRR"=,
+                                 "HR"=,
+                                 "logHR"= .power_d(x_i$n$cases, x_i$n$controls, data_class$imprecision[i]))
       }
       # we create an imprecision vector based on user's input to have a more personalised output
       x[[name]]$imprecision <- c(rep(NA_real_, 4))
@@ -415,19 +609,19 @@
 
       # stratification of evidence
       if (n_studies > data_class$n_studies[1] & total_n > data_class$total_n[1] & n_cases > data_class$n_cases[1] & p_value < data_class$p_value[1] &
-           I2 < data_class$I2[1] & imprecision[1] > 0.80 & riskofbias > data_class$rob[1] &
+           I2 < data_class$I2[1] & imprecision[1] > 0.80 & overall_rob > data_class$rob[1] &
            amstar > data_class$amstar[1] & egger_p > data_class$egger_p[1] & esb_p > data_class$esb_p[1] & pi == data_class$pi[1] & largest_CI == data_class$largest_CI[1] & JK_p < data_class$JK_p[1]) {
           evidence <- 1
         } else if (n_studies > data_class$n_studies[2] & total_n > data_class$total_n[2] & n_cases > data_class$n_cases[2] & p_value < data_class$p_value[2] &
-                   I2 < data_class$I2[2] & imprecision[2] > 0.80 & riskofbias > data_class$rob[2] &
+                   I2 < data_class$I2[2] & imprecision[2] > 0.80 & overall_rob > data_class$rob[2] &
                    amstar > data_class$amstar[2] & egger_p > data_class$egger_p[2] & esb_p > data_class$esb_p[2] & pi == data_class$pi[2] & largest_CI == data_class$largest_CI[2] & JK_p < data_class$JK_p[2]) {
           evidence <- 2
         } else if (n_studies > data_class$n_studies[3] & total_n > data_class$total_n[3] & n_cases > data_class$n_cases[3] & p_value < data_class$p_value[3] &
-                   I2 < data_class$I2[3] & imprecision[3] > 0.80 & riskofbias > data_class$rob[3] &
+                   I2 < data_class$I2[3] & imprecision[3] > 0.80 & overall_rob > data_class$rob[3] &
                    amstar > data_class$amstar[3] & egger_p > data_class$egger_p[3] & esb_p > data_class$esb_p[3] & pi == data_class$pi[3] & largest_CI == data_class$largest_CI[3] & JK_p < data_class$JK_p[3]) {
           evidence <- 3
         } else if (n_studies > data_class$n_studies[4] & total_n > data_class$total_n[4] & n_cases > data_class$n_cases[4] & p_value < data_class$p_value[4] &
-                   I2 < data_class$I2[4] & imprecision[4] > 0.80 & riskofbias > data_class$rob[4] &
+                   I2 < data_class$I2[4] & imprecision[4] > 0.80 & overall_rob > data_class$rob[4] &
                    amstar > data_class$amstar[4] & egger_p > data_class$egger_p[4] & esb_p > data_class$esb_p[4] & pi == data_class$pi[4] & largest_CI == data_class$largest_CI[4] & JK_p < data_class$JK_p[4]) {
           evidence <- 4
         } else {
@@ -453,17 +647,17 @@
         attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("n_cases" == criteria_limited)]), " factors the 'n_cases' criteria is used but the number of cases is not indicated in the dataset. In this situation, we assumed the number of cases to be half the total number of participants ('n_sample').")
       }
       if (any("egger_p" == criteria_limited)) {
-        message("- For ", length(factors_limited[which("egger_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculated due to the small number of studies (n < 3). In this situation, the p-value of the Egger test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
-        attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("egger_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculated due to the small number of studies (n < 3). In this situation, the p-value of the Egger test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+        message("- For ", length(factors_limited[which("egger_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculated due to the small number of studies (n < 2). In this situation, the p-value of the Egger test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+        attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("egger_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculated due to the small number of studies (n < 2). In this situation, the p-value of the Egger test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
       }
       if (any("esb_p" == criteria_limited)) {
-        message("- For ", length(factors_limited[which("esb_p" == criteria_limited)]), " factors the 'esb_p' criteria is used but cannot be estimated due to calculations issues. In this situation, the p-value of the ESB test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+        message("- For ", length(factors_limited[which("esb_p" == criteria_limited)]), " factors the 'esb_p' criteria is used but cannot be estimated due to the small number of studies (n < 2). In this situation, the p-value of the ESB test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
         attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("esb_p" == criteria_limited)]), " factors the 'egger_p' criteria is used but cannot be calculatedestimated due to calculations issues. In this situation, the p-value of the ESB test is conservatively assumed to be lower than the thresold requested. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
       }
 
       if (any("pi" == criteria_limited)) {
-        message("- For ", length(factors_limited[which("pi" == criteria_limited)]), " factors the 'pi' criteria is used but cannot be calculated due to the small number of studies (n < 3). In this situation, the 95% PI value is conservatively assumed to to include the null value. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
-        attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("pi" == criteria_limited)]), " factors the 'pi' criteria is used but cannot be calculated due to the small number of studies (n < 3). In this situation, the 95% PI value is conservatively assumed to to include the null value. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+        message("- For ", length(factors_limited[which("pi" == criteria_limited)]), " factors the 'pi' criteria is used but cannot be calculated due to the small number of studies (n < 2). In this situation, the 95% PI value is conservatively assumed to to include the null value. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
+        attr(x, "message") = paste(attr(x, "message"), "\n- For ", length(factors_limited[which("pi" == criteria_limited)]), " factors the 'pi' criteria is used but cannot be calculated due to the small number of studies (n < 2). In this situation, the 95% PI value is conservatively assumed to to include the null value. These factors have a NA value for this criteria in the dataframe returned by the 'add.evidence()' function.")
       }
 
       if (any("rob" == criteria_limited)) {

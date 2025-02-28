@@ -44,7 +44,68 @@
 
 #' Convert a Cohen's d to an Odds Ratio
 #'
-#' @param d SMD value
+#' @param or SMD value
+#' @param var SMD value
+#' @param n_exp SMD value
+#' @param n_nexp SMD value
+#'
+#' @noRd
+.estimate_n_from_or_and_n_exp = function (or, var, n_exp, n_nexp) {
+  res <- data.frame(n_cases_exp = NA, n_cases_nexp = NA, n_controls_exp = NA,
+                    n_controls_nexp = NA)
+  if (!is.na(or) & !is.na(var) & !is.na(n_exp) & !is.na(n_nexp)) {
+    n_controls_exp_sim1 <- 0:n_exp
+    n_controls_nexp_sim1 <- round(n_nexp/(1 + (n_exp - n_controls_exp_sim1)/(or *
+                                                                               n_controls_exp_sim1)))
+    n_cases_exp_sim1 <- n_exp - n_controls_exp_sim1
+    n_cases_nexp_sim1 <- n_nexp - n_controls_nexp_sim1
+    idx_non_zero <- which(n_cases_nexp_sim1 > 0 & n_controls_nexp_sim1 >
+                            0 & n_cases_exp_sim1 > 0 & n_controls_exp_sim1 >
+                            0)
+    n_cases_nexp_sim1 <- n_cases_nexp_sim1[idx_non_zero]
+    n_controls_nexp_sim1 <- n_controls_nexp_sim1[idx_non_zero]
+    n_cases_exp_sim1 <- n_cases_exp_sim1[idx_non_zero]
+    n_controls_exp_sim1 <- n_controls_exp_sim1[idx_non_zero]
+    n_controls_exp_sim2 <- 0:n_exp
+    n_controls_nexp_sim2 <- round((n_nexp + 0.5) - ((n_nexp +
+                                                       1) * (n_exp - n_controls_exp_sim2 + 0.5))/((n_controls_exp_sim2 +
+                                                                                                     0.5) * or + n_exp - n_controls_exp_sim2 + 0.5))
+    n_cases_exp_sim2 <- n_exp - n_controls_exp_sim2
+    n_cases_nexp_sim2 <- n_nexp - n_controls_nexp_sim2
+    idx_some_zero <- which((n_cases_nexp_sim2 == 0 | n_controls_nexp_sim2 ==
+                              0 | n_cases_exp_sim2 == 0 | n_controls_exp_sim2 ==
+                              0) & (n_cases_nexp_sim2 >= 0 & n_controls_nexp_sim2 >=
+                                      0 & n_cases_exp_sim2 >= 0 & n_controls_exp_sim2 >=
+                                      0))
+    n_cases_nexp_sim2 <- n_cases_nexp_sim2[idx_some_zero]
+    n_controls_nexp_sim2 <- n_controls_nexp_sim2[idx_some_zero]
+    n_cases_exp_sim2 <- n_cases_exp_sim2[idx_some_zero]
+    n_controls_exp_sim2 <- n_controls_exp_sim2[idx_some_zero]
+    n_controls_exp_sim <- append(n_controls_exp_sim1, n_controls_exp_sim2)
+    n_controls_nexp_sim <- append(n_controls_nexp_sim1,
+                                  n_controls_nexp_sim2)
+    n_cases_exp_sim <- append(n_cases_exp_sim1, n_cases_exp_sim2)
+    n_cases_nexp_sim <- append(n_cases_nexp_sim1, n_cases_nexp_sim2)
+    some_zero <- n_cases_exp_sim == 0 | n_controls_exp_sim ==
+      0 | n_cases_nexp_sim == 0 | n_controls_nexp_sim ==
+      0
+    var_sim <- ifelse(some_zero, 1/((n_exp + 1) - (n_controls_exp_sim +
+                                                     0.5) + 1/(n_controls_exp_sim + 0.5) + 1/((n_nexp +
+                                                                                                 1) - (n_controls_nexp_sim + 0.5)) + 1/(n_controls_nexp_sim +
+                                                                                                                                          0.5)), 1/(n_exp - n_controls_exp_sim) + 1/n_controls_exp_sim +
+                        1/(n_nexp - n_controls_nexp_sim) + 1/n_controls_nexp_sim)
+    best <- order((var_sim - var)^2)[1]
+    res$n_controls_exp <- n_controls_exp_sim[best]
+    res$n_controls_nexp <- n_controls_nexp_sim[best]
+    res$n_cases_exp <- n_exp - res$n_controls_exp
+    res$n_cases_nexp <- n_nexp - res$n_controls_nexp
+  }
+  return(res)
+}
+
+#' Convert a d to or
+#'
+#' @param d OR value
 #'
 #' @noRd
 .d_to_or = function (d) {

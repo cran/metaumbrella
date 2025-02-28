@@ -15,10 +15,10 @@
 #'
 #' @examples
 #' ### perform calculations required for an umbrella review
-#' umb <- umbrella(df.OR)
+#' umb <- umbrella(df.SMD)
 #'
 #' ### subset the results to factors "ADHD" & "dyslexia"
-#' subset.umb <- subset.umbrella(umb, unique(df.OR$factor) %in% c("ADHD", "dyslexia"))
+#' subset.umb <- subset.umbrella(umb, unique(df.SMD$factor) %in% c("Pharmacological"))
 #'
 #' summary(subset.umb)
 

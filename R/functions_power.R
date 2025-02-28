@@ -30,7 +30,7 @@
 .power_hr = function (xi, hr, seed) {
   study_p.value = xi$p.value
   n_cases = xi$n_cases
-  study_hr = xi$value
+  study_hr = exp(xi$value)
   k = optimize(function (k) {
     (powerSurvEpi::powerCT.default0(k, n_cases, study_hr, study_p.value) - 0.5)^2
   }, 0.01:100)$minimum

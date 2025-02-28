@@ -1,3 +1,8 @@
+# metaumbrella 1.1.0
+- The estimation of the effect sizes now relies on the metaConvert package. 
+- The GRADE criteria have been reworked in collaboration with a large team with extensive experience in evidence synthesis
+
+
 # metaumbrella 1.0.11
 - Correct some bugs, including an error that could appear in the Egger's test if 'outcome' instead of 'outcomes' was included in the mutiple_es colmun (github issue).
 

@@ -8,6 +8,8 @@
 #' @param class_II a vector or list of threshold values required for reaching Class II in the Personalized criteria (see details below).
 #' @param class_III a vector or list of threshold values required for reaching Class III in the Personalized criteria (see details below).
 #' @param class_IV a vector or list of threshold values required for reaching Class IV in the Personalized criteria (see details below).
+#' @param eq_range_or a vector of the bounds of equivalence ranges for OR/RR/HR/IRR (only required for GRADE) criteria.
+#' @param eq_range_g a vector of the bounds of equivalence ranges for SMD (only required for GRADE) criteria.
 #' @param verbose logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.
 #'
 #' @details The \code{add.evidence()} function performs a stratification of evidence according to three criteria.
@@ -25,15 +27,62 @@
 #'
 #' ## \bold{"GRADE" classification}
 #' This classification allows to stratify evidence according to four ordinal classes: "High", "Moderate", "Low", "Very low".
-#'  Importantly, this classification should not be taken as an equivalent to the subjective approach underlying the standard GRADE classification
-#'  However, in line with the standard GRADE approach, this classification uses a downgrading procedure in which all factors start with a "High" evidence class that
-#'   could then be downgraded according to the following criteria:
-#' * \bold{Imprecision:} a total number of participants included in the meta-analysis giving a lower power than 0.8 to detect a SMD = 0.20 leads to a downgrading of 1 class.
-#'  A number of participants giving a lower power than 0.8 to detect a SMD = 0.50, leads to a downgrading of 2 classes.
-#' * \bold{Limitations:} a proportion of participants included in studies at low risk of bias inferior to 75% leads to a downgrading of 1 class. A proportion inferior to 50% leads to a downgrading of 2 classes.
-#' * \bold{Publication bias:} a p-value of an Egger's test < .10 leads to a downgrading of 1 class.
-#' * \bold{Inconsistency:} an \eqn{I^2} value >= 0.5 leads to a downgrading of 1 class.
+#' Importantly, this classification should not be taken as an equivalent to the subjective approach underlying the standard GRADE classification.
+#' However, in line with the standard GRADE approach, this classification uses a downgrading procedure in which all factors start with a "High" evidence class that
+#' could then be downgraded according to the 5 following criteria. Importantly, when the number of studies is low (k < 5), then the meta-analysis starts
+#'  with a 'Moderate' rating to account for the difficulty of identifying heterogeneity and publication bias with such a limited number of studies.
+#'
+#'  All calculations are made automatically, but users should input in their dataset, i) the overall risk of bias of each study ('rob' column), ii) the risk of selective reporting ('rob1_report', or 'rob2_report' columns)
+#'   and iii) the risk of indirectness ('indirectness' column). If this information is left empty, each criterion will be assumed to be at high risk.
+#'
+#' * \bold{Risk of Bias (Limitations):}
+#'   \itemize{
+#'     \item No downgrade: >=75% of participants included in low-risk studies
+#'     \item One downgrade: 50%-75% of participants included in low-risk studies
+#'     \item Two downgrades: <=50% of participants included in low-risk studies
+#'   }
+#'   The pooled percentage of participants is calculated as a weighted mean, with weights attributed to each study being equal to the weight each study receives in the meta-analysis.
+#'
+#' * \bold{Heterogeneity:}
+#'   \itemize{
+#'     \item Two downgrades: Substantial discrepancy between the 95% CI and 95% PI (e.g., bounds of the 95% CI and 95% PI not of the same sign and in different equivalence ranges).
+#'     \item One downgrade: Small/moderate discrepancy between the 95% CI and 95% PI (e.g., bounds of the 95% CI and 95% PI of the same sign, but in different equivalence ranges).
+#'   }
+#'   When 95% PI is not reliably estimable, the assessment relies on the I² statistic and the percentage of studies with contradicting results:
+#'   \itemize{
+#'     \item Two downgrades: I² >= 50% and >=10% of studies with statistically significant results in the opposite direction compared to the pooled effect size
+#'     \item One downgrade: I² >= 30% and >=10% of studies with statistically significant results in the opposite direction compared to the pooled effect size
+#'   }
+#'
+#' * \bold{Indirectness:}
+#'   The number of downgrades and the criteria are left to the user's discretion, as these factors vary significantly depending on the scope of the review.
+#'   Examples of criteria may include heterogeneity in participants' age or undefined control groups:
+#'   \itemize{
+#'     \item No downgrade: No concerns regarding indirectness
+#'     \item One downgrade: Serious concerns (e.g., "serious" indirectness)
+#'     \item Two downgrades: Very serious concerns (e.g., "very serious" indirectness)
+#'   }
+#'
+#' * \bold{Imprecision:}
+#'   \itemize{
+#'     \item Two downgrades: The 95% CI of the pooled effect size includes both null (SMD = 0; RR/OR = 1) and large (SMD >= 0.80; OR/RR >= 5) effects AND the meta-analysis does not have the sample size required to detect small effects (eSMD = 0.20) with 80% statistical power (n < 394 per arm)
+#'     \item One downgrade: The 95% CI of the pooled effect size includes both null and large effects
+#'     \item Two downgrades: The meta-analysis does not have the sample size required to detect moderate effects (eSMD = 0.50) with 80% statistical power (n < 64 per arm)
+#'     \item One downgrade: The meta-analysis does not have the sample size required to detect small effects (eSMD = 0.20) with 80% statistical power (n < 394 per arm)
+#'   }
+#'
+#' * \bold{Publication Bias:}
+#'   \itemize{
+#'     \item One downgrade: p-value of Egger's test < 0.10, OR excess significance bias p-value < 0.10, OR more than 50% of participants included in trials with high reporting bias
+#'   }
+#'
 #' This classification is not available for R and Z effect size measures.
+#'
+#' The GRADE classification implementation in this package was developed through the collaborative efforts of:
+#' Dr Corentin J. Gosling, Dr Miguel Garcia-Argibay, Prof Richard Delorme, Prof Marco Solmi,
+#' Prof Andrea Cipriani, Prof Christoph U. Correll, Dr Cinzia Del Giovane, Prof Paolo Fusar-Poli, Prof Henrik Larsson, Edoardo Ostinelli,
+#' Prof Jae Il Shin, Prof DongKeon Yon,
+#' Prof Joaquim Radua, Prof John P. Ioannidis and Prof Samuele Cortese
 #'
 #' ## \bold{"Personalized" classification}
 #' Because the "Ioannidis" and "GRADE" classifications do not necessarily provide a rating system that perfectly matches the requirements of your umbrella review, the \code{add.evidence()} function offers the possibility to use a "Personalized" criteria to stratify the evidence according to 13 criteria. This Personalized criteria proposes to stratify the evidence in 5 ordinal classes: "Class I", "Class II", "Class III", "Class IV" and "Class V". "Class I" is the highest class that could be achieved and "Class V" is the lowest.\cr
@@ -91,6 +140,8 @@
 #' summary(evid_perso1)
 add.evidence <- function (x,
             criteria = "Ioannidis",
+            eq_range_or = c(0.80, 1.25),
+            eq_range_g = c(-0.10, 0.10),
             class_I = c(n_studies = NA, total_n = NA, n_cases = NA, p_value = NA, I2 = NA, imprecision = NA, rob = NA, amstar = NA, egger_p = NA, esb_p = NA, JK_p = NA, pi = NA, largest_CI = NA),
             class_II = c(n_studies = NA, total_n = NA, n_cases = NA, p_value = NA, I2 = NA, imprecision = NA, rob = NA, amstar = NA, egger_p = NA, esb_p = NA, JK_p = NA, pi = NA, largest_CI = NA),
             class_III = c(n_studies = NA, total_n = NA, n_cases = NA, p_value = NA, I2 = NA, imprecision = NA, rob = NA, amstar = NA, egger_p = NA, esb_p = NA, JK_p = NA, pi = NA, largest_CI = NA),
@@ -101,9 +152,10 @@ add.evidence <- function (x,
   if (!inherits(x, "umbrella")) { stop("The 'x' argument must be an 'umbrella' object") }
 
     returned_evidence = switch(criteria,
-                             Ioannidis = .add.evidence_Ioannidis(x),
-                             Personalised = .add.evidence_personalised(x, class_I, class_II, class_III, class_IV, verbose),
-                             GRADE = .add.evidence_GRADE(x),
+                             Ioannidis = .add.evidence_Ioannidis(x, verbose),
+                             Personalised = .add.evidence_personalised(
+                               x, class_I, class_II, class_III, class_IV, verbose),
+                             GRADE = .add.evidence_GRADE(x, eq_range_or = eq_range_or, eq_range_g = eq_range_g),
                              stop("'criteria' must be either 'Ioannidis', 'GRADE' or 'Personalized'")
     )
     return(returned_evidence)

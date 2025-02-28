@@ -41,6 +41,47 @@
 #' @source No source, the data are entirely fictitious
 "df.SMD"
 
+#' Meta-analyses exploring the efficacy of surgical and pharmacological interventions.
+#'
+#' Fictitious dataset of two meta-analyses of RCTs assessing the efficacy of surgical
+#'  and pharmacological interventions on a numeric outcome.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the intervention studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (MD).\cr
+#'   \tab \cr
+#'   \strong{value} \tab MD value.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{mean_cases} \tab means of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{mean_controls} \tab means of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{sd_cases} \tab standard deviations of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{sd_controls} \tab standard deviations of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of patients in the experimental arm.\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of patients in the control arm.\cr
+#'   \tab \cr
+#'   \strong{rob} \tab risk of bias of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{amstar} \tab AMSTAR score of the meta-analysis.\cr
+#' }
+#' @source No source, the data are entirely fictitious
+"df.MD"
+
 #' Meta-analyses exploring a risk factor for neurodevelopmental disorders.
 #'
 #' Fictitious dataset of four meta-analyses of cross-sectional studies assessing a risk factor for neurodevelopmental disorders.
@@ -379,6 +420,34 @@
 #'   \strong{sd_pre_cases} \tab standard deviations at baseline of patients in the experimental arm.\cr
 #'   \tab \cr
 #'   \strong{sd_pre_controls} \tab standard deviations at baseline of patients in the control arm.\cr
+#'}
+#' @source No source, the data are entirely fictitious
+"df.SMC"
+
+#' Meta-analyses exploring the efficacy of an intervention on a continuous outcome measured before and after the intervention.
+#'
+#' Fictitious dataset of three meta-analyses of RCTs assessing the efficacy of an intervention on a continuous outcome in 3 populations.
+#'
+#' @format The dataset contains the following variables: \tabular{ll}{
+#'   \strong{meta_review} \tab name of the first author of the meta-analysis.\cr
+#'   \tab \cr
+#'   \strong{factor} \tab name of the population studied.\cr
+#'   \tab \cr
+#'   \strong{author} \tab first study author of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{year} \tab year of publication of the individual studies.\cr
+#'   \tab \cr
+#'   \strong{measure} \tab type of effect size (MC).\cr
+#'   \tab \cr
+#'   \strong{value} \tab MC value.\cr
+#'   \tab \cr
+#'   \strong{ci_lo} \tab lower bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{ci_up} \tab upper bound of the 95\% confidence interval.\cr
+#'   \tab \cr
+#'   \strong{n_cases} \tab number of cases.\cr
+#'   \tab \cr
+#'   \strong{n_controls} \tab number of controls.\cr
 #'   \tab \cr
 #'   \strong{mean_change_cases} \tab mean change score of patients in the experimental arm.\cr
 #'   \tab \cr
@@ -389,7 +458,7 @@
 #'   \strong{sd_change_controls} \tab standard deviations of the change score of patients in the control arm.\cr
 #'}
 #' @source No source, the data are entirely fictitious
-"df.SMC"
+"df.MC"
 
 #' Meta-analyses of correlational data
 #'

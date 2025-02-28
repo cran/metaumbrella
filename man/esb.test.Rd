@@ -13,7 +13,7 @@ esb.test(
   method.esb = "TESSPSST",
   true_effect = "UWLS",
   seed = NA,
-  tau2 = NA
+  tau2 = NULL
 )
 }
 \arguments{
@@ -31,7 +31,7 @@ This information  can be indicated via the \code{n_controls} argument of the \co
 If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either "SMD" or "OR". However, note that for \dQuote{rma} objects, a SMD is systematically assumed to be a G (to respect the naming used in the \pkg{metafor} package). For \dQuote{meta} objects, a SMD is assumed to be a G unless it is explicitly stated that this is not the case (i.e., using the \code{method.smd = "Cohen"} argument).
 The effect size measure used can be indicated via the measure argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).}
 
-\item{method.esb}{the method used to conduct the test. It must be \code{IT.binom}, \code{IT.chisq}, \code{PSST}, \code{TESS} or \code{TESSPSST}  (see details). Default is \code{"TESSPSST"}.}
+\item{method.esb}{the method used to conduct the test. It must be \code{PSST}, \code{TESS} or \code{TESSPSST}  (see details). Default is \code{"TESSPSST"}.}
 
 \item{true_effect}{the best approximation of the true effect. It must be \code{"largest"}, \code{"UWLS"} or a numeric value (see details). Default is \code{"UWLS"}.}
 
@@ -76,8 +76,6 @@ The \code{true_effect} argument can be used to select the method that will be ap
 
 Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method.esb} argument can be used to select the test.
 \itemize{
-\item If \code{"IT.binom"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a binomial exact test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
-\item If \code{"IT.chisq"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a chi-square test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
 \item If \code{"TESS"} is entered, the test of excess statistical significance (TESS) described by Stanley and colleagues (2021) is performed. This test assesses whether the proportion of excess statistical significance is larger than 5\%. In this test, power calculations take into account between-study heterogeneity.
 \item If \code{"PSST"} is entered, the proportion of statistical significance test (PSST) described by Stanley and colleagues (2021) is performed. This is a test assessing whether the proportion of statistically significant studies is higher than what could have been expected given the mean statistical power. In this test, power calculations take into account between-study heterogeneity.
 \item If \code{"TESSPSST"} is entered, the function combines results of both "PSST" and "TESS" analyses. "TESSPSST" assumes an excess of statistical significance if at least one of "TESS" and "PSST" is statistically significant.
@@ -89,10 +87,10 @@ df <- df.SMD[df.SMD$factor == "Surgical", ]
 
 ### perform an excess significance bias directly on this dataframe
 esb <- esb.test(df, measure = "SMD", input = "dataframe",
-                method.esb = "IT.binom", true_effect = "largest")
+                method.esb = "TESS", true_effect = "largest")
 
 ### perform an excess significance bias using the umbrella function
-esb.umbrella <- umbrella(df, method.esb = "IT.binom", true_effect = "largest")[[1]]$esb
+esb.umbrella <- umbrella(df, method.esb = "TESS", true_effect = "largest")[[1]]$esb
 
 ### perform an excess significance bias on a rma object
 ### we convert the SMD into Hedges' g
@@ -102,7 +100,7 @@ rma <- metafor::rma(yi = G$value, sei = G$se,
                     ni = df$n_cases + df$n_controls,
                     data = df)
 
-esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma", method.esb = "IT.binom")
+esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma", method.esb = "TESS")
 
 ### perform an excess significance bias on a meta object
 meta <- meta::metagen(TE = G$value, seTE = G$se,
@@ -110,7 +108,7 @@ meta <- meta::metagen(TE = G$value, seTE = G$se,
                       n.e = n_cases, n.c = n_controls,
                       data = df)
 
-esb.meta <- esb.test(meta, input = "meta", method.esb = "IT.binom")
+esb.meta <- esb.test(meta, input = "meta", method.esb = "TESS")
 
 all.equal(esb$p.value, esb.umbrella$p.value, esb.rma$p.value, esb.meta$p.value)
 }

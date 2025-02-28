@@ -10,7 +10,8 @@
 
     if (is.na(x_i[i, "se"])) {
       tmp = .improve_ci(x_i[i, "value"], x_i[i, "ci_lo"], x_i[i, "ci_up"], FALSE)
-      tmp = .estimate_d_from_md(tmp$value, tmp$ci_lo, tmp$ci_up, x_i[i, "n_cases"], x_i[i, "n_controls"])
+      tmp = .estimate_d_from_md(tmp$value, tmp$ci_lo, tmp$ci_up,
+                                x_i[i, "n_cases"], x_i[i, "n_controls"])
       x_i[i, "value"] = tmp$value
       x_i[i, "situation"] = gsub("_CI", "", as.character(x_i[i, "situation"]))
     } else {
@@ -168,9 +169,6 @@
     measure = unique(x_i[, "measure"])
   }
 
-  if (!method.var %in% c("DL", "hksj", "REML", "PM", "ML", "FE")) {
-    stop("The between-study variance estimator (argument method.var of the umbrella function) should be either 'PM', 'ML', 'DL', 'hksj', 'REML' or 'FE'.")
-  }
 
   #### Multivariate situations ------
   if (any(x_i$duplicate == TRUE)) {
@@ -179,9 +177,6 @@
 
     if (mult.level == FALSE) {
       stop(paste(paste(unique(x_i$all_vals_study[x_i$duplicate == TRUE]), collapse = " / "), " and is repeated several times in your dataset. \nPlease, check that it is not a repeated entry. If not, indicate that you have multivariate data by specfying 'mult.level = TRUE' as an argument of the 'umbrella' function."))
-    }
-    if (r > 1 | r < -1) {
-      stop("The r argument of the umbrella function (the r value that will be applied to aggregate studies with multiple outcomes) must be within the range of [-1; 1].")
     }
 
     ## if the input dataset has a multivariate structure, we create a message to indicate whether each study with multiple outcomes has been handled as having multiple groups or outcomes
@@ -913,23 +908,22 @@
     time_nexp_adj = x_i_ok$time_nexp, time_nexp_raw = x_i$time_nexp)
 
   # aggregate data and save original dataset if multilevel data are present
-  if (REPEATED_STUDIES) {
-    # x_i_ok = x_i_ok_full
-    # x_i_ok_save=x_i_ok
-    x_i_ok_full = x_i_ok
-    x_i_ok = .agg_data(x_i_ok, r = r, measure = measure)
-    rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
-  } else {
-    x_i_ok_full = paste0("The dataset does not have a multivariate structure.")
-    rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
-  }
-
+  # if (REPEATED_STUDIES) {
+  #   # x_i_ok = x_i_ok_full
+  #   # x_i_ok_save=x_i_ok
+  #   x_i_ok_full = x_i_ok
+  #   x_i_ok = .agg_data(x_i_ok, r = r, measure = measure)
+  #   rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
+  # } else {
+  #   x_i_ok_full = paste0("The dataset does not have a multivariate structure.")
+  #   rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
+  # }
+  #
   attr(x_i_ok, "amstar") <- unique(x_i$amstar)
   attr(x_i_ok, "measure") <- measure
   attr(x_i_ok, "REPEATED_STUDIES") <- REPEATED_STUDIES
   attr(x_i_ok, "n_studies") <- n_studies
-  attr(x_i_ok, "data_mult") <- x_i_ok_full
+  # attr(x_i_ok, "data_mult") <- x_i_ok_full
   attr(x_i_ok, "comparison_adjustment") <- comparison_adjustment
-  # attr(x_i_ok, "meta") <- path_meta
   x_i_ok
 }

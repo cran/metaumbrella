@@ -19,8 +19,9 @@
 #' @export overlap.prim
 #'
 #' @examples
-#' overlap.prim(umbrella(df.radua2019[sample(x = 1:250, size = 50), ],
-#'                        mult.level=TRUE, verbose = FALSE),
+#' df.SMD$author[22:32] <- df.SMD$author[1:11]
+#' df.SMD$year[22:32] <- df.SMD$year[1:11]
+#' overlap.prim(umbrella(df.SMD),
 #'              presentation = "+", cut_off = c(.05,.15,.25))
 overlap.prim = function(x, ID = "factor", presentation = "%", cut_off = c(.05,.10,.15), enhanced = TRUE) {
   if (!presentation %in% c("+", "%")) {
@@ -92,10 +93,21 @@ overlap.prim = function(x, ID = "factor", presentation = "%", cut_off = c(.05,.1
   }
   diag(gr_dat) <- 1
   if (presentation == "+") {
-    gr_dat[which(!is.na(gr_dat) & gr_dat >= cut_off[3])] <- "+++"
-    gr_dat[which(!is.na(gr_dat) & gr_dat < cut_off[3] & gr_dat >= cut_off[2])] <- "++"
-    gr_dat[which(!is.na(gr_dat) & gr_dat < cut_off[2] & gr_dat >= cut_off[1])] <- "+"
-    gr_dat[which(!is.na(gr_dat) & gr_dat < cut_off[1])] <- "-"
+    gr_dat_numeric <- matrix(NA, nrow = nrow(gr_dat), ncol = ncol(gr_dat))
+
+    for (i in 1:nrow(gr_dat)) {
+      for (j in 1:ncol(gr_dat)) {
+        if (is.numeric(gr_dat[i,j]) ||
+            (is.character(gr_dat[i,j]) && !is.na(suppressWarnings(as.numeric(gr_dat[i,j]))))) {
+          gr_dat_numeric[i,j] <- as.numeric(gr_dat[i,j])
+        }
+      }
+    }
+
+    gr_dat[!is.na(gr_dat_numeric) & gr_dat_numeric >= cut_off[3]] <- "+++"
+    gr_dat[!is.na(gr_dat_numeric) & gr_dat_numeric < cut_off[3] & gr_dat_numeric >= cut_off[2]] <- "++"
+    gr_dat[!is.na(gr_dat_numeric) & gr_dat_numeric < cut_off[2] & gr_dat_numeric >= cut_off[1]] <- "+"
+    gr_dat[!is.na(gr_dat_numeric) & gr_dat_numeric < cut_off[1]] <- "-"
   }
   gr_dat_dat = as.data.frame(gr_dat)
   return(gr_dat_dat)

@@ -2,19 +2,22 @@
 #'
 #' @param x a well formatted dataset
 #' @param method.var the method used
-#' 
+#'
 #' @importFrom meta metagen
 #'
 #' @noRd
 .meta_gen = function (x, method.var) {
 
   if (method.var == "hksj") {
-    m = metagen(x$value, x$se, rownames(x), method.tau = "DL")
+    m = metagen(x$value, x$se, rownames(x),
+                prediction = TRUE, method.tau = "DL")
     m = .hksj_meta(m)
   } else if (method.var == "FE") {
-    m = metagen(x$value, x$se, rownames(x), method.tau = "DL")
+    m = metagen(x$value, x$se, rownames(x),
+                prediction = TRUE, method.tau = "DL")
   } else {
-    m = metagen(x$value, x$se, rownames(x), method.tau = method.var)
+    m = metagen(x$value, x$se, rownames(x),
+                prediction = TRUE, method.tau = method.var)
   }
   return(m)
 }
@@ -32,7 +35,7 @@
   if (method.var == "hksj") {
     m = .hksj_meta(metagen(x$value, x$se, rownames(x), method.tau = "DL"))
   } else if (method.var == "FE") {
-    m = metagen(x$value, x$se, rownames(x), method.tau = "DL")
+    m = metagen(x$value, x$se, rownames(x), method.tau = "FE")
   } else {
     m = metagen(x$value, x$se, rownames(x), method.tau = method.var)
   }

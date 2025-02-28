@@ -2,6 +2,7 @@
 #'
 #' @param object an object of class \dQuote{umbrella}
 #' @param digits an integer value specifying the number of decimal places for the rounding of numeric values. Default is 3.
+#' @param raw_md a logical variable indicating whether the pooled MD (instead of SMD) should be returned in value, and confidence interval. Do not affect other results and calculations.
 #' @param het_max a logical variable indicating whether additional information on heterogeneity should be printed (\eqn{tau^2}, Q-statistic estimate and p-value).
 #' @param ... other arguments that can be passed to the function
 #'
@@ -111,31 +112,41 @@
 #' @examples
 #' ### generate a summary of the results of an umbrella object
 #' summary(umbrella(df.SMD))
-summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
+summary.umbrella = function(object, digits = 3, raw_md = FALSE, het_max = FALSE, ...) {
+#
+  # object=umbrella(df.SMD);
+  # object=umbrella(subset(df.radua2019, factor =="Cumulative trauma" ), mult.level=TRUE)
+  # digits = 3; het_max = FALSE
+  # name = names(object)[1];
+  # raw_md = TRUE
 
   y = NULL
-
   criteria = attr(object, "criteria")
 
+  MD_SMD = c("SMD", "SMC", "MD", "MC", "G")
+  MD = c("MD", "MC")
+  LOG = c("OR", "RR", "HR", "IRR",
+          "logOR", "logRR", "logIRR", "logHR")
+  COR = c("R", "Z")
   for (name in names(object)) {
 
     x_i = object[[name]]
 
     measure = x_i$measure
 
-    if (measure %in% c("SMD", "SMC")) {
+    if (measure %in% MD_SMD) {
       value = round(x_i$ma_results$value, digits)
       ci_lo = round(x_i$ma_results$ci_lo, digits); ci_up = round(x_i$ma_results$ci_up, digits)
       pi_lo = round(x_i$ma_results$pi_lo, digits); pi_up = round(x_i$ma_results$pi_up, digits)
       largest_ci_lo = round(x_i$largest$ci_lo, digits)
       largest_ci_up = round(x_i$largest$ci_up, digits)
-    } else if (measure %in% c("OR", "RR", "HR", "IRR")) {
+    } else if (measure %in% LOG) {
       value = round(exp(x_i$ma_results$value), digits)
       ci_lo = round(exp(x_i$ma_results$ci_lo), digits);  ci_up = round(exp(x_i$ma_results$ci_up), digits)
       pi_lo = round(exp(x_i$ma_results$pi_lo), digits); pi_up = round(exp(x_i$ma_results$pi_up), digits)
       largest_ci_lo = round(exp(x_i$largest$ci_lo), digits)
       largest_ci_up = round(exp(x_i$largest$ci_up), digits)
-    } else if (measure == "Z") {
+    } else if (measure %in% COR) {
       value = round(.z_to_r(x_i$ma_results$value), digits)
       ci_lo = round(.z_to_r(x_i$ma_results$ci_lo), digits);  ci_up = round(.z_to_r(x_i$ma_results$ci_up), digits)
       pi_lo = round(.z_to_r(x_i$ma_results$pi_lo), digits); pi_up = round(.z_to_r(x_i$ma_results$pi_up), digits)
@@ -143,26 +154,38 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
       largest_ci_up = round(.z_to_r(x_i$largest$ci_up), digits)
     }
 
-    value_CI =  paste0("[", ci_lo, ", ", ci_up, "]")
-
     eOR = switch(as.character(measure),
-                 "SMD" =, "SMC" = round(.d_to_or(x_i$ma_results$value), digits),
-                 "Z" = round(.d_to_or(.z_to_d(x_i$ma_results$value)), digits),
-                 "OR" = , "RR" = , "IRR" = , "HR" = value)
+                 "SMD" = , "MD"=,
+                 "SMC" =, "MC"=, "G"= round(.d_to_or(x_i$ma_results$value), digits),
+                 "Z"=, "R" = round(.d_to_or(.z_to_d(x_i$ma_results$value)), digits),
+                 "logOR" = ,
+                 "logRR" = ,
+                 "logIRR" = ,
+                 "logHR" = ,
+                 "OR" = ,
+                 "RR" = ,
+                 "IRR" = ,
+                 "HR" = value)
 
     eOR_CI = switch(as.character(measure),
-                 "SMD" =, "SMC" = paste0("[", round(.d_to_or(x_i$ma_results$ci_lo), digits), ", ", round(.d_to_or(x_i$ma_results$ci_up), digits), "]"),
-                 "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$ma_results$ci_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$ma_results$ci_up)), digits), "]"),
+                 "SMD" =, "MD"=,
+                 "SMC" =, "MC"= , "G"= paste0("[", round(.d_to_or(x_i$ma_results$ci_lo), digits), ", ", round(.d_to_or(x_i$ma_results$ci_up), digits), "]"),
+                 "Z", "R" = paste0("[", round(.d_to_or(.z_to_d(x_i$ma_results$ci_lo)), digits), ", ", round(.d_to_or(.z_to_d(x_i$ma_results$ci_up)), digits), "]"),
+                 "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
                  "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", ci_lo, ", ", ci_up, "]"))
 
     eG = switch(as.character(measure),
-                 "SMD" =, "SMC" = value,
-                 "Z" = round(.z_to_d(x_i$ma_results$value), digits),
-                 "OR" = , "RR" = , "IRR" = , "HR" = round(.or_to_d(exp(x_i$ma_results$value)), digits))
+                 "SMD" =, "MD"=,
+                "SMC" =, "MC"= , "G"= value,
+                 "Z", "R" = round(.z_to_d(x_i$ma_results$value), digits),
+                "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
+                "OR" = , "RR" = , "IRR" = , "HR" = round(.or_to_d(exp(x_i$ma_results$value)), digits))
 
     eG_CI = switch(as.character(measure),
-                   "SMD" =, "SMC" = paste0("[", ci_lo, ", ", ci_up, "]"),
-                   "Z" = paste0("[", round(.z_to_d(ci_lo), digits), ", ", round(.z_to_d(x_i$ma_results$ci_up), digits), "]"),
+                   "SMD" =, "MD"=,
+                   "SMC" =, "MC"= , "G"= paste0("[", ci_lo, ", ", ci_up, "]"),
+                   "Z", "R" = paste0("[", round(.z_to_d(ci_lo), digits), ", ", round(.z_to_d(x_i$ma_results$ci_up), digits), "]"),
+                   "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
                    "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$ma_results$ci_lo)), digits), ", ", round(.or_to_d(exp(x_i$ma_results$ci_up)), digits), "]"))
 
     p_value = ifelse(!is.na(as.numeric(as.character(x_i$ma_results$p.value))),
@@ -174,6 +197,8 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     n_controls = x_i$n$controls
     total_n = x_i$n$total_n
 
+    # values
+    value_CI = paste0("[", ci_lo, ", ", ci_up, "]")
     # I2
     if (het_max) {
       I2 = data.frame(
@@ -181,27 +206,36 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
         I2 = ifelse(nrow(x_i$x) == 1, "only 1 study", round(.as_numeric(x_i$heterogeneity$i2), digits)),
         Q = ifelse(nrow(x_i$x) == 1, "only 1 study", round(.as_numeric(x_i$heterogeneity$qe), digits)),
         Q_p_value = ifelse(nrow(x_i$x) == 1, "only 1 study", sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$heterogeneity$p.value))))
+        perc_contradict = x_i$perc_contradict
     } else {
       I2 = ifelse(nrow(x_i$x) == 1, "only 1 study", round(.as_numeric(x_i$heterogeneity$i2), digits))
+      perc_contradict = x_i$perc_contradict
     }
 
     # PI
-    if (x_i$n$studies < 3) {
-      PI_eOR = "< 3 studies"
-      PI_eG = "< 3 studies"
+    if (x_i$n$studies < 2) {
+      PI_eOR = "only 1 study"
+      PI_eG = "only 1 study"
 
     } else {
       PI_eG = switch(as.character(measure),
-                      "SMD" =, "SMC" = paste0("[", pi_lo, ", ", pi_up, "]"),
-                      "Z" = paste0("[", round(.z_to_d(x_i$ma_results$pi_lo), digits), ", ", round(.z_to_d(x_i$ma_results$pi_up), digits), "]"),
-                      "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$ma_results$pi_lo)), digits), ", ", round(.or_to_d(exp(x_i$ma_results$pi_up)), digits), "]"))
+                      "SMD" =, "MD"=,
+                     "SMC" =, "MC"=  , "G"= paste0("[", pi_lo, ", ", pi_up, "]"),
+                      "Z", "R" = paste0("[", round(.z_to_d(x_i$ma_results$pi_lo), digits), ", ", round(.z_to_d(x_i$ma_results$pi_up), digits), "]"),
+                     "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
+                     "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$ma_results$pi_lo)), digits), ", ", round(.or_to_d(exp(x_i$ma_results$pi_up)), digits), "]"))
 
       PI_eOR = switch(as.character(measure),
-                     "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$ma_results$pi_lo), digits), ", ",
-                                                   round(.d_to_or(x_i$ma_results$pi_up), digits), "]"),
-                     "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$ma_results$pi_lo)), digits), ", ",
-                                       round(.d_to_or(.z_to_d(x_i$ma_results$pi_up)), digits), "]"),
-                     "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", pi_lo, ", ", pi_up, "]"))
+                     "SMD" =, "MD"=,
+                     "SMC" =, "MC"= , "G"= paste0("[",
+                           round(.d_to_or(x_i$ma_results$pi_lo), digits), ", ",
+                           round(.d_to_or(x_i$ma_results$pi_up), digits), "]"),
+                     "Z", "R" = paste0("[",
+                           round(.d_to_or(.z_to_d(x_i$ma_results$pi_lo)), digits), ", ",
+                           round(.d_to_or(.z_to_d(x_i$ma_results$pi_up)), digits), "]"),
+                     "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
+                     "OR" = , "RR" = , "IRR" = , "HR" = paste0("[",
+                           pi_lo, ", ", pi_up, "]"))
 
     }
 
@@ -209,8 +243,8 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
                      ifelse(sign(x_i$ma_results$pi_lo) == sign(x_i$ma_results$pi_up), "notnull", "null"),
                      "NA")
     # Egger
-    egger_p = ifelse(x_i$n$studies < 3,
-                     "< 3 studies",
+    egger_p = ifelse(x_i$n$studies < 2,
+                     "only 1 study",
                      ifelse(!is.na(x_i$egger$p.value),
                        sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$egger$p.value)),
                        as.character(x_i$egger$p.value))
@@ -218,9 +252,11 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     egger_sign = factor(x_i$egger$p.value < 0.05, levels = c(FALSE, TRUE), labels = c("ns", "sig."))
 
     # ESB
-    ESB_p = ifelse(!is.na(x_i$esb$p.value),
+    ESB_p = ifelse(x_i$n$studies < 2,
+                   "only 1 study",
+                   ifelse(!is.na(x_i$esb$p.value),
                    sprintf(paste0("%.", digits - 1, "e"), .as_numeric(x_i$esb$p.value)),
-                   as.character(x_i$esb$p.value))
+                   as.character(x_i$esb$p.value)))
 
     ESB_sign = factor(x_i$esb$p.value < 0.05, levels = c(FALSE, TRUE), labels = c("ns", "sig."))
 
@@ -228,18 +264,28 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     largest_sign = factor(sign(x_i$largest$ci_lo) == sign(x_i$largest$ci_up), levels = c(FALSE, TRUE), labels = c("null", "notnull"))
 
     largest_CI_eOR = switch(as.character(measure),
-                            "SMD" =, "SMC" =  paste0("[", round(.d_to_or(x_i$largest$ci_lo), digits), ", ",
-                                                          round(.d_to_or(x_i$largest$ci_up), digits), "]"),
-                            "Z" = paste0("[", round(.d_to_or(.z_to_d(x_i$largest$ci_lo)), digits), ", ",
-                                              round(.d_to_or(.z_to_d(x_i$largest$ci_up)), digits), "]"),
-                            "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", largest_ci_lo, ", ", largest_ci_up, "]"))
+                            "SMD" =, "MD"=,
+                            "SMC" =, "MC"=, "G"=  paste0("[",
+        round(.d_to_or(x_i$largest$ci_lo), digits), ", ",
+        round(.d_to_or(x_i$largest$ci_up), digits), "]"),
+                            "Z", "R" = paste0("[",
+        round(.d_to_or(.z_to_d(x_i$largest$ci_lo)), digits), ", ",
+        round(.d_to_or(.z_to_d(x_i$largest$ci_up)), digits), "]"),
+                            "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
+                            "OR" = , "RR" = , "IRR" = , "HR" = paste0("[",
+        largest_ci_lo, ", ", largest_ci_up, "]"))
 
     largest_CI_eG = switch(as.character(measure),
-                   "SMD" =, "SMC" = paste0("[", largest_ci_lo, ", ", largest_ci_up, "]"),
-                   "Z" = paste0("[", round(.z_to_d(x_i$largest$ci_lo), digits), ", ",
-                                     round(.z_to_d(x_i$largest$ci_up), digits), "]"),
-                   "OR" = , "RR" = , "IRR" = , "HR" = paste0("[", round(.or_to_d(exp(x_i$largest$ci_lo)), digits), ", ",
-                                                                  round(.or_to_d(exp(x_i$largest$ci_up)), digits), "]"))
+                   "SMD" =, "MD"=,
+                   "SMC" =, "MC"=, "G"= paste0("[",
+         largest_ci_lo, ", ", largest_ci_up, "]"),
+                   "Z", "R" = paste0("[",
+         round(.z_to_d(x_i$largest$ci_lo), digits), ", ",
+         round(.z_to_d(x_i$largest$ci_up), digits), "]"),
+                   "logOR" = , "logRR" = , "logIRR" = , "logHR" =,
+                   "OR" = , "RR" = , "IRR" = , "HR" = paste0("[",
+         round(.or_to_d(exp(x_i$largest$ci_lo)), digits), ", ",
+         round(.or_to_d(exp(x_i$largest$ci_up)), digits), "]"))
 
     # JK
     JK_p = ifelse(x_i$n$studies == 1, "only 1 study",
@@ -248,13 +294,14 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     JK_sign = factor(JK_p < .05, levels = c(FALSE, TRUE), labels = c("n.s.", "sig."))
 
     # RoB
-    rob = round(x_i$riskofbias, 2)
+    rob = round(x_i$overall_rob, 2)
+    report_rob = round(x_i$report_rob, 2)
 
     # AMSTAR
     amstar = x_i$amstar
 
     # Power
-    power = if (measure == "IRR") {
+    power = if (measure %in% c("IRR", "logIRR")) {
       paste0(
         "Low es = ",
         round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.2), digits)*100,
@@ -281,11 +328,24 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
     }
 
     power_med = switch(as.character(measure),
-                       "IRR" = round(.power_d(x_i$n$cases/2, x_i$n$cases/2, 0.5), digits)*100,
-                       "Z" = round(.power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100,
-                       "SMD"=, "SMC" =, "OR"=, "RR"=, "HR" = round(.power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100)
+     "IRR"=, "logIRR" = round(
+       .power_d(x_i$n$cases/2, x_i$n$cases/2, 0.5), digits)*100,
+     "R"=, "Z" = round(
+       .power_d(x_i$n$total_n/2, x_i$n$total_n/2, 0.5), digits)*100,
+     "SMD"=, "MD"=, "SMC" =, "MC"=, "G"= , "logOR"=, "logRR"=,
+     "logHR"=, "OR"=, "RR"=, "HR" = round(
+       .power_d(x_i$n$cases, x_i$n$controls, 0.5), digits)*100)
 
-    measure = ifelse(measure %in% c("SMD"), "G", ifelse(measure == "Z", "R", measure))
+    if (measure %in% c("MD", "MC") & raw_md == TRUE) {
+      pooled_md = x_i$pooled_md
+      value = round(pooled_md[1], digits)
+      value_CI = paste0("[", round(pooled_md[2], digits), ", ",
+                        round(pooled_md[3], digits), "]")
+    }
+    measure = ifelse(measure %in% c("SMD", "SMC"), "G",
+                     ifelse(measure %in% c("MD", "MC") & raw_md == TRUE, measure,
+                            ifelse(measure %in% c("MD", "MC") & raw_md == FALSE, "G",
+                                   ifelse(measure %in% c("Z"), "R", measure))))
 
 
 ######################################################################################
@@ -390,13 +450,19 @@ summary.umbrella = function(object, digits = 3, het_max = FALSE, ...) {
                   eG_CI,
                   eOR,
                   eOR_CI,
+                  PI_eG,
+                  PI_eOR,
                   p_value,
                   n_studies,
                   n_cases,
                   total_n,
                   I2,
+                  perc_contradict,
                   egger_p,
                   egger_sign,
+                  ESB_p,
+                  ESB_sign,
+                  report_rob,
                   rob,
                   power
                 )

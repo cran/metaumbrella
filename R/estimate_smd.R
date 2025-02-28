@@ -40,14 +40,165 @@
 #' @noRd
 .d_j <- function (x) {
 
-  # j <- ifelse(x < 1, -1, 1) * exp(lgamma(x / 2) - 0.5 * log(x / 2) - lgamma((x - 1) / 2))
-  # na.j <- which(is.na(j) | j == 0)
-  # j[na.j] <- 1 - 3 / (4 * x[na.j] - 1)
-  # return(j)
-  j <- ifelse(x <= 1, NA, 1) * exp(lgamma(x / 2) - 0.5 * log(x / 2) - lgamma((x - 1) / 2))
+  j <- ifelse(x <= 1, NA, 1) * exp(lgamma(x/2) - 0.5 * log(x/2) -
+                                     lgamma((x - 1)/2))
   return(j)
 }
 
+#' Estimate the Hedges' g correction factor
+#'
+#' @param d applied on df
+#' @param vd applied on df
+#' @param n_exp applied on df
+#' @param n_nexp applied on df
+#' @param smd_to_cor applied on df
+#' @param n_cov_ancova applied on df
+#'
+#' @noRd
+.smd_to_cor <- function (d, vd, n_exp, n_nexp, smd_to_cor, n_cov_ancova) {
+  if (smd_to_cor == "viechtbauer") {
+    df <- n_exp + n_nexp - 2 - n_cov_ancova
+    h <- df/n_exp + df/n_nexp
+    p <- n_exp/(n_exp + n_nexp)
+    q <- n_nexp/(n_exp + n_nexp)
+    r_pb <- d/sqrt(d^2 + h)
+    f <- dnorm(qnorm(p, lower.tail = FALSE))
+    r_viechtbauer <- sqrt(p * q)/f * r_pb
+    r_trunc = ifelse(r_viechtbauer > 1, 1, ifelse(r_viechtbauer <
+                                                    -1, -1, r_viechtbauer))
+    vr_viechtbauer <- 1/(n_exp + n_nexp - 1) * (p * q/f^2 -
+                                                  (3/2 + (1 - p * qnorm(p, lower.tail = FALSE)/f) *
+                                                     (1 + q * qnorm(p, lower.tail = FALSE)/f)) *
+                                                  r_trunc^2 + r_trunc^4)
+    fzp <- dnorm(qnorm(p))
+    a_viechtbauer <- sqrt(fzp)/(p * (1 - p))^(1/4)
+    z_viechtbauer <- (a_viechtbauer/2) * log((1 + a_viechtbauer *
+                                                r_trunc)/(1 - a_viechtbauer * r_trunc))
+    vz_viechtbauer <- 1/(n_exp + n_nexp - 1)
+    z_lo_viechtbauer <- z_viechtbauer - qnorm(0.975) * sqrt(vz_viechtbauer)
+    z_up_viechtbauer <- z_viechtbauer + qnorm(0.975) * sqrt(vz_viechtbauer)
+    r_lo_viechtbauer <- (1/a_viechtbauer) * ((exp(2 * z_lo_viechtbauer/a_viechtbauer) -
+                                                1)/(exp(2 * z_lo_viechtbauer/a_viechtbauer) + 1))
+    r_up_viechtbauer <- (1/a_viechtbauer) * ((exp(2 * z_up_viechtbauer/a_viechtbauer) -
+                                                1)/(exp(2 * z_up_viechtbauer/a_viechtbauer) + 1))
+    res <- cbind(r_viechtbauer, vr_viechtbauer, r_lo_viechtbauer,
+                 r_up_viechtbauer, z_viechtbauer, vz_viechtbauer,
+                 z_lo_viechtbauer, z_up_viechtbauer)
+    return(res)
+  }
+  else if (smd_to_cor == "lipsey_cooper") {
+    a <- ((n_exp + n_nexp)^2)/(n_exp * n_nexp)
+    p <- n_exp/(n_exp + n_nexp)
+    r_lipsey <- d/sqrt(d^2 + 1/(p * (1 - p)))
+    vr_lipsey <- a^2 * vd/((d^2 + a)^3)
+    z_lipsey <- atanh(r_lipsey)
+    vz_lipsey <- vd/(vd + 1/(p * (1 - p)))
+    r_lo_lipsey <- r_lipsey - qt(0.975, df = n_exp + n_nexp -
+                                   2) * sqrt(vr_lipsey)
+    r_up_lipsey <- r_lipsey + qt(0.975, df = n_exp + n_nexp -
+                                   2) * sqrt(vr_lipsey)
+    z_lo_lipsey <- z_lipsey - qnorm(0.975) * sqrt(vz_lipsey)
+    z_up_lipsey <- z_lipsey + qnorm(0.975) * sqrt(vz_lipsey)
+    res <- cbind(r_lipsey, vr_lipsey, r_lo_lipsey, r_up_lipsey,
+                 z_lipsey, vz_lipsey, z_lo_lipsey, z_up_lipsey)
+    return(res)
+  }
+}
+
+#' Estimate the Hedges' g correction factor
+#'
+#' @param d applied on df
+#' @param d_se applied on df
+#' @param n_exp applied on df
+#' @param n_nexp applied on df
+#' @param n_sample applied on df
+#' @param smd_to_cor applied on df
+#' @param adjusted applied on df
+#' @param n_cov_ancova applied on df
+#' @param cov_outcome_r applied on df
+#' @param reverse applied on df
+#' @param x applied on df
+#'
+#' @noRd
+.es_from_d <- function (d, d_se, n_exp, n_nexp, n_sample, smd_to_cor = "viechtbauer",
+          adjusted, n_cov_ancova, cov_outcome_r, reverse) {
+  if (missing(d_se))
+    d_se <- rep(NA_real_, length(d))
+  if (missing(n_exp))
+    n_exp <- rep(NA_real_, length(d))
+  if (missing(n_nexp))
+    n_nexp <- rep(NA_real_, length(d))
+  if (missing(n_sample))
+    n_sample <- rep(NA_real_, length(d))
+  if (missing(adjusted))
+    adjusted <- rep(FALSE, length(d))
+  if (missing(n_cov_ancova))
+    n_cov_ancova <- rep(0, length(d))
+  if (missing(cov_outcome_r))
+    cov_outcome_r <- rep(0.5, length(d))
+  if (missing(reverse))
+    reverse <- rep(FALSE, length(d))
+  reverse[is.na(reverse)] <- FALSE
+  if (length(reverse) == 1)
+    reverse = c(rep(reverse, length(d)))
+  if (length(reverse) != length(d))
+    stop("The length of the 'reverse' argument of incorrectly specified.")
+  if (length(adjusted) == 1)
+    adjusted = c(rep(adjusted, length(d)))
+  if (length(adjusted) != length(d))
+    stop("The length of the 'adjusted' argument of incorrectly specified.")
+  if (!all(smd_to_cor %in% c("viechtbauer", "lipsey_cooper"))) {
+    stop(paste0("'", unique(smd_to_cor[!smd_to_cor %in%
+                                         c("viechtbauer", "lipsey_cooper")]), "' not in tolerated values for the 'smd_to_cor' argument.",
+                " Possible inputs are: 'viechtbauer', 'lipsey_cooper'"))
+  }
+  d <- ifelse(reverse, -d, d)
+  n_sample <- ifelse(!is.na(n_sample), n_sample, n_exp + n_nexp)
+  n_exp <- ifelse(!is.na(n_exp), n_exp, n_sample/2)
+  n_nexp <- ifelse(!is.na(n_nexp), n_nexp, n_sample/2)
+  df <- ifelse(adjusted, n_exp + n_nexp - 2 - n_cov_ancova,
+               n_exp + n_nexp - 2)
+  d_se <- ifelse(!is.na(d_se), d_se, ifelse(adjusted, sqrt(((n_exp +
+                                                               n_nexp)/(n_exp * n_nexp) * (1 - cov_outcome_r^2)) +
+                                                             d^2/(2 * (n_exp + n_nexp))), sqrt((n_exp + n_nexp)/(n_exp *
+                                                                                                                   n_nexp) + d^2/(2 * (n_exp + n_nexp)))))
+  d_ci_lo <- d - d_se * qt(0.975, df)
+  d_ci_up <- d + d_se * qt(0.975, df)
+  logor <- d * pi/sqrt(3)
+  logor_se <- sqrt(d_se^2 * pi^2/3)
+  logor_ci_lo <- logor - logor_se * qnorm(0.975)
+  logor_ci_up <- logor + logor_se * qnorm(0.975)
+  nn_miss <- which(!is.na(d) & !is.na(d_se) & !is.na(n_exp) &
+                     !is.na(n_nexp))
+  g <- g_se <- g_ci_lo <- g_ci_up <- r <- r_se <- r_ci_lo <- r_ci_up <- z <- z_se <- z_ci_lo <- z_ci_up <- rep(NA,
+                                                                                                               length(d))
+  J <- .d_j(df[nn_miss])
+  g[nn_miss] <- d[nn_miss] * J
+  g_se[nn_miss] <- sqrt(d_se[nn_miss]^2 * (J^2))
+  g_ci_lo[nn_miss] <- g[nn_miss] - g_se[nn_miss] * qt(0.975,
+                                                      df[nn_miss])
+  g_ci_up[nn_miss] <- g[nn_miss] + g_se[nn_miss] * qt(0.975,
+                                                      df[nn_miss])
+  dat_r <- data.frame(d = d, vd = d_se^2, n_exp = n_exp, n_nexp = n_nexp,
+                      smd_to_cor = smd_to_cor, n_cov_ancova = n_cov_ancova)
+  if (length(nn_miss) != 0) {
+    cor <- t(mapply(.smd_to_cor, d = dat_r$d[nn_miss], vd = dat_r$vd[nn_miss],
+                    n_exp = dat_r$n_exp[nn_miss], n_nexp = dat_r$n_nexp[nn_miss],
+                    smd_to_cor = dat_r$smd_to_cor[nn_miss], n_cov_ancova = dat_r$n_cov_ancova[nn_miss]))
+    r[nn_miss] <- cor[, 1]
+    r_se[nn_miss] <- sqrt(cor[, 2])
+    r_ci_lo[nn_miss] <- cor[, 3]
+    r_ci_up[nn_miss] <- cor[, 4]
+    z[nn_miss] <- cor[, 5]
+    z_se[nn_miss] <- sqrt(cor[, 6])
+    z_ci_lo[nn_miss] <- cor[, 7]
+    z_ci_up[nn_miss] <- cor[, 8]
+  }
+  res <- data.frame(d, d_se, d_ci_lo, d_ci_up, g, g_se, g_ci_lo,
+                    g_ci_up, r, r_se, r_ci_lo, r_ci_up, z, z_se, z_ci_lo,
+                    z_ci_up, logor, logor_se, logor_ci_lo, logor_ci_up)
+  return(res)
+}
 #' Estimate the Hedges' g from SMD
 #'
 #' @param d d
@@ -101,15 +252,6 @@
     se_ok = sqrt(1 / n_cases[ind_pb] + 1 / n_controls[ind_pb])
     message("- An error occured when converting the standard error of G to SMD. The standard error of the SMD was assumed to be equal to 'sqrt(1/n_cases + 1/n_controls)'.\n")
   }
-  # if (is.null(se)) {
-  #   se_ok = sqrt(1 / n_cases + 1 / n_controls)
-  # } else {
-  #   se_ok = suppressWarnings(sqrt(se^2 - (1 - (df - 2) / (df * J^2)) * g^2))
-  #   if (is.nan(se_ok)) {
-  #     se_ok = sqrt(1 / n_cases + 1 / n_controls)
-  #     message("- An error occured when converting the standard error of G to SMD. The standard error of the SMD was assumed to be equal to 'sqrt(1/n_cases + 1/n_controls)'.\n")
-  #   }
-  # }
   return(data.frame(value = d, se = se_ok))
 }
 

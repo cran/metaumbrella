@@ -4,12 +4,14 @@
 \alias{summary.umbrella}
 \title{Synthesize information of an object of class \dQuote{umbrella} in a dataframe}
 \usage{
-\method{summary}{umbrella}(object, digits = 3, het_max = FALSE, ...)
+\method{summary}{umbrella}(object, digits = 3, raw_md = FALSE, het_max = FALSE, ...)
 }
 \arguments{
 \item{object}{an object of class \dQuote{umbrella}}
 
 \item{digits}{an integer value specifying the number of decimal places for the rounding of numeric values. Default is 3.}
+
+\item{raw_md}{a logical variable indicating whether the pooled MD (instead of SMD) should be returned in value, and confidence interval. Do not affect other results and calculations.}
 
 \item{het_max}{a logical variable indicating whether additional information on heterogeneity should be printed (\eqn{tau^2}, Q-statistic estimate and p-value).}
 

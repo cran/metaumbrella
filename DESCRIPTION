@@ -1,8 +1,8 @@
 Package: metaumbrella
 Type: Package
 Title: Umbrella Review Package for R
-Version: 1.0.11
-Date: 2024-03-07
+Version: 1.1.0
+Date: 2025-02-28
 Author: Corentin J Gosling [aut, cre],
   Aleix Solanes [aut],
   Paolo Fusar-Poli [aut],
@@ -18,7 +18,8 @@ Authors@R: c(
 Maintainer: Corentin J Gosling <cgosling@parisnanterre.fr>
 Description: A comprehensive range of facilities to perform umbrella reviews with stratification of the evidence in R. The package accomplishes this aim by building on three core functions that: (i) automatically perform all required calculations in an umbrella review (including but not limited to meta-analyses), (ii) stratify evidence according to various classification criteria, and (iii) generate a visual representation of the results. Note that if you are not familiar with R, the core features of this package are available from a web browser (<https://www.metaumbrella.org/>).
 License: GPL-3
-Imports: meta, pwr, powerSurvEpi, readxl, tcltk, withr, writexl, xtable
+Imports: meta, metaConvert, pwr, powerSurvEpi, readxl, tcltk, withr,
+        writexl, xtable
 Encoding: UTF-8
 LazyData: true
 Suggests: rmarkdown, knitr, testthat (>= 3.0.0), spelling, DT, epiR,
@@ -29,6 +30,6 @@ RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 Language: en-US
 NeedsCompilation: no
-Packaged: 2024-03-08 17:39:27 UTC; Corentin Gosling
+Packaged: 2025-02-28 10:29:51 UTC; Corentin Gosling
 Repository: CRAN
-Date/Publication: 2024-03-08 18:10:02 UTC
+Date/Publication: 2025-02-28 11:40:02 UTC

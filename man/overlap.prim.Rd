@@ -31,8 +31,9 @@ As in a correlation matrix, the cell at the intersection of a row and a column c
 This function allows to estimate the primary study overlap across reviews
 }
 \examples{
-overlap.prim(umbrella(df.radua2019[sample(x = 1:250, size = 50), ],
-                       mult.level=TRUE, verbose = FALSE),
+df.SMD$author[22:32] <- df.SMD$author[1:11]
+df.SMD$year[22:32] <- df.SMD$year[1:11]
+overlap.prim(umbrella(df.SMD),
              presentation = "+", cut_off = c(.05,.15,.25))
 }
 \references{

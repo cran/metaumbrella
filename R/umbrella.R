@@ -6,9 +6,11 @@
 #' @param method.var the estimator used to quantify the between-study variance in the random-effects meta-analysis. Default is the Restricted Likelihood Maximum ("REML") estimator. Alternatively, DerSimonian and Laird \code{"DL"}, Hartung-Knapp-Sidik-Jonkman \code{"hksj"} (applies a Hartung-Knapp-Sidik-Jonkman adjustment on the results of a \code{"DL"} estimator), maximum-likelihood \code{"ML"} or Paule-Mandel \code{"PM"} estimators can be used. A fixed-effect meta-analysis can be obtained by indicated the \code{method.var = "FE"} argument.
 #' @param mult.level a logical variable indicating the presence of multiple effect sizes per study in at least one factor of the umbrella review. Default is \code{FALSE} (i.e., each study of all factors include only one effect size). If \code{mult.level = TRUE} is specified, the Borenstein's methods are used to generate only one effect size per study. See \code{\link{metaumbrella-package}} for more information.
 #' @param r a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.
-#' @param method.esb the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"}, \code{"IT.chisq"}, \code{"PSST"}, \code{"TESS"} or \code{"TESSPSST"}  (see details). Default is \code{TESSPSST}.
+#' @param method.esb the method used to conduct the excess of statistical significance test. It must be \code{"PSST"}, \code{"TESS"} or \code{"TESSPSST"}  (see details). Default is \code{TESSPSST}.
 #' @param true_effect the method to estimate the true effect in the test for excess significance. It must be \code{"largest"}, \code{"UWLS"}, \code{"pooled"} or a numeric value (see details). Default is \code{"UWLS"}.
 #' @param pre_post_cor The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. If your umbrella review includes pre-post controlled studies, you should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.
+#' @param tau2 The tau2 value that should be used when using one of the \code{PSST}, \code{TESS} or \code{TESSPSST} methods (only if you want this value to be different from the one automatically estimated during the meta-analytic calculations).
+#' @param max_asymmetry The percentage of assymetry tolerated in the 95% CI of the MD, OR and RR effect measures. Default is 10%. Any stronger asymmetry will stop the analysis.
 #' @param seed an integer value used as an argument by the set.seed() function. Only used for the \code{"IT.binom"} and \code{"IT.chisq"} tests for excess significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.
 #' @param verbose a logical variable indicating whether text outputs and messages should be generated. We recommend turning this option to FALSE only after having carefully read all the generated messages.
 #'
@@ -72,7 +74,13 @@
 #'  \code{esb} \tab results of the test for excess significance bias. See\cr
 #'  \tab \code{\link{esb.test}()} for more information.\cr
 #'  \tab \cr
-#'  \code{riskofbias} \tab percentage of participants in studies at low risk of bias.\cr
+#'  \code{overall_rob} \tab for the overall RoB, the proportion of participants in studies at low risk of bias (weighted mean based on meta-analytic weights).\cr
+#'  \tab \cr
+#'  \code{report_rob} \tab for the selective reporting bias, the proportion of participants in studies at low risk of bias (weighted mean based on meta-analytic weights).\cr
+#'  \tab \cr
+#'  \code{rob} \tab for each individual RoB, the proportion of participants in studies at low risk of bias (weighted mean based on meta-analytic weights).\cr
+#'  \tab \cr
+#'  \code{weights} \tab the weights assigned to each study in the meta-analysis.\cr
 #'  \tab \cr
 #'  \code{amstar} \tab AMSTAR score obtained by the meta-analysis.\cr
 #'  \tab \cr
@@ -118,13 +126,26 @@
 #' ### obtain a stratification of the evidence according to the Ioannidis classification
 #' add.evidence(umb.multi, criteria = "Ioannidis")
 #' }
-umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method.esb = "TESSPSST", true_effect = "UWLS", pre_post_cor = NA, seed = NA, verbose = TRUE) {
+umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, pre_post_cor = 0.8, method.esb = "TESSPSST", true_effect = "UWLS", tau2 = NULL, max_asymmetry = 10, seed = NA, verbose = TRUE) {
 
+  y = list()
+
+  if (!method.var %in% c("DL", "hksj", "REML", "PM", "ML", "FE")) {
+    stop("The between-study variance estimator (argument method.var of the umbrella function) should be either 'PM', 'ML', 'DL', 'hksj', 'REML' or 'FE'.")
+  }
+  if (r > 1 | r < -1) {
+    stop("The r argument of the umbrella function (the r value that will be applied to aggregate studies with multiple outcomes) must be within the range of [-1, 1].")
+  }
+  if (pre_post_cor > 1 | pre_post_cor < -1) {
+    stop("The pre_post_cor argument of the umbrella function (the r value that will be applied to estimate the pre/post effect size) must be within the range of [-1, 1].")
+  }
   # initial checkings ------
   checkings <- .check_data(x)
 
   x <- attr(checkings, "data")
-
+  x_others <- attr(checkings, "others")
+  x$pre_post_cor[is.na(x$pre_post_cor)] <- pre_post_cor
+  x$r[is.na(x$r)] <- r
   if (attr(checkings, "status") == "ERRORS") {
     stop("Data did not pass checks. Resolve formatting errors using the 'view.errors.umbrella()' function.")
   }
@@ -140,210 +161,381 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
   y = list()
 
   # run factor-by-factor calculations
+  # x=dat_test
+  # x$mean_age = rnorm(nrow(x))
+  # x$factor_name = sample(c("A", "B","C"), nrow(x), replace=TRUE)
+  # method.var = "REML"; mult.level = TRUE; r = 0.5
+  # method.esb = "TESSPSST"; true_effect = "UWLS"; pre_post_cor = NA;
+  # seed = NA; verbose = TRUE; tau2= NULL
+  # factor = unique(x$factor)[1]#"Cumulative trauma"##"Psychotic disorder" #  # factor = unique(dfwoN)
+  # checkings <- .check_data(x); max_asymmetry = 10
+  # x <- attr(checkings, "data")
+  # x_others <- attr(checkings, "others")
+  # list_author_concern = list_factor_concern = NULL
+  # x$pre_post_cor[is.na(x$pre_post_cor)] <- pre_post_cor
+  # x$r[is.na(x$r)] <- r
 
   for (factor in unique(x$factor)) {
+    # print(factor)
 
     if (verbose) cat(paste("Analyzing factor:", factor, '\n'))
 
     x_i = x[which(x$factor == factor), ]
 
+    measures = unique(x_i$measure)
 
-      x_i_ok <- .format_dataset(x_i = x_i, method.var = method.var, mult.level = mult.level, r = r, verbose = verbose, pre_post_cor = pre_post_cor)
+    if (length(measures) == 1) {
+      measure = measures
+    } else if (any(c("SMD", "G", "SMC", "MD", "MC") %in% measures) &
+               !any(c("IRR", "RR", "HR", "R", "Z") %in% measures)) {
+      measure = "G"
+    } else if (any(c("IRR") %in% measures) &
+               any(c("SMD", "R", "Z") %in% measures)) {
+      stop("'IRR' & 'SMD/R/Z' measures cannot be combined within the same factor")
+    } else if (any(c("OR", "RR", "HR", "IRR") %in% measures) &
+               !any(c("R", "Z") %in% measures)) {
+      measure = "OR"
+    } else if (all(measures %in% c("R", "Z"))) {
+      measure = "Z"
+    } else {
+      stop("'R' & 'Z' cannot be combined with other effect size measures within the same factor, and 'IRR' cannot be combined with differences measures ('SMD', 'MD', ...)")
+    }
 
-      measure <- attr(x_i_ok, "measure")
-      measure_length <- rep(measure, nrow(x_i_ok))
-      REPEATED_STUDIES <- attr(x_i_ok, "REPEATED_STUDIES")
-      n_studies <- attr(x_i_ok, "n_studies")
+    x_i_mlm <- .identify_multilevel(x_i, mult.level, verbose, r)
+    REPEATED_STUDIES = attr(x_i_mlm, "REPEATED_STUDIES")
+    # print(x_i_mlm[1,"measure"])
+    x_i_hom = .format_hom(x_i_mlm)
+    # x_i_hom = x_i_hom[x_i_hom$author == "dew", ]; x_i_hom$se
+    # print(x_i_hom[1,"measure"])
+    measure[measure %in% c("OR", "HR", "RR", "IRR")] <- paste0("log", measure)
+    x_i_ci = .format_ci(x_i_hom, measure)
+    x_i_value = .format_value(x_i_ci, measure)
 
-      # create an object storing information on sample sizes
-      n <- data.frame(studies = n_studies,
-                      cases = sum(x_i_ok$n_cases, na.rm = TRUE), #ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_cases, na.rm = TRUE)),
-                      controls = ifelse(measure == "Z", NA_real_, sum(x_i_ok$n_controls, na.rm = TRUE)),
-                      total_n = ifelse(measure == "Z",
-                                       sum(x_i_ok$n_sample),
-                                       sum(sum(x_i_ok$n_cases), sum(x_i_ok$n_controls), na.rm = TRUE)))
+    x_i_es = if (verbose) .format_effsize(x_i_value, measure, max_asymmetry) else suppressWarnings(.format_effsize(x_i_value, measure, max_asymmetry))
+    x_i_format = x_i_es
+    # return(x_i_es)
+    if (REPEATED_STUDIES) {
+      x_i_ok_full = x_i_format
+      x_i_ok = .agg_mcv(x_i_format,
+                        measure = measure,
+                        r = r)
+      rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
+      x_i_ok$unique_ID_study = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
+      x_i_ok_full$factor = factor
+      x_i_ok$factor = factor
+    } else {
+      x_i_ok_full = paste0("The dataset does not have a multivariate structure.")
+      x_i_ok = x_i_format
+      rownames(x_i_ok) = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
+      x_i_ok$unique_ID_study = make.names(paste(x_i_ok$author, x_i_ok$year, x_i_ok$factor), unique = TRUE)
+      x_i_ok$factor = factor
+    }
 
-      rownames(n) = "n"
+    if (length(unique(rownames(x_i_ok))) != nrow(x_i_ok)) stop("Issue multilevels umbrella")
 
-      .meta <- switch(as.character(measure),
-                      "SMD" =,
-                      "Z" =,
-                      "SMC" = .meta_gen,
-                      "OR" = ,
-                      "RR" = ,
-                      "IRR" = ,
-                      "HR" = .meta_gen_log)
 
-      # perform the meta-analysis
-      if (nrow(x_i_ok) > 1) {
-        m = .meta(x_i_ok, method.var)
-      } else if (nrow(x_i_ok) == 1) {
-        m = NA
-      } else {
-        stop("An unexpected error occured during a meta-analysis. Please, contact us for more information.")
+    attr(x_i_ok, "amstar") <- attr(x_i_format, "amstar")
+    attr(x_i_ok, "REPEATED_STUDIES") <- attr(x_i_format, "REPEATED_STUDIES")
+    attr(x_i_ok, "n_studies") <- length(unique(rownames(x_i_ok)))
+    attr(x_i_ok, "data_mult") <- attr(x_i_format, "data_mult")
+    attr(x_i_ok, "comparison_adjustment") <- attr(x_i_format, "comparison_adjustment")
+
+    REPEATED_STUDIES <- attr(x_i_ok, "REPEATED_STUDIES")
+    n_studies <- attr(x_i_ok, "n_studies")
+
+    # create an object storing information on sample sizes
+    n <- data.frame(studies = n_studies,
+                    cases = .sum_na(x_i_ok$n_cases, na.rm = TRUE),
+                    controls = .sum_na(x_i_ok$n_controls, na.rm = TRUE),
+                    total_n = ifelse(measure %in% c("R", "Z"),
+                                     .sum_na(x_i_ok$n_sample, na.rm = TRUE),
+                                     .sum_na(
+                                       c(.sum_na(x_i_ok$n_cases, na.rm = TRUE),
+                                         .sum_na(x_i_ok$n_controls, na.rm = TRUE)),
+                                       na.rm = TRUE)))
+
+    rownames(n) = "n"
+
+    .meta <- .meta_gen
+
+    # perform the meta-analysis
+    if (nrow(x_i_ok) > 1) {
+      m = .meta(x_i_ok, method.var)
+    } else if (nrow(x_i_ok) == 1) {
+      m = NA
+    } else {
+      stop("An unexpected error occured during a meta-analysis. Please, contact us for more information.")
+    }
+
+    # extraction of meta-analytic results
+    # if the dataset contains only one study, the results of this study are used
+    if (nrow(x_i_ok) == 1) {
+      k = 1
+      coef = x_i_ok$value
+      se = x_i_ok$se
+      z = coef / se
+      p.value = ifelse(coef == 0, 1,
+                       .two_tail(
+                         ifelse(measure %in% c("SMD", "G", "SMC", "MD", "MC"),
+                                pt(z, x$n_cases + x$n_controls - 2),
+                                pnorm(z))))
+      ci_lo = x_i_ok$ci_lo
+      ci_up = x_i_ok$ci_up
+      tau2_calc = i2 = qe = qe_p.value = pi_lo = pi_up = NA
+      weights = 100
+    } else if (method.var == "FE") {
+      k = m$k
+      coef = m$TE.common
+      se = m$seTE.common
+      z = m$zval.common
+      p.value = m$pval.common
+      ci_lo = m$lower.common
+      ci_up = m$upper.common
+      tau2_calc = NA
+      i2 = m$I2 * 100
+      qe = m$Q
+      qe_p.value = m$pval.Q
+      pi_lo = NA
+      pi_up = NA
+      weights = m$w.common
+    } else {
+      k = m$k
+      coef = m$TE.random
+      se = m$seTE.random
+      z = m$zval.random
+      p.value = m$pval.random
+      ci_lo = m$lower.random
+      ci_up = m$upper.random
+      tau2_calc = m$tau^2
+      i2 = m$I2 * 100
+      qe = m$Q
+      qe_p.value = m$pval.Q
+      pi_lo = m$lower.predict#ifelse(n_studies >= 3, m$lower.predict, NA)
+      pi_up = m$upper.predict#ifelse(n_studies >= 3, m$upper.predict, NA)
+      weights = m$w.random
+    }
+
+    # Create summary datasets of the random-effects model
+    ma_results = data.frame(value = coef, z, p.value, ci_lo, ci_up, pi_lo, pi_up)
+    rownames(ma_results) = switch(as.character(measure),
+                                  "MD"=, "SMD"=, "G" = "Bias-corrected SMD",
+                                  "Z" =, "R" = "Fisher's Z",
+                                  "MC"=, "SMC" = "Standardized mean change",
+                                  "OR"=, "logOR" = "log (OR)",
+                                  "RR"=, "logRR" = "log (RR)",
+                                  "IRR"=, "logIRR" = "log (IRR)",
+                                  "HR"=, "logHR" = "log (HR)")
+
+    # Create summary datasets of the heterogeneity
+    heterogeneity = data.frame(tau2 = tau2_calc, i2 = i2, qe = qe, p.value = qe_p.value)
+
+    largest = .largest_overall(x_i_ok)
+
+    rownames(largest) = switch(as.character(measure),
+                               "G"=, "SMD" = "Bias-corrected SMD",
+                               "Z" =, "R" = "Fisher's Z",
+                               "SMC" = "Bias-corrected SMD (change from baseline)",
+                               "MD" = "Mean difference",
+                               "MC" = "Mean difference (change from baseline)",
+                               "OR"=, "logOR" = "log (OR)",
+                               "RR"=, "logRR" = "log (RR)",
+                               "IRR"=, "logIRR" = "log (IRR)",
+                               "HR"=, "logHR" = "log (HR)")
+
+    # publication bias
+    # only for meta-analyses with at least 3 studies
+    if (n_studies < 2) {
+      egger = data.frame(statistic = NA, p.value = NA)
+    } else {
+      mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "non_ratio")
+      egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
+    }
+
+    # excess significance bias
+    if (true_effect == "largest") {
+      true_value = "largest"
+    } else if (true_effect == "UWLS") {
+      true_value = "UWLS"
+    } else if (true_effect == "pooled") {
+      true_value = .as_numeric(ma_results$coef)
+    } else if (is.numeric(true_effect)) {
+      true_value = true_effect
+    } else {
+      stop("The input in the 'true_effect' argument should be 'pooled', 'UWLS', 'largest' or a numeric value. Please see the manual for more information.")
+    }
+
+    if (n_studies < 2) {
+      esb = data.frame(p.value = NA)
+    } else if (method.var == "FE" & method.esb %in% c('TESS', 'PSST', 'TESSPSST')) {
+      if (verbose) {
+        warning(paste0("The requested method.esb is ", method.esb, " while a fixed ",
+                       "effect meta-analysis is also requested. The tau2 value  is recommended ",
+                       "to be indicated (or a random-effects model should be used). For now, ",
+                       "a tau2=0 has been assumed")
+        )
       }
+      esb = esb.test(x_i_ok, method.esb = method.esb,
+                     measure = measure,
+                     input = "other", true_effect = true_value,
+                     seed = seed, tau2 = 0
+      )
 
-      # extraction of meta-analytic results
-      # if the dataset contains only one study, the results of this study are used
-      if (nrow(x_i_ok) == 1) {
-        k = 1
-        coef = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$value, log(x_i_ok$value))
-        se = x_i_ok$se
-        z = coef / se
-        p.value = ifelse(coef == 0, 1,
-                         .two_tail(ifelse(measure %in% c("SMD", "SMC"),
-                                          pt(z, x$n_cases + x$n_controls - 2),
-                                          pnorm(z))))
-        ci_lo = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$ci_lo, log(x_i_ok$ci_lo))
-        ci_up = ifelse(measure %in% c("SMD", "SMC", "Z"), x_i_ok$ci_up, log(x_i_ok$ci_up))
-        tau2 = NA
-        i2 = NA
-        qe = NA
-        qe_p.value = NA
-        } else if (method.var == "FE") { #
-          k = m$k
-          coef = m$TE.fixed
-          se = m$seTE.fixed
-          z = m$zval.fixed
-          p.value = m$pval.fixed
-          ci_lo = m$lower.fixed
-          ci_up = m$upper.fixed
-          tau2 = 0
-          i2 = m$I2 * 100
-          qe = m$Q
-          qe_p.value = m$pval.Q
+    } else {
+      esb = esb.test(x_i_ok, method.esb = method.esb,
+                     measure = measure,
+                     input = "other", true_effect = true_value,
+                     seed = seed, tau2 = ifelse(is.null(tau2), tau2_calc, tau2)
+      )
+    }
+    # -------------
+    # risk of bias
+    # -------------
+    x_i_ok$weights = .as_numeric(weights)
+
+    perc_contradict = ifelse(
+      ma_results$value >= 0,
+      sum(x_i_ok$ci_up < 0) / nrow(x_i_ok),
+      sum(x_i_ok$ci_lo >= 0) / nrow(x_i_ok))
+
+    # if (REPEATED_STUDIES) {
+      # rob_columns <- c("rob.recoded", "rob_report.recoded",
+      #                  "rob1_rand.recoded", "rob1_allocation.recoded", "rob1_blind_pers.recoded",
+      #                  "rob1_blind_outcome.recoded", "rob1_attrition.recoded", "rob1_report.recoded",
+      #                  "rob2_rand.recoded", "rob2_deviation.recoded", "rob2_missing.recoded",
+      #                  "rob2_outcome.recoded", "rob2_report.recoded")
+    #
+    #   x_i_ok_full$ID = paste(x_i_ok_full$author, x_i_ok_full$year)
+    #   x_i_ok$ID = paste(x_i_ok$author, x_i_ok$year)
+    #   x_i_ok_full = merge(x_i_ok_full, x_i_ok[, c("ID", "weights")])
+    #
+    #   x_i_ok_full$rob.recoded[3:6] <- c(1, 0, 0, 1)
+    #   x_i_ok_full$weights
+    #   calculate_weighted_means <- function(df) {
+    #     result <- sapply(rob_columns, function(col) {
+    #       if(all(is.na(df[[col]])) || all(is.na(df$weights))) {
+    #         return(NA)
+    #       } else {
+    #         return(weighted.mean(df[[col]], w = df$weights, na.rm = TRUE))
+    #       }
+    #     })
+    #     return(result)
+    #   }
+    #
+    #   # Use by() to apply the function to each author-year group
+    #   result_by <- by(x_i_ok_full, list(x_i_ok_full$author, x_i_ok_full$year), calculate_weighted_means)
+    #
+    #   # Convert result to a data frame
+    #   result_df <- as.data.frame(do.call(rbind, as.list(result_by)))
+    #
+    #   # Add author and year columns
+    #   result_df$author <- rownames(result_df)
+    #   result_df$author <- sub("^(.*)\\..*$", "\\1", result_df$author)
+    #   result_df$year <- rownames(result_df)
+    #   result_df$year <- sub("^.*\\.(.*)$", "\\1", result_df$year)
+    #
+    #   # Reorder columns to have author and year first
+    #   result_df <- result_df[, c("author", "year", rob_columns)]
+    #
+    #   # Merge with original x_i_ok data
+    #   final_result <- merge(x_i_ok, result_df, by = c("author", "year"), all.x = TRUE)
+    #
+    # }
+
+    # Loop through each column
+    for (col in c("rob.recoded", "rob_report.recoded",
+                  "rob1_rand.recoded", "rob1_allocation.recoded", "rob1_blind_pers.recoded",
+                  "rob1_blind_outcome.recoded", "rob1_attrition.recoded","rob1_report.recoded" ,
+                  "rob2_rand.recoded", "rob2_deviation.recoded", "rob2_missing.recoded",
+                  "rob2_outcome.recoded", "rob2_report.recoded")) {
+      if (all(is.na(x_i_ok[, col]))) {
+        x_i_ok[, paste0(gsub("recoded", "agg", col))] <- NA
+      } else {
+        x_i_ok[, col] <- as.numeric(x_i_ok[, col])
+        x_i_ok[, paste0(gsub("recoded", "agg", col))] <-
+          weighted.mean(x_i_ok[,col],
+                        x_i_ok$weights, na.rm = TRUE) * 100
+      }
+    }
+
+    # View(x_i_ok[, c("rob.agg",
+    #                 "rob_rand.agg", "rob_deviation.agg", "rob_missing.agg",
+    #                 "rob_outcome.agg", "rob_report.agg")])
+    # if (all(is.na(x_i_ok$rob.recoded))) {
+    #   riskofbias = NA
+    # } else {
+    #   x_i_ok$rob.recoded = .as_numeric(x_i_ok$rob.recoded)
+    #   riskofbias = weighted.mean(x_i_ok$rob.recoded, x_i_ok$weights) * 100
+    # }
+
+    # AMSTAR
+    amstar = unique(x_i_ok$amstar)
+
+    # Jackknife
+    jk = data.frame(value = c(), p.value = c())
+
+    if (nrow(x_i_ok) > 1) {
+      for (i in 1:nrow(x_i_ok)) {
+        m_i = .meta(x_i_ok[(1:n_studies)[-i], ], method.var)
+        if (method.var == "FE") {
+          jk_i = data.frame(value = m_i$TE.fixed, p.value = m_i$pval.fixed)
         } else {
-          k = m$k
-          coef = m$TE.random
-          se = m$seTE.random
-          z = m$zval.random
-          p.value = m$pval.random
-          ci_lo = m$lower.random
-          ci_up = m$upper.random
-          tau2 = m$tau^2
-          i2 = m$I2 * 100
-          qe = m$Q
-          qe_p.value = m$pval.Q
+          jk_i = data.frame(value = m_i$TE.random, p.value = m_i$pval.random)
         }
+        rownames(jk_i) = paste(rownames(x_i_ok)[i], collapse = "/")
+        jk = rbind(jk, jk_i)
+      }
+    } else {
+      jk = data.frame(value = "Only one study", p.value = "Only one study")
+    }
 
-
-      # calculate prediction interval
-      # only for meta-analyses with at least 3 studies
-      if (n_studies < 3) {
-        pi_lo = NA
-        pi_up = NA
+    ## attr
+    ############## MD
+    if (measure %in% c("MD", "MC") & nrow(x_i_ok) > 1) {
+      if (REPEATED_STUDIES) {
+        x_i_ok_md = .agg_mcv(attr(x_i_es, "x_i_es_bis"),
+                             measure = measure,
+                             r = r)
       } else {
-        half_pi = qt(0.975, n_studies - 2) * sqrt(tau2 + se^2)
-        pi_lo = coef - half_pi
-        pi_up = coef + half_pi
+        x_i_ok_md = attr(x_i_es, "x_i_es_bis")
       }
 
-      # Create summary datasets of the random-effects model
-      ma_results = data.frame(value = coef, z, p.value, ci_lo, ci_up, pi_lo, pi_up)
-      rownames(ma_results) = switch(as.character(measure),
-                                "SMD" = "Bias-corrected SMD",
-                                "Z" = "Fisher's Z",
-                                "SMC" = "Standardized mean change",
-                                "OR" = "log (OR)",
-                                "RR" = "log (RR)",
-                                "IRR" = "log (IRR)",
-                                "HR" = "log (HR)")
+      m_md = .meta(x_i_ok_md, method.var)
 
-      # Create summary datasets of the heterogeneity
-      heterogeneity = data.frame(tau2, i2, qe, p.value = qe_p.value)
-
-      # identification of the largest study
-      if (measure == "IRR") {
-        largest = log(.largest_irr(x_i_ok))
-      } else if (measure %in% c("OR", "HR", "RR")) {
-        largest = log(.largest_or_rr_hr(x_i_ok))
-      } else if (measure %in% c("SMD", "SMC")) {
-        largest = .largest_smd(x_i_ok)
-      } else if (measure %in% c("Z")) {
-        largest = .largest_z(x_i_ok)
-      }
-
-      rownames(largest) = switch(as.character(measure),
-                                 "SMD" = "Bias-corrected SMD",
-                                 "Z" = "Fisher's Z",
-                                 "SMC" = "Standardized mean change",
-                                 "OR" = "log (OR)",
-                                 "RR" = "log (RR)",
-                                 "IRR" = "log (IRR)",
-                                 "HR" = "log (HR)")
-
-      # publication bias
-      # only for meta-analyses with at least 3 studies
-      if (n_studies < 3) {
-        egger = data.frame(statistic = NA, p.value = NA)
+      if (method.var == "FE") { #
+        coef = m_md$TE.fixed
+        ci_lo = m_md$lower.fixed
+        ci_up = m_md$upper.fixed
       } else {
-        # for future updates
-        if (measure == "SMD" & !REPEATED_STUDIES & any(is.na(x_i_ok$mean_cases))) {
-
-          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "SMD")
-          egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
-
-        } else if (measure %in% c("SMD", "SMC", "Z")) {
-
-          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "non_ratio")
-          egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
-
-        } else if (measure %in% c("OR", "HR", "RR", "IRR")) {
-
-          mb = .egger_pb(value = x_i_ok$value, se = x_i_ok$se, measure = "ratio")
-          egger = data.frame(statistic = mb$statistic, p.value = mb$p.value)
-
-        }
+        coef = m_md$TE.random
+        ci_lo = m_md$lower.random
+        ci_up = m_md$upper.random
       }
 
-      # excess significance bias
-      if (true_effect == "largest") {
-        true_value = "largest"
-      } else if (true_effect == "UWLS") {
-        true_value = "UWLS"
-      } else if (true_effect == "pooled") {
-        true_value = ifelse(measure %in% c("SMD", "SMC", "Z"),
-                            .as_numeric(ma_results$coef),
-                            exp(.as_numeric(ma_results$coef)))
-      } else if (is.numeric(true_effect)) {
-        true_value = true_effect
-      } else {
-        stop("The input in the 'true_effect' argument should be 'pooled', 'UWLS', 'largest' or a numeric value. Please see the manual for more information.")
-      }
+      val_md = c(coef, ci_lo, ci_up)
+    } else {
+      val_md = c(NA,NA,NA)
+      x_i_ok_md = NA
+    }
 
-      if (n_studies < 3) {
-        esb = data.frame(p.value = NA)
-      } else {
-        esb = esb.test(x_i_ok, method.esb = method.esb,
-                       measure = measure,
-                       input = "other", true_effect = true_value,
-                       seed = seed, tau2 = tau2)
-      }
+    ##############
+    rob_data = x_i_ok[, c("rob.agg",
+                          "rob_report.agg",
+                          "rob1_rand.agg",
+                          "rob1_allocation.agg",
+                          "rob1_blind_pers.agg",
+                          "rob1_blind_outcome.agg",
+                          "rob1_attrition.agg",
+                          "rob1_report.agg",
 
-      # risk of bias
-      riskofbias = weighted.mean(x_i_ok$rob.recoded, x_i_ok$sum_N) * 100
+                          "rob2_rand.agg", "rob2_deviation.agg", "rob2_missing.agg",
+                          "rob2_outcome.agg", "rob2_report.agg")]
+    weights_data = x_i_ok[,c(
+      "author", "year", "factor", "weights", "n_cases", "n_controls")
+    ]
 
-      # AMSTAR
-      amstar = attr(x_i_ok, "amstar")
-
-      # Jackknife
-      jk = data.frame(value = c(), p.value = c())
-
-      if (nrow(x_i_ok) > 1) {
-        for (i in 1:nrow(x_i_ok)) {
-            m_i = .meta(x_i_ok[(1:n_studies)[-i], ], method.var)
-
-            if (method.var == "FE") {
-              jk_i = data.frame(value = m_i$TE.fixed, p.value = m_i$pval.fixed)
-            } else {
-              jk_i = data.frame(value = m_i$TE.random, p.value = m_i$pval.random)
-            }
-            rownames(jk_i) = paste(rownames(x_i_ok)[i], collapse = "/")
-            jk = rbind(jk, jk_i)
-        }
-      } else {
-        jk = data.frame(value = "Only one study", p.value = "Only one study")
-      }
+    # Measure clean ratios
+    measure <- gsub("log", "", measure)
+    attr(x_i_ok, "measure") <- measure
 
     # FINAL
     y[[factor]] = list(
@@ -352,6 +544,7 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       x = x_i_ok,
       x_multi = attr(x_i_ok, "data_mult"),
       x_shared = attr(x_i_ok, "comparison_adjustment"),
+      x_md = x_i_ok_md,
       n = n,
       method.var = method.var,
       ma_results = ma_results,
@@ -359,9 +552,15 @@ umbrella = function (x, method.var = "REML", mult.level = FALSE, r = 0.5, method
       heterogeneity = heterogeneity,
       egger = egger,
       esb = esb,
-      riskofbias = riskofbias,
+      indirectness = unique(x_i_ok$indirectness)[1],
+      overall_rob = unique(rob_data$rob.agg)[1],
+      report_rob = unique(rob_data$rob_report.agg)[1],
+      perc_contradict = perc_contradict,
+      rob = rob_data,
+      weights = weights_data,
       amstar = amstar,
       jk = jk$p.value,
+      pooled_md = val_md,
       evidence = NA
     )
   }

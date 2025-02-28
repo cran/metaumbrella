@@ -86,7 +86,7 @@ Various parameters, such as the type of effect size displayed, the restriction t
 }
 \examples{
 ### perform an umbrella review
-umb <- umbrella(df.OR)
+umb <- umbrella(df.SMD)
 
 ### generate a forest plot of each factor included in the umbrella review
 forest(umb)

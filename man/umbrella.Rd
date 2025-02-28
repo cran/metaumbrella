@@ -9,9 +9,11 @@ umbrella(
   method.var = "REML",
   mult.level = FALSE,
   r = 0.5,
+  pre_post_cor = 0.8,
   method.esb = "TESSPSST",
   true_effect = "UWLS",
-  pre_post_cor = NA,
+  tau2 = NULL,
+  max_asymmetry = 10,
   seed = NA,
   verbose = TRUE
 )
@@ -25,11 +27,15 @@ umbrella(
 
 \item{r}{a correlation coefficient indicating the strength of the association between multiple outcomes (or time-points) within the same study. The \code{r} value is applied to all studies with a \code{"outcomes"} value in the \code{reverse_es} column that have no indication of correlation in the well-formatted dataset. Default is 0.5.}
 
-\item{method.esb}{the method used to conduct the excess of statistical significance test. It must be \code{"IT.binom"}, \code{"IT.chisq"}, \code{"PSST"}, \code{"TESS"} or \code{"TESSPSST"}  (see details). Default is \code{TESSPSST}.}
+\item{pre_post_cor}{The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. If your umbrella review includes pre-post controlled studies, you should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.}
+
+\item{method.esb}{the method used to conduct the excess of statistical significance test. It must be \code{"PSST"}, \code{"TESS"} or \code{"TESSPSST"}  (see details). Default is \code{TESSPSST}.}
 
 \item{true_effect}{the method to estimate the true effect in the test for excess significance. It must be \code{"largest"}, \code{"UWLS"}, \code{"pooled"} or a numeric value (see details). Default is \code{"UWLS"}.}
 
-\item{pre_post_cor}{The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. If your umbrella review includes pre-post controlled studies, you should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.}
+\item{tau2}{The tau2 value that should be used when using one of the \code{PSST}, \code{TESS} or \code{TESSPSST} methods (only if you want this value to be different from the one automatically estimated during the meta-analytic calculations).}
+
+\item{max_asymmetry}{The percentage of assymetry tolerated in the 95\% CI of the MD, OR and RR effect measures. Default is 10\%. Any stronger asymmetry will stop the analysis.}
 
 \item{seed}{an integer value used as an argument by the set.seed() function. Only used for the \code{"IT.binom"} and \code{"IT.chisq"} tests for excess significance with ratios (i.e., \dQuote{OR}, \dQuote{RR}, \dQuote{IRR} or their logarithm) as effect size measures.}
 
@@ -69,7 +75,13 @@ This list contains, for each factor included in the umbrella review:
 \code{esb} \tab results of the test for excess significance bias. See\cr
 \tab \code{\link{esb.test}()} for more information.\cr
 \tab \cr
-\code{riskofbias} \tab percentage of participants in studies at low risk of bias.\cr
+\code{overall_rob} \tab for the overall RoB, the proportion of participants in studies at low risk of bias (weighted mean based on meta-analytic weights).\cr
+\tab \cr
+\code{report_rob} \tab for the selective reporting bias, the proportion of participants in studies at low risk of bias (weighted mean based on meta-analytic weights).\cr
+\tab \cr
+\code{rob} \tab for each individual RoB, the proportion of participants in studies at low risk of bias (weighted mean based on meta-analytic weights).\cr
+\tab \cr
+\code{weights} \tab the weights assigned to each study in the meta-analysis.\cr
 \tab \cr
 \code{amstar} \tab AMSTAR score obtained by the meta-analysis.\cr
 \tab \cr

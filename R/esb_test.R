@@ -12,7 +12,7 @@
 #' @param measure the measure of the effect: "SMD", "MD", "R", "Z", "G", "OR" or "logOR, "RR" or "logRR", "HR" or "logHR", "IRR" or "logIRR".
 #' If a an object of class \dQuote{rma} or \dQuote{meta} is used, the effect size should be either "SMD" or "OR". However, note that for \dQuote{rma} objects, a SMD is systematically assumed to be a G (to respect the naming used in the \pkg{metafor} package). For \dQuote{meta} objects, a SMD is assumed to be a G unless it is explicitly stated that this is not the case (i.e., using the \code{method.smd = "Cohen"} argument).
 #' The effect size measure used can be indicated via the measure argument of the \code{esb.test()} function or directly when calling the \code{rma()} or \code{meta()} functions (see examples below).
-#' @param method.esb the method used to conduct the test. It must be \code{IT.binom}, \code{IT.chisq}, \code{PSST}, \code{TESS} or \code{TESSPSST}  (see details). Default is \code{"TESSPSST"}.
+#' @param method.esb the method used to conduct the test. It must be \code{PSST}, \code{TESS} or \code{TESSPSST}  (see details). Default is \code{"TESSPSST"}.
 #' @param tau2 The tau2 value that should be used when using one of the \code{PSST}, \code{TESS} or \code{TESSPSST} methods (see details).
 #' @param true_effect the best approximation of the true effect. It must be \code{"largest"}, \code{"UWLS"} or a numeric value (see details). Default is \code{"UWLS"}.
 #' @param seed an integer value used as an argument by the set.seed() function. Only used for measures "OR", "logOR, "RR", "logRR", "IRR" or "logIRR".
@@ -24,8 +24,6 @@
 #' * If a \code{numeric} value is entered, the true effect size is assumed to be equal to the value entered by the user (note that the value of ratios must be in their natural scale).
 #'
 #' Last, this function performs a statistical test to determine whether the observed number of statistically significant studies is higher than expected given the mean statistical power. The \code{method.esb} argument can be used to select the test.
-#' * If \code{"IT.binom"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a binomial exact test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
-#' * If \code{"IT.chisq"} is entered, the excess statistical significance test described by Ioannidis and Trikalinos (2007) is performed using a chi-square test. This test explores whether the number of studies with statistically significant results is higher than what could have been expected given the mean statistical power to detect the best approximation of the true effect.
 #' * If \code{"TESS"} is entered, the test of excess statistical significance (TESS) described by Stanley and colleagues (2021) is performed. This test assesses whether the proportion of excess statistical significance is larger than 5%. In this test, power calculations take into account between-study heterogeneity.
 #' * If \code{"PSST"} is entered, the proportion of statistical significance test (PSST) described by Stanley and colleagues (2021) is performed. This is a test assessing whether the proportion of statistically significant studies is higher than what could have been expected given the mean statistical power. In this test, power calculations take into account between-study heterogeneity.
 #' * If \code{"TESSPSST"} is entered, the function combines results of both "PSST" and "TESS" analyses. "TESSPSST" assumes an excess of statistical significance if at least one of "TESS" and "PSST" is statistically significant.
@@ -64,10 +62,10 @@
 #'
 #' ### perform an excess significance bias directly on this dataframe
 #' esb <- esb.test(df, measure = "SMD", input = "dataframe",
-#'                 method.esb = "IT.binom", true_effect = "largest")
+#'                 method.esb = "TESS", true_effect = "largest")
 #'
 #' ### perform an excess significance bias using the umbrella function
-#' esb.umbrella <- umbrella(df, method.esb = "IT.binom", true_effect = "largest")[[1]]$esb
+#' esb.umbrella <- umbrella(df, method.esb = "TESS", true_effect = "largest")[[1]]$esb
 #'
 #' ### perform an excess significance bias on a rma object
 #' ### we convert the SMD into Hedges' g
@@ -77,7 +75,7 @@
 #'                     ni = df$n_cases + df$n_controls,
 #'                     data = df)
 #'
-#' esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma", method.esb = "IT.binom")
+#' esb.rma <- esb.test(rma, n_cases = df$n_cases, input = "rma", method.esb = "TESS")
 #'
 #' ### perform an excess significance bias on a meta object
 #' meta <- meta::metagen(TE = G$value, seTE = G$se,
@@ -85,97 +83,75 @@
 #'                       n.e = n_cases, n.c = n_controls,
 #'                       data = df)
 #'
-#' esb.meta <- esb.test(meta, input = "meta", method.esb = "IT.binom")
+#' esb.meta <- esb.test(meta, input = "meta", method.esb = "TESS")
 #'
 #' all.equal(esb$p.value, esb.umbrella$p.value, esb.rma$p.value, esb.meta$p.value)
-esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, measure = NULL, method.esb = "TESSPSST", true_effect = "UWLS", seed = NA, tau2 = NA) {
+esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, measure = NULL, method.esb = "TESSPSST", true_effect = "UWLS", seed = NA, tau2 = NULL) {
 
   # some checkings
   if (length(unique(x$factor)) > 1) {
     stop("Only one factor can be assessed in the esb.test")
-  } else if (!method.esb %in% c("IT.binom", "IT.chisq", "TESS", "PSST", "TESSPSST")) {
-    stop("The method.esb argument must be either 'IT.binom', 'IT.chisq', 'TESS', 'PSST', 'TESSPSST'.)")
+  } else if (!method.esb %in% c("TESS", "PSST", "TESSPSST")) {
+    stop("The method.esb argument must be either 'TESS', 'PSST', 'TESSPSST'.)")
   } else if (!true_effect %in% c("UWLS", "largest") & !is.numeric(true_effect)) {
     stop("The true_effect argument should be either 'UWLS', 'largest', a numeric value or 'pooled' (=> only if indicated from the umbrella() function). Please see the manual for more information.")
-  } else if (method.esb %in% c("TESS", "PSST", "TESSPSST") & is.na(tau2)) {
-    stop("The tau2 value cannot be empty when requesting 'method.esb' = 'TESS', 'PSST' or 'TESSPSST'.")
   }
 
 
   # we check that the input passed to the function is appropriate according to the input required
   #### RMA -------
   if (input == "rma") {
+    if (!inherits(x, "rma")) { stop("The object passed to esb.test should be a 'rma' object when 'input = rma'") }
 
-      if (!inherits(x, "rma")) { stop("The object passed to esb.test should be a 'rma' object when 'input = rma'") }
+    measure = ifelse(x$measure %in% c("SMD", "OR", "logOR"),
+                     x$measure,
+                     ifelse(!is.null(measure),
+                            measure,
+                            stop("The measure should be indicated either when calling the 'rma' function or when calling the 'esb.test' function.")))
 
-      measure = ifelse(x$measure %in% c("SMD", "OR"),
-                       x$measure,
-                       ifelse(!is.null(measure),
-                              measure,
-                              stop("The measure should be indicated either when calling the 'rma' function or when calling the 'esb.test' function.")))
+    x = .rma_to_umbrella_x(x, n_cases, n_controls, measure)
+    tau2 = ifelse(is.null(tau2), attr(x, "tau2"), tau2)
+    measure[measure=="OR"] <- "logOR"
+  #### meta --------
+  } else if (input == "meta") {
 
-      x = .rma_to_umbrella_x(x, n_cases, n_controls, measure)
+    if (!inherits(x, "meta")) { stop("The object passed to esb.test should be a 'meta' object when 'input = meta'") }
 
-    #### meta --------
-    } else if (input == "meta") {
+    measure = ifelse(x$sm %in% c("SMD", "OR", "logOR"),
+                     x$sm,
+                     ifelse(!is.null(measure), measure, stop("The measure should be indicated either when calling the 'meta' function or when calling the 'esb.test' function.")))
 
-      if (!inherits(x, "meta")) { stop("The object passed to esb.test should be a 'meta' object when 'input = meta'") }
+    x = .meta_to_umbrella_x(x, n_cases, n_controls, measure)
+    tau2 = ifelse(is.null(tau2), attr(x, "tau2"), tau2)
+    measure[measure=="OR"] <- "logOR"
+  #### well-formatted dataset --------
+  } else if (input == "dataframe") {
+    res_umb = umbrella(subset(x, factor == unique(x$factor)[1]),
+             method.esb = method.esb,
+             mult.level=TRUE,
+             tau2 = tau2,
+             true_effect = true_effect, seed = seed)
+    return(res_umb[[1]]$esb)
+    #### called from umbrella() --------
+  }
+  if (method.esb %in% c("TESS", "PSST", "TESSPSST") & is.na(tau2)) {
+    stop("The tau2 value cannot be empty when requesting 'method.esb' = 'TESS', 'PSST' or 'TESSPSST'.")
+  }
 
-      measure = ifelse(x$sm %in% c("SMD", "OR"),
-                       x$sm,
-                       ifelse(!is.null(measure), measure, stop("The measure should be indicated either when calling the 'meta' function or when calling the 'esb.test' function.")))
+  if (measure %in% c("G", "SMC", "SMD", "MD", "MC")) {
 
-      x = .meta_to_umbrella_x(x, n_cases, n_controls, measure)
-
-    #### well-formatted dataset --------
-    } else if (input == "dataframe") {
-
-      # if (is.null(measure)) { stop("The measure should be indicated when calling the 'esb.test' function.") }
-
-      x_i_ok = attr(.check_data(x), "data")
-
-      if (any(x_i_ok$duplicate == TRUE)) {
-        x = .format_dataset(x_i_ok, mult.level = TRUE)
-        measure = attr(x, "measure")
-      } else {
-        x = .format_dataset(x_i_ok)
-        measure = attr(x, "measure")
-      }
-
-      if (measure %in% c("SMC", "SMD")) {
-        G = x[, "value"]
-        se_g = x[, "se"]
-        x[, "value"] = .estimate_d_from_g(g = G,
-                                          n_cases = x[, "n_cases"],
-                                          n_controls = x[, "n_controls"],
-                                          se = se_g)$value
-        x[, "se"] = .estimate_d_from_g(g = G,
-                                       n_cases = x[, "n_cases"],
-                                       n_controls = x[, "n_controls"],
-                                       se = se_g)$se
-        x[, "ci_lo"] = x[, "value"] - x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
-        x[, "ci_up"] = x[, "value"] + x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
-        x[, "measure"] = "SMD"
-        measure = "SMD"
-      }
-      #### called from umbrella() --------
-    } else if (input == "other") {
-
-      if (measure %in% c("SMC", "SMD")) {
-        G = x[, "value"]
-        se_g = x[, "se"]
-        x[, "value"] = .estimate_d_from_g(g = G, n_cases = x[, "n_cases"], n_controls = x[, "n_controls"], se = se_g)$value
-        x[, "se"] = .estimate_d_from_g(g = G, n_cases = x[, "n_cases"], n_controls = x[, "n_controls"], se = se_g)$se
-        x[, "ci_lo"] = x[, "value"] - x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
-        x[, "ci_up"] = x[, "value"] + x[, "se"] * qt(0.975, x[, "n_cases"] + x[, "n_controls"] - 2)
-        x[, "measure"] = "SMD"
-        measure = "SMD"
-      }
-   }
-
-
-  if (!(measure %in% c("SMD", "G", "SMC", "HR", "IRR", "OR", "RR", "Z"))) {
-    stop("The measure should be one of 'SMD',  'G'', 'SMC', 'Z', 'R', 'OR', 'HR', 'IRR', 'RR'")
+    N = x$n_cases + x$n_controls
+    if (any(is.na(N))) {
+      miss_n = which(is.na(N))
+      N_imput <- round((2 + x$value^2/4)/x$se^2) * 2
+      N[miss_n] = N_imput[miss_n]
+      x$n_cases[miss_n] = round(N[miss_n]/2)
+      x$n_controls[miss_n] = round(N[miss_n]/2)
+      x$n_sample[miss_n] = round(N[miss_n])
+    }
+    J <- .d_j(x$n_cases + x$n_controls - 2)
+    x$value <- x$value / J
+    x$se = sqrt(1/x$n_cases + 1/x$n_controls)
   }
 
   # Estimate p.values
@@ -189,7 +165,9 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     x$p.value[i] = ifelse(
       value_i == 0,
       1,
-      .two_tail(ifelse(measure %in% c("HR", "IRR", "OR", "RR", "Z"),
+      .two_tail(ifelse(measure %in% c("HR", "IRR", "OR", "RR",
+                                      "logHR", "logIRR", "logOR", "logRR",
+                                      "R", "Z"),
                        pnorm(value_i / x$se[i]),
                        pt(value_i / x$se[i], x$n_cases[i] + x$n_controls[i] - 2)
                        )
@@ -201,16 +179,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
 
   # estimate the best approximation of the true effect
   if (true_effect == "largest") {
-
-    if (measure == "IRR") {
-      true_value = .largest_irr(x, return = "value")
-    } else if (measure %in% c("OR", "HR", "RR")) {
-      true_value = .largest_or_rr_hr(x, return = "value")
-    } else if (measure %in% c("SMD", "SMC")) {
-      true_value = .largest_smd(x, return = "value")
-    } else if (measure %in% c("Z")) {
-      true_value = .largest_z(x, return = "value")
-    }
+    true_value = .largest_overall(x, return = "value")
   } else if (is.numeric(true_effect)) {
     true_value = true_effect
   } else if (true_effect == "UWLS") {
@@ -236,22 +205,13 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     } else {
       x$power = 1 - pnorm( (1.96 * x$se - abs(true_value)) / (sqrt(x$se^2 + tau2)) )
     }
-  } else {
-    for (i in 1:k) {
-      x$power[i] = switch (measure,
-                           "SMD"= .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i],
-                                           true_d = true_value, se = x$se[i]),
-                           "SMC" = .power_d(n_cases = x$n_cases[i], n_controls = x$n_controls[i],
-                                            true_d = true_value, se = x$se[i]),
-                           "Z" =  pwr::pwr.r.test(n = x$n_sample[i], r = .z_to_r(true_value),
-                                                  alternative = "two.sided")$power,
-                           "HR" = .power_hr(x[i, ], true_value),
-                           "IRR" = .power_irr(x[i, ], true_value),
-                           "OR" = .power_or(x[i, ], true_value),
-                           "RR" = .power_rr(x[i, ], true_value),
-                           NA)
-    }
   }
+
+  # print(measure)
+  # print(tau2)
+  # print(x$power[1])
+  # print(true_value)
+  # print(method.esb)
 
   # Conduct the test
   if (all(!is.na(x$power))) {
@@ -259,46 +219,15 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
     expected_mean_power = mean(x$power)
     Esig = sum(x$power)
     esb = switch (method.esb,
-                  "IT.binom" = {
-                    method.esb = "Original test for excess statistical significance (IT-IT.binom)"
-                    data.name <- paste0("A total of ", SS, " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
-                    test = binom.test(SS, k, expected_mean_power, alternative = "greater")
-                    list(
-                      method = method.esb,
-                      p.value = test$p.value,
-                      power = x$power,
-                      data.name = data.name,
-                      sig = x$signif,
-                      mean_power = expected_mean_power,
-                      k = k,
-                      SS = SS,
-                      Esig = Esig
-                    )
-                  },
-                  "IT.chisq" = {
-                    method.esb = "Original test for excess statistical significance (IT-chisq)"
-                    test = suppressWarnings(prop.test(SS, k, p = expected_mean_power, alternative = "greater", correct = FALSE))
-                    p.value = test$p.value
-                    data.name <- paste0("A total of ", SS, " studies have statistically significant results while the theoretical number of statistically significant studies is equal to ", round(Esig, 3))
-                    attr(p.value, "names") <- NULL
-                    list(
-                      method = method.esb,
-                      p.value = p.value,
-                      power = x$power,
-                      data.name = data.name,
-                      sig = x$signif,
-                      mean_power = expected_mean_power,
-                      k = k,
-                      SS = SS,
-                      Esig = Esig
-                    )
-                  },
                   "TESS" = {
                     method.esb = "New methods for excess statistical significance (TESS)"
                     ESS = (SS - Esig) / k
                     z_TESS = (ESS - 0.05) / sqrt(0.05 * (1 - 0.05) / k)
                     p.value = 1 - pnorm(z_TESS)
-                    data.name <- paste0("The proportion of excess statistical significance is equal to: ", round(ESS, 3)*100, "%")
+                    data.name <- paste0("A total of ", SS, " studies have statistically significant results,",
+                    " while we can theoritically expect this number to be ", Esig,
+                    ". The proportion of excess statistical significance is thus equal to: ",
+                    round(ESS, 3)*100, "%")
                     estimate <- z_TESS
                     attr(estimate, "names") <- "z-statistics"
                     attr(p.value, "names") <- NULL
@@ -366,7 +295,7 @@ esb.test = function (x, input = "dataframe", n_cases = NULL, n_controls = NULL, 
                   }
     )
   } else {
-    warning("An unplanned error occured in the excess of significance bias test. Please contact us to obtain more information.")
+    warning(paste0("An unplanned error occured in the excess of significance bias test for factor ", paste(unique(x$factor), collapse = ","), ". Please contact us to obtain more information."))
     esb = list(
       p.value = NA,
       method.esb = "Test for excess significance bias not conducted."

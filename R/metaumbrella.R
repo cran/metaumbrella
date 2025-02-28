@@ -84,7 +84,8 @@
 #'   The symbol \code{+} between two information indicates that the two information are mandatory.
 #'   The symbol \code{|} between two information indicates that only one of the two information is required.
 #'   For each effect size measure, users must provide information on at least one row of the table corresponding to the effect size measure used.
-#'   Note that users can provide different combination of information for a same factor (e.g., it is possible to include the SMD value + 95% CI + sample sizes for a study and the means/SDs + sample sizes for another study within the same factor). \cr
+#'   Note that users can provide different combination of information for a same factor (e.g., it is possible to include the SMD value + 95% CI + sample sizes for a study and the means/SDs + sample sizes for another study within the same factor).
+#'   We consider the sample size as mandatory given this information is often critical, but basic meta-analytic calculations will run without them in most cases.\cr
 #'
 #' ### \bold{1. "SMD"}
 #'
@@ -185,20 +186,16 @@
 #'  }
 #' \item \bold{r}: When a study reports multiple effect sizes coming from the measurement of several outcomes (or measurements of the same outcome at different time-points) in the same participants, the \code{r} column can be used to indicate the value of the correlation coefficient between the effect sizes of a given study.
 #'  The r value should be (i) within the (-1, 1) range, (ii) constant within a study, and (iii) set as \code{NA} for studies which do not include multiple effect sizes coming from different outcomes/time-points.
-#' \item \bold{shared_nexp}: In some situations, several studies share participants from the same non-exposed group but compare this group to various exposed groups.
-#'  When several studies in the same factor share a same non-exposed group, they should be identified as such by having the same \code{shared_nexp} value.
-#'  Identifying studies sharing the same non-exposed group allows to adjust calculations (the size of the shared sample is divided by the number of studies sharing the sample).
-#'  Studies not sharing their non-exposed group should have a \code{NA} (or a unique) value in the \code{shared_nexp} column.
-#' \item \bold{shared_controls}: In some situations, several studies share participants from the same control group but compare this group to various experimental groups.
-#'  When several studies in the same factor share a same control group, they should be identified as such by having the same \code{shared_control} value.
-#'  Identifying studies sharing the same control group allows to adjust calculations (the size of the shared sample is divided by the number of studies sharing the sample).
-#'  Studies not sharing their control group should have a \code{NA} (or a unique) value in the \code{shared_controls} column.
 #' \item \bold{pre_post_cor}: The value of the correlation coefficient between baseline and follow-up scores in pre-post studies. You should indicate the mean pre-post correlation across groups. Only needed when using the SMC measure.
 #' \item \bold{reverse_es}: Whether users want to reverse the effect size of a study. All rows with a \code{"reverse"} value in this column will have the direction of their effect size flipped (e.g., an OR of 0.5 will be expressed as 2). Note that the reverse_es column has an action on both the direction of the value of an effect size and on the information used to calculate an effect size
 #' (e.g., if the means and SDs of experimental and control groups are reported, the mean and SD of the experimental group are used as the mean and SD of the control group and vice-versa).
 #' This feature is particularly useful to facilitate the presentation of the results when several meta-analyses report the same effects in opposite direction.
-#' \item \bold{rob}: The risk of bias of each individual study. Should be either "high", "low" or "unclear". These values are used to generate the "GRADE" classification and to stratify evidence according to the 'rob' criteria in the 'Personalized' classification.
+#' \item \bold{rob}: The overall risk of bias of each individual study. Should be either "high", "low" or "unclear". These values are used to generate the "GRADE" classification and to stratify evidence according to the 'rob' criteria in the 'Personalized' classification.
 #'  Studies with a missing rob are assumed to be at high risk of bias. The approach used to provide a categorical judgment ("low" vs. "unclear" vs. "high) on the risk of bias of a study is left to the user.
+#' \item \bold{rob1_rand, rob1_allocation, rob1_blind_pers, rob1_blind_outcome,
+#' rob1_attrition, rob1_report, rob2_rand, rob2_deviation, rob2_missing,
+#' rob2_outcome, rob2_report}: All individual risk of bias. Note that the reporting bias (rob1_report & rob2_report) is required to the GRADE stratification.
+#' \item \bold{indirectness}: Whether a given factor is at risk of indirectness (only used for the GRADE stratification). Note that the indirectness score ('very serious', 'serious', 'no indirectness') should be constant for a given factor.
 #' \item \bold{amstar}: The amstar score of the meta-analysis. Note that the amstar score should be constant for a given factor.
 #' These values are used only to stratify evidence according to the 'amstar' criteria in the 'Personalized' classification.
 #' \item \bold{analysis}: Whether users want to conduct specific analyses. For now, only the \code{"allelic"} value can be specified, which multiplies by two the number of cases and controls.

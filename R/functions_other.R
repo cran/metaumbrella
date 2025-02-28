@@ -159,26 +159,30 @@
             j = .d_j(n_cas + n_cont - 2)
 
             if (!is.null(x$method.smd)) {
+              print(x$method.smd)
               if (x$method.smd == "Hedges") {
-              value <- x$TE / j
-              se <- sqrt(1 / n_cas + 1 / n_cont)
-              } else {
                 value <- x$TE
-                se <- sqrt(1 / n_cas + 1 / n_cont)
+                se = x$seTE
+              } else {
+                value <- x$TE * j
+                se = sqrt(x$seTE^2 * j^2)
+                # value <- x$TE
+                # se = x$seTE
               }
             } else {
-              value <- x$TE / j
-              se <- sqrt(1 / n_cas + 1 / n_cont)
+              # print("x$method.smd")
+              value <- x$TE
+              se = x$seTE
             }
 
-            sum_N = apply(cbind(n_cas, n_cont), 1, sum)
+            n_sample = apply(cbind(n_cas, n_cont), 1, sum)
 
             returned_df = data.frame(
               value = value,
               se = se,
               n_cases = n_cas,
               n_controls = n_cont,
-              sum_N = sum_N,
+              n_sample = n_sample,
               ci_lo = NA,
               ci_up = NA,
               reverse_es = NA
@@ -196,12 +200,12 @@
             }
             n_tot = data.frame(n_cases_exp = NA, n_cases_nexp = NA, n_controls_exp = NA, n_controls_nexp = NA)
 
-            if (measure == "OR") { # for future updates
+            if (measure == "OR") {
               for (i in 1:length(n_cas)) {
                 n_tot[i,] <- .estimate_n_from_or_and_n_cases(or = exp(x$TE[i]), var = x$seTE[i]^2, n_cases = n_cas[i], n_controls = n_cont[i])
               }
             }
-            sum_N = apply(cbind(n_cas, n_cont), 1, sum)
+            n_sample = apply(cbind(n_cas, n_cont), 1, sum)
 
             returned_df = data.frame(
               n_tot,
@@ -209,15 +213,16 @@
               n_controls = n_cont,
               n_exp = n_tot$n_cases_exp + n_tot$n_controls_exp,
               n_nexp = n_tot$n_cases_nexp + n_tot$n_controls_nexp,
-              value = exp(x$TE),
+              value = x$TE,
               se = x$seTE,
-              sum_N = sum_N,
+              n_sample = n_sample,
               ci_lo = NA,
               ci_up = NA,
               reverse_es = NA
             )
           }
   )
+  attr(returned_df, "tau2") = x$tau2
   return(returned_df)
 }
 
@@ -264,16 +269,16 @@
   } else if (!is.null(x$ni) & !is.null(n_cases)){
     x$ni - n_cases
   }
-  sum_N = apply(cbind(n_cas, n_cont), 1, sum)
+  n_sample = apply(cbind(n_cas, n_cont), 1, sum)
   switch (measure,
           "SMD" = {
-            j = .d_j(n_cas + n_cont - 2)
+            # j = .d_j(n_cas + n_cont - 2)
             returned_df = data.frame(
-              value = .as_numeric(x$yi) / j,
-              se = sqrt(1 / n_cas + 1 / n_cont),
+              value = .as_numeric(x$yi), #/ j,
+              se = sqrt(.as_numeric(x$vi)), #sqrt(1 / n_cas + 1 / n_cont),
               n_cases = n_cas,
               n_controls = n_cont,
-              sum_N = sum_N,
+              n_sample = n_sample,
               ci_lo = NA,
               ci_up = NA,
               reverse_es = NA
@@ -289,15 +294,17 @@
               n_controls = n_cont,
               n_exp = n_tot$n_cases_exp + n_tot$n_controls_exp,
               n_nexp = n_tot$n_cases_nexp + n_tot$n_controls_nexp,
-              value = as.numeric(as.character(exp(x$yi))),
+              value = as.numeric(as.character(x$yi)),
               se = sqrt(as.numeric(as.character(x$vi))),
-              sum_N = sum_N,
+              n_sample = n_sample,
               ci_lo = NA,
               ci_up = NA,
               reverse_es = NA
             )
           }
   )
+
+  attr(returned_df, "tau2") = x$tau2
   return(returned_df)
 }
 
@@ -321,7 +328,7 @@
   # if there is equality in the time we take the study with the lowest ES
   if (length(largest_index_transit) > 1) {
     largest_index = largest_index_transit[which.min(abs(log(x[largest_index_transit,]$value)))]
-    # if there is equality in the sum_N we take the study with the lowest ES
+    # if there is equality in the n_sample we take the study with the lowest ES
     largest = data.frame(ci_lo = x[largest_index,]$ci_lo,
                          ci_up = x[largest_index,]$ci_up,
                          value = x[largest_index,]$value)
@@ -348,16 +355,16 @@
 #'
 #' @noRd
 .largest_or_rr_hr <- function(x, return = "ci") {
-  largest_index_transit = which(x$sum_N == max(x$sum_N))
+  largest_index_transit = which(x$n_sample == max(x$n_sample))
   if (length(largest_index_transit) > 1) {
 
     largest_index = largest_index_transit[which.min(abs(log(x[largest_index_transit,]$value)))]
-    # if there is equality in the sum_N we take the study with the lowest ES
+    # if there is equality in the n_sample we take the study with the lowest ES
     largest = data.frame(ci_lo = x[largest_index,]$ci_lo,
                          ci_up = x[largest_index,]$ci_up,
                          value = x[largest_index,]$value)
   } else {
-    # there is only one maximum value for sum_N
+    # there is only one maximum value for n_sample
     largest_index = largest_index_transit
     largest = data.frame(ci_lo = x[largest_index,]$ci_lo,
                            ci_up = x[largest_index,]$ci_up,
@@ -372,6 +379,44 @@
   }
   return(dat)
 }
+#' function selecting the largest study with smd measure
+#'
+#' @param x a well formatted dataset
+#'
+#' @noRd
+.largest_overall <- function(x, return = "ci") {
+  largest_index_transit = which(x$n_sample == max(x$n_sample))
+  if (length(largest_index_transit) < 1) {
+    largest_index_transit = which.min(x$se)[1]
+  }
+  if (length(largest_index_transit) > 1) {
+    largest_index = largest_index_transit[which.min(abs(x[largest_index_transit,]$value))]
+
+    # if there is equality in the n_sample we take the study with the lowest ES
+    largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
+                         ci_up = x[largest_index, ]$ci_up,
+                         value = x[largest_index, ]$value,
+                         n_sample = x[largest_index, ]$n_sample,
+                         se = x[largest_index, ]$se)
+  } else {
+    # there is only one maximum value for n_sample
+    largest_index = largest_index_transit
+    largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
+                         ci_up = x[largest_index, ]$ci_up,
+                         value = x[largest_index, ]$value,
+                         n_cases = x[largest_index, ]$n_cases,
+                         n_controls = x[largest_index, ]$n_controls,
+                         se = x[largest_index, ]$se)
+  }
+  if (return == "ci") {
+    dat = largest[, c("ci_lo", "ci_up")]
+  } else if (return == "value") {
+    dat = .as_numeric(largest$value)
+  } else if (return == "nrow") {
+    dat = largest_index
+  }
+  return(dat)
+}
 
 #' function selecting the largest study with smd measure
 #'
@@ -379,18 +424,18 @@
 #'
 #' @noRd
 .largest_smd <- function(x, return = "ci") {
-  largest_index_transit = which(x$sum_N == max(x$sum_N))
+  largest_index_transit = which(x$n_sample == max(x$n_sample))
   if (length(largest_index_transit) > 1) {
     largest_index = largest_index_transit[which.min(abs(x[largest_index_transit,]$value))]
 
-    # if there is equality in the sum_N we take the study with the lowest ES
+    # if there is equality in the n_sample we take the study with the lowest ES
     largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
                          ci_up = x[largest_index, ]$ci_up,
                          value = x[largest_index, ]$value,
                          n_sample = x[largest_index, ]$n_sample,
                          se = x[largest_index, ]$se)
   } else {
-    # there is only one maximum value for sum_N
+    # there is only one maximum value for n_sample
     largest_index = largest_index_transit
     largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
                          ci_up = x[largest_index, ]$ci_up,
@@ -416,19 +461,19 @@
 #' @noRd
 .largest_z <- function(x, return = "ci") {
 
-  largest_index_transit = which(x$sum_N == max(x$sum_N))
+  largest_index_transit = which(x$n_sample == max(x$n_sample))
 
   if (length(largest_index_transit) > 1) {
     largest_index = largest_index_transit[which.min(abs(x[largest_index_transit,]$value))]
 
-    # if there is equality in the sum_N we take the study with the lowest ES
+    # if there is equality in the n_sample we take the study with the lowest ES
     largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
                          ci_up = x[largest_index, ]$ci_up,
                          value = x[largest_index, ]$value,
                          n_sample = x[largest_index, ]$n_sample,
                          se = x[largest_index, ]$se)
   } else {
-    # there is only one maximum value for sum_N
+    # there is only one maximum value for n_sample
     largest_index = largest_index_transit
     largest = data.frame(ci_lo = x[largest_index, ]$ci_lo,
                          ci_up = x[largest_index, ]$ci_up,
@@ -717,12 +762,101 @@
 
 #' @importFrom grDevices dev.off pdf
 #' @importFrom graphics lines plot.new plot.window strwidth text points
-#' @importFrom stats prop.test aggregate.data.frame binom.test lm na.omit optim optimize pnorm pt qnorm qt quantile rbinom rpois weighted.mean
+#' @importFrom stats prop.test dnorm aggregate.data.frame binom.test lm na.omit optim optimize pnorm pt qnorm qt quantile rbinom rpois weighted.mean
 #' @importFrom utils browseURL write.csv
 NULL
 
 utils::globalVariables(c("duplicate", "multiple_es", "shared_controls", "aggregate", "row_index",
-                         "es", "ci_lo", "ci_up", "shared_nexp", "tail",
+                         "es", "x", "ci_lo", "ci_up", "shared_nexp", "tail",
                          ".get_file_extension", "study", "check_sensitivity", "tk_choose.dir",
                          "tk_choose.files", "tk_select.list", "excel_sheets", ".read.excel", ".get_filename_without_extension",
                          ".write_errors_file"))
+
+.n_samplea <- function(x, na.rm) {
+  if (sum(is.na(x)) == length(x) & na.rm == TRUE) {
+    NA
+  } else {
+    sum(x, na.rm = na.rm)
+  }
+}
+.mean_na <- function(x, na.rm) {
+  if (sum(is.na(x)) == length(x) & na.rm == TRUE) {
+    NA
+  } else {
+    mean(x, na.rm = na.rm)
+  }
+}
+.min_na <- function(x, na.rm) {
+  if (sum(is.na(x)) == length(x) & na.rm == TRUE) {
+    NA
+  } else {
+    min(x, na.rm = na.rm)
+  }
+}
+.max_na <- function(x, na.rm) {
+  if (sum(is.na(x)) == length(x) & na.rm == TRUE) {
+    NA
+  } else {
+    max(x, na.rm = na.rm)
+  }
+}
+
+.summary_n = function(x_i_ok, measure, m, method.var) {
+
+  if (nrow(x_i_ok) == 1) {
+    k = 1
+    coef = ifelse(measure %in% c("G", "MD", "Z"), x_i_ok$value, log(x_i_ok$value))
+    se = x_i_ok$se
+    z = coef / se
+    p.value = ifelse(coef == 0, 1,
+                     .two_tail(ifelse(measure %in% c("G", "MD"),
+                                      pt(z, x$n_cases + x$n_controls - 2),
+                                      pnorm(z))))
+    ci_lo = ifelse(measure %in% c("G", "MD", "Z"), x_i_ok$ci_lo, log(x_i_ok$ci_lo))
+    ci_up = ifelse(measure %in% c("G", "MD", "Z"), x_i_ok$ci_up, log(x_i_ok$ci_up))
+    tau2 = i2 = qe = qe_p.value = NA
+  } else if (method.var == "FE") {
+    k = m$k
+    coef = m$TE.fixed
+    se = m$seTE.fixed
+    z = m$zval.fixed
+    p.value = m$pval.fixed
+    ci_lo = m$lower.fixed
+    ci_up = m$upper.fixed
+    tau2 = 0
+    i2 = m$I2 * 100
+    qe = m$Q
+    qe_p.value = m$pval.Q
+  } else {
+    k = m$k
+    coef = m$TE.random
+    se = m$seTE.random
+    z = m$zval.random
+    p.value = m$pval.random
+    ci_lo = m$lower.random
+    ci_up = m$upper.random
+    tau2 = m$tau^2
+    i2 = m$I2 * 100
+    qe = m$Q
+    qe_p.value = m$pval.Q
+  }
+}
+
+#' Sum NA
+#'
+#' @param x applied on df
+#'
+#' @noRd
+.sum_na <- function (x, na.rm)
+{
+  if (sum(is.na(x)) == length(x) & na.rm == TRUE) {
+    NA
+  }
+  else {
+    sum(x, na.rm = na.rm)
+  }
+}
+
+
+
+
